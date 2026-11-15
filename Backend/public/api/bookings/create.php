@@ -125,13 +125,11 @@ try {
         json_error('IDENTITY_REQUIRED', 'Unggah dokumen identitas sebelum checkout', 422);
     }
 
-    // Hanya boleh checkout setelah verifikasi identitas
-    $isVerified = filter_var($user['identity_doc_verified'], FILTER_VALIDATE_BOOLEAN);
-
-    if (!$isVerified) {
+    if (empty($user['identity_doc_type']) || empty($user['identity_doc_url'])) {
         $pdo->rollBack();
-        json_error('IDENTITY_NOT_VERIFIED', 'Dokumen identitas belum diverifikasi admin', 403);
+        json_error('IDENTITY_REQUIRED', 'Unggah dokumen identitas sebelum checkout', 422);
     }
+
 
     // Ambil alamat profil pada saat checkout
     $addressSnapshot = trim($user['address']);
