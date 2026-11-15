@@ -56,7 +56,7 @@ try {
             'booth_code' => $device['booth_code'],
             'status' => $device['status'],
             'price_per_day' => (float) $device['price_per_day'],
-            'is_rented' => (bool) $device['is_rented'],
+            'is_rented' => in_array($device['is_rented'], [true, 1, '1', 't', 'true'], true),
             'end_time' => $device['end_time'],
         ];
     }
