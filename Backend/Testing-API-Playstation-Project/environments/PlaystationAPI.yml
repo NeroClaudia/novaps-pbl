@@ -1,0 +1,4 @@
+name: PlaystationAPI
+variables:
+  - name: local
+    value: http://localhost/playstation/backend/public/api
