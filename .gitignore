@@ -10,3 +10,5 @@ Backend/uploads/*
 .idea
 
 !Backend/uploads/.htaccess
+/Backend/Testing-API-Playstation-Project/
+/Backend/tests/*.http
