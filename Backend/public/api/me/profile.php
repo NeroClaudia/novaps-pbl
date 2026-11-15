@@ -2,7 +2,7 @@
 <?php
 
 require __DIR__ . '/../../../includes/bootstrap.php';
-/** @var PDO $pdo */
+require_once __DIR__ . '/../../../includes/storage.php';
 
 header('Cache-Control: private, no-store');
 
@@ -49,7 +49,7 @@ function customerProfile(PDO $pdo, int $userId): array
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Membaca foto identitas milik customer yang sedang login.
+ // Membaca foto identitas melalui private Supabase Storage.
 if ($method === 'GET' && ($_GET['image'] ?? '') === '1') {
     try {
         $stmt = $pdo->prepare(
@@ -58,76 +58,65 @@ if ($method === 'GET' && ($_GET['image'] ?? '') === '1') {
              WHERE user_id = :id AND role = 'customer'"
         );
         $stmt->execute(['id' => $customerId]);
-        $relativePath = $stmt->fetchColumn();
 
-        if (!$relativePath) {
-            json_error('NOT_FOUND', 'Foto identitas belum tersedia', 404);
-        }
+        $objectPath = $stmt->fetchColumn();
 
-        if (!preg_match(
-            '~^identity_docs/[a-f0-9]{32}\.(jpg|png)$~D',
-            $relativePath
-        )) {
+        if (!$objectPath) {
             json_error(
                 'NOT_FOUND',
-                'Format lokasi foto tidak didukung',
+                'Foto identitas belum tersedia',
                 404
             );
         }
 
-        $directory = realpath(UPLOAD_DIR . '/identity_docs');
-        $file = realpath(UPLOAD_DIR . '/' . $relativePath);
+        // Pastikan customer hanya dapat mengambil
+        // dokumen yang berada dalam folder miliknya.
+        $expectedPattern =
+            '~^customers/' . $customerId .
+            '/[a-f0-9]{32}\.(jpg|png)$~D';
 
-        if (!$directory || !$file || !is_file($file)) {
-            json_error('NOT_FOUND', 'Foto tidak ditemukan', 404);
+        if (!preg_match($expectedPattern, $objectPath)) {
+            json_error(
+                'NOT_FOUND',
+                'Foto lama belum tersedia di Supabase Storage. Silakan unggah ulang.',
+                404
+            );
         }
 
-        $parent = dirname($file);
-        $inside = PHP_OS_FAMILY === 'Windows'
-            ? strcasecmp($parent, $directory) === 0
-            : $parent === $directory;
-
-        if (!$inside) {
-            json_error('NOT_FOUND', 'Foto tidak ditemukan', 404);
-        }
-
-        $maxBytes = 2 * 1024 * 1024;
-        $image = file_get_contents($file, false, null, 0, $maxBytes + 1);
-
-        if ($image === false || strlen($image) > $maxBytes) {
-            throw new RuntimeException('File gambar tidak valid');
-        }
-
-        $mime = (new finfo(FILEINFO_MIME_TYPE))->buffer($image);
-
-        if (!in_array($mime, ['image/jpeg', 'image/png'], true)) {
-            throw new RuntimeException('Format gambar tidak didukung');
-        }
-
+        $image = storage_download(
+            storage_identity_bucket(),
+            $objectPath
+        );
 
         session_write_close();
 
-        // Bersihkan output buffer sebelum mengirim data biner.
-        // Jangan lakukan ini jika ada output penting lain yang
-        // memang harus dikirim.
         while (ob_get_level() > 0) {
             ob_end_clean();
         }
 
-        header('Content-Type: ' . $mime);
-        header('Content-Length: ' . strlen($image));
+        header('Content-Type: ' . $image['mime']);
+        header('Content-Length: ' . strlen($image['bytes']));
         header('Content-Disposition: inline');
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: private, no-store');
 
-        echo $image;
+        echo $image['bytes'];
         exit;
-        
+
     } catch (Throwable $e) {
-        error_log('Identity Image Error: ' . $e->getMessage());
-        json_error('SERVER_ERROR', 'Gagal membaca gambar', 500);
+        error_log(
+            'Identity Storage Download Error: ' .
+            $e->getMessage()
+        );
+
+        json_error(
+            'SERVER_ERROR',
+            'Gagal membaca foto identitas dari Storage',
+            502
+        );
     }
 }
+
 
 // Ambil profil langsung dari PostgreSQL.
 if ($method === 'GET') {
@@ -245,7 +234,10 @@ if ($hasFile) {
     }
 }
 
-$savedPath = null;
+
+$uploadedObjectPath = null;
+$oldObjectPath = null;
+$responseProfile = null;
 
 try {
     $pdo->beginTransaction();
@@ -256,6 +248,7 @@ try {
          WHERE user_id = :id AND role = 'customer'
          FOR UPDATE"
     );
+
     $stmt->execute(['id' => $customerId]);
     $old = $stmt->fetch();
 
@@ -264,32 +257,24 @@ try {
         json_error('NOT_FOUND', 'Customer tidak ditemukan', 404);
     }
 
-    $relativePath = $old['identity_doc_url'];
+    $oldObjectPath = $old['identity_doc_url'];
+    $objectPath = $oldObjectPath;
     $verified = null;
 
     if ($hasFile) {
-        $directory = UPLOAD_DIR . '/identity_docs';
+        // Nama objek berbeda untuk setiap upload.
+        $uploadedObjectPath = storage_new_object_path('customers/' . $customerId, $extension);
 
-        if (
-            !is_dir($directory) &&
-            !mkdir($directory, 0700, true) &&
-            !is_dir($directory)
-        ) {
-            throw new RuntimeException('Folder upload gagal dibuat');
-        }
+        // Upload ke bucket private.
+        storage_upload(storage_identity_bucket(), $uploadedObjectPath, $file['tmp_name'], $mime);
 
-        $filename = bin2hex(random_bytes(16)) . '.' . $extension;
-        $relativePath = 'identity_docs/' . $filename;
-        $savedPath = $directory . '/' . $filename;
+        // Simpan path baru hanya setelah upload berhasil.
+        $objectPath = $uploadedObjectPath;
 
-        if (!move_uploaded_file($file['tmp_name'], $savedPath)) {
-            throw new RuntimeException('Gagal menyimpan foto identitas');
-        }
-
-        // Foto baru harus diverifikasi ulang oleh admin.
+        // Dokumen baru harus diverifikasi ulang.
         $verified = false;
+
     } elseif ($docType !== '' && $docType !== $old['identity_doc_type']) {
-        // Mengubah jenis identitas juga membatalkan verifikasi lama.
         $verified = false;
     }
 
@@ -303,57 +288,97 @@ try {
              identity_doc_url = :doc_url,
              identity_doc_verified =
                  COALESCE(:verified, identity_doc_verified)
-         WHERE user_id = :id AND role = 'customer'"
+         WHERE user_id = :id
+           AND role = 'customer'"
     );
 
     $update->bindValue(':name', $name);
     $update->bindValue(':phone', $phone);
-    $update->bindValue(':email', $email === '' ? null : $email);
+    $update->bindValue(
+        ':email',
+        $email === '' ? null : $email
+    );
     $update->bindValue(':address', $address);
     $update->bindValue(
         ':doc_type',
-        $docType !== '' ? $docType : ($old['identity_doc_type'] ?: null)
+        $docType !== ''
+            ? $docType
+            : ($old['identity_doc_type'] ?: null)
     );
-    $update->bindValue(':doc_url', $relativePath);
-    $update->bindValue(':verified', $verified, $verified === null
-        ? PDO::PARAM_NULL : PDO::PARAM_BOOL);
-    $update->bindValue(':id', $customerId, PDO::PARAM_INT);
+    $update->bindValue(':doc_url', $objectPath);
+    $update->bindValue(
+        ':verified',
+        $verified,
+        $verified === null
+            ? PDO::PARAM_NULL
+            : PDO::PARAM_BOOL
+    );
+    $update->bindValue(
+        ':id',
+        $customerId,
+        PDO::PARAM_INT
+    );
+
     $update->execute();
+
+    $responseProfile = customerProfile(
+        $pdo,
+        $customerId
+    );
 
     $pdo->commit();
 
-    $_SESSION['auth']['full_name'] = $name;
-
-    json_response([
-        'success' => true,
-        'data' => customerProfile($pdo, $customerId)
-    ]);
-
-} catch (PDOException $e) {
-    if ($pdo->inTransaction()) $pdo->rollBack();
-
-    if ($savedPath && is_file($savedPath)) {
-        @unlink($savedPath);
-    }
-
-    if ($e->getCode() === '23505') {
-        json_error(
-            'DUPLICATE_PROFILE',
-            'Nomor HP atau email sudah digunakan',
-            409
-        );
-    }
-
-    error_log('Profile POST Error: ' . $e->getMessage());
-    json_error('SERVER_ERROR', 'Gagal menyimpan profil', 500);
-
 } catch (Throwable $e) {
-    if ($pdo->inTransaction()) $pdo->rollBack();
-
-    if ($savedPath && is_file($savedPath)) {
-        @unlink($savedPath);
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
     }
 
-    error_log('Profile POST Error: ' . $e->getMessage());
-    json_error('SERVER_ERROR', 'Gagal menyimpan profil', 500);
+    // Kompensasi jika upload sukses tetapi database gagal.
+    if ($uploadedObjectPath !== null) {
+        try {
+            storage_delete(
+                storage_identity_bucket(),
+                $uploadedObjectPath
+            );
+        } catch (Throwable $cleanupError) {
+            error_log('Identity Storage Cleanup Error: ' . $cleanupError->getMessage());
+        }
+    }
+
+    if ($e instanceof PDOException && $e->getCode() === '23505') {
+        json_error('DUPLICATE_PROFILE', 'Nomor HP atau email sudah digunakan', 409);
+    }
+
+    error_log('Profile Storage Update Error: ' . $e->getMessage());
+
+    json_error('SERVER_ERROR', 'Gagal menyimpan profil customer', 500);
 }
+
+// Database sudah berhasil disimpan pada titik ini.
+$_SESSION['auth']['full_name'] = $name;
+
+// Hapus file Storage lama setelah commit.
+// File dari filesystem lokal tidak disentuh.
+if (
+    $uploadedObjectPath !== null &&
+    is_string($oldObjectPath) &&
+    $oldObjectPath !== $uploadedObjectPath &&
+    preg_match(
+        '~^customers/' . $customerId .
+        '/[a-f0-9]{32}\.(jpg|png)$~D',
+        $oldObjectPath
+    )
+) {
+    try {
+        storage_delete(storage_identity_bucket(), $oldObjectPath);
+    } catch (Throwable $e) {
+        // Gagal menghapus objek lama tidak membatalkan
+        // update profil yang sudah berhasil.
+        error_log('Old Identity Cleanup Error: ' . $e->getMessage());
+    }
+}
+
+json_response([
+    'success' => true,
+    'data' => $responseProfile
+]);

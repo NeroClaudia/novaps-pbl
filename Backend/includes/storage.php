@@ -1,5 +1,5 @@
-declare(strict_types=1);
 <?php
+declare(strict_types=1);
 /**
  * Supabase Storage helper untuk NovaPS.
  *
@@ -113,7 +113,6 @@ function storage_request(string $method, string $url, ?string $body = null, ?str
 
     $headers = [
         'apikey: ' . $secret,
-        'Authorization: Bearer ' . $secret,
     ];
 
     if ($contentType !== null) {
