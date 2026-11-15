@@ -1,52 +1,109 @@
+
 /*
- * Sign up page.
- * Requires js/shared/session.js, validation.js and image.js.
+ * NovaPS - Customer Registration
+ * Backend: PHP + PostgreSQL
  */
-(function () {
-  var form = document.getElementById("signup-form");
+(() => {
+  const API_BASE = "/api";
+  const form = document.getElementById("signup-form");
 
-  // ID card preview
-  var upload = form.querySelector("[data-upload]");
-  var fileInput = upload.querySelector("input");
-  fileInput.addEventListener("change", function () {
-    var file = fileInput.files[0];
-    var isImage = !!file && /^image\//.test(file.type);
-    if (isImage) upload.querySelector("img").src = URL.createObjectURL(file);
-    upload.toggleAttribute("data-has-image", isImage);
-  });
+  if (!form) return;
 
-  var button = form.querySelector('button[type="submit"]');
-  button.dataset.label = button.textContent;
+  const button = form.querySelector(
+    'button[type="submit"]'
+  );
 
-  NovaPS.initForm(form, function () {
-    var profile = {
-      fullname: form.elements.fullname.value.trim(),
-      phone: form.elements.phone.value.trim(),
-      address: form.elements.address.value.trim(),
-      email: form.elements.email.value.trim(),
-    };
+  function showError(input, message) {
+    const field = input.closest("[data-field]");
+    if (!field) return;
 
-    if (NovaPS.users.isBlocked(profile.email)) {
-      var field = form.elements.email.closest("[data-field]");
-      field.setAttribute("data-invalid", "");
-      field.querySelector("[data-error]").textContent =
-        "This account has been blocked. Please contact the admin.";
-      button.disabled = false;
-      button.textContent = button.dataset.label;
+    field.toggleAttribute("data-invalid", !!message);
+
+    const error = field.querySelector("[data-error]");
+    if (error) error.textContent = message;
+  }
+
+  function clearErrors() {
+    form.querySelectorAll("[data-field]").forEach(field => {
+      field.removeAttribute("data-invalid");
+
+      const error = field.querySelector("[data-error]");
+      if (error) error.textContent = "";
+    });
+  }
+
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    clearErrors();
+
+    const fullName = form.elements.fullname;
+    const phone = form.elements.phone;
+    const email = form.elements.email;
+    const address = form.elements.address;
+    const password = form.elements.password;
+    const confirm = form.elements.confirm;
+
+    const fields = [
+      fullName,
+      phone,
+      email,
+      address,
+      password,
+      confirm
+    ];
+
+    if (!fields.every(input => NovaPS.checkField(input, form))) {
       return;
     }
 
-    // TODO: send the sign up data (including the ID card image) to the backend API.
-    // Demo: keep the data in this browser so "My Profile" can show it.
-    NovaPS.imageToDataUrl(fileInput.files[0], 900)
-      .then(function (dataUrl) {
-        profile.idcard = dataUrl;
-      })
-      .catch(function () {})
-      .then(function () {
-        NovaPS.login(profile.email, profile);
-        location.href = "../index.html";
-      });
+    const passwordValue = password.value;
+
+    if (passwordValue.length > 72) {
+      showError(password, "Password terlalu panjang.");
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Creating account...";
+
+    try {
+      const response = await fetch(
+        `${API_BASE}/auth/register.php`,
+        {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            full_name: fullName.value.trim(),
+            phone: phone.value.trim(),
+            email: email.value.trim(),
+            address: address.value.trim(),
+            password: passwordValue
+          })
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || result.success !== true) {
+        throw new Error(
+          result.message || "Registrasi gagal."
+        );
+      }
+
+      // Registrasi tidak otomatis login.
+      // Customer masuk menggunakan kredensial barunya.
+      window.location.replace(
+        "login.html?registered=1"
+      );
+
+    } catch (error) {
+      showError(email, error.message);
+
+      button.disabled = false;
+      button.textContent = "Sign Up";
+    }
   });
 })();
-

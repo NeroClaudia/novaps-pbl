@@ -11,24 +11,53 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // 2. Baca json body
 $input = read_json_body();
 
-$rawPhone = $input['phone'] ?? null;
+
+$identifier = $input['identifier'] ?? null;
 $password = $input['password'] ?? null;
 
-// 3. Validasi tipe data
-if (!is_string($rawPhone) || !is_string($password)) {
-    json_error('VALIDATION_ERROR', 'Nomor HP dan password harus berupa teks', 422);
+if (
+    !is_string($identifier) ||
+    !is_string($password)
+) {
+    json_error(
+        'VALIDATION_ERROR',
+        'Email/nomor HP dan password wajib diisi',
+        422
+    );
 }
 
-// 4. Normalisasi nomor telpon
-$phone = normalize_phone($rawPhone);
+$identifier = trim($identifier);
 $passLen = strlen($password);
 
-if (!preg_match('/^08\d{8,13}$/', $phone) || $passLen < 1 || $passLen > 200) {
-    json_error('VALIDATION_ERROR', 'Nomor HP dan password tidak valid', 422);
+if (
+    $identifier === '' ||
+    $passLen < 1 ||
+    $passLen > 200
+) {
+    json_error(
+        'VALIDATION_ERROR',
+        'Email/nomor HP atau password tidak valid',
+        422
+    );
+}
+
+$isEmail = str_contains($identifier, '@');
+
+if ($isEmail) {
+    $email = strtolower($identifier);
+
+    if (strlen($email) > 100 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        json_error('VALIDATION_ERROR', 'Format email tidak valid', 422);
+    }
+} else {
+    $phone = normalize_phone($identifier);
+
+    if (!preg_match('/^08\d{8,13}$/', $phone)) {
+        json_error('VALIDATION_ERROR', 'Format nomor HP tidak valid', 422);
+    }
 }
 
 try {
-    // 5. Cari customer berdasarkan nomor HP
     $stmt = $pdo->prepare(
         "SELECT
             user_id,
@@ -42,12 +71,21 @@ try {
             identity_doc_url,
             identity_doc_verified
          FROM users
-         WHERE phone = :phone
-           AND role = 'customer'
+         WHERE role = 'customer'
+           AND " . (
+               $isEmail
+                   ? 'lower(email) = :identifier'
+                   : 'phone = :identifier'
+           ) . "
          LIMIT 1"
     );
-    $stmt->execute(['phone' => $phone]);
+
+    $stmt->execute([
+        'identifier' => $isEmail ? $email : $phone
+    ]);
+
     $user = $stmt->fetch();
+
 
     // Dummy hash agar verifikasi tetap dilakukan ketika user tidak ditemukan
     $dummyHash = '$2y$12$Fctyqx33xXy4/RRTTRkdheqD22IqSznpEjJTtySlLmZLGBOJG7oZC';
@@ -56,7 +94,7 @@ try {
     $passwordValid = password_verify($password, $hashToVerify);
 
     if (!$user || empty($user['password_hash']) || !$passwordValid) {
-        json_error('INVALID_CREDENTIALS', 'Nomor HP atau password salah', 401);
+        json_error('INVALID_CREDENTIALS', 'Email/nomor HP atau password salah', 401);
     }
 
     // 6.Regenerasi ID session
