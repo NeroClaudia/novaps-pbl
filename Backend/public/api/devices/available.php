@@ -93,15 +93,16 @@ try {
                SELECT 1
                FROM rental r
                JOIN booking b ON b.booking_id = r.booking_id
+               JOIN payment p ON p.booking_id = b.booking_id
                WHERE r.device_id = d.device_id
                  AND r.rental_status IN ('Booked', 'Rented', 'Overdue')
-                 AND b.payment_status IN (
+                 AND p.payment_status IN (
                      'Pending', 'AwaitingVerification', 'Paid'
                  )
                  AND (
-                     b.payment_status <> 'Pending'
-                     OR b.payment_expires_at IS NULL
-                     OR b.payment_expires_at > statement_timestamp()
+                     p.payment_status <> 'Pending'
+                     OR p.payment_expires_at IS NULL
+                     OR p.payment_expires_at > statement_timestamp()
                  )
                  AND r.start_time < CAST(:end_time AS timestamptz)
                  AND r.end_time > CAST(:start_time AS timestamptz)
@@ -134,5 +135,5 @@ try {
     ]);
 } catch (PDOException $e) {
     error_log('Device Availability API Error: ' . $e->getMessage());
-    json_error('SERVER_ERROR', 'Ketersediaan device gagal diambil', 500);
+    json_error('SERVER_ERROR', 'Ketersediaan device gagal diambil'. $e->getMessage() ,500);
 }
