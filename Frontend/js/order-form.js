@@ -4,7 +4,7 @@
  * Integrasi frontend lokal dengan backend PHP.
  */
 (function () {
-  const API_BASE = "/playstation/backend/public/api";
+  const API_BASE = "/api";
 
   const form = document.getElementById("order-form");
   const unitsEl = document.getElementById("units");

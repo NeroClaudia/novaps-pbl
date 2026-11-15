@@ -4,7 +4,7 @@
  * Profil disinkronkan dengan backend PHP.
  */
 (function () {
-  const API_BASE = "/playstation/backend/public/api";
+  const API_BASE = "/api";
   const PROFILE_URL = `${API_BASE}/me/profile.php`;
 
   const form = document.getElementById("profile-form");
