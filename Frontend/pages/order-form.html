@@ -20,7 +20,7 @@
     <script src="../js/shared/image.js" defer></script>
     <script src="../js/shared/orders.js" defer></script>
     <script src="../js/shared/rental-alerts.js" defer></script>
-    <script src="../js/order-form.js?v=5" defer></script>
+    <script src="../js/order-form.js?v=6" defer></script>
   </head>
   <body
     class="min-h-screen bg-slate-50 text-slate-800"
@@ -252,9 +252,9 @@
             ></p>
           </div>
           <div data-field class="group/field mb-1">
-            <label for="idcard" class="mb-0.5 block text-base"
-              >ID Card Photo</label
-            >
+            <p class="mb-0.5 block text-base">
+              ID Card Photo (From My Account)
+            </p>
             <label
               for="idcard"
               data-upload
@@ -277,7 +277,8 @@
                 <path d="m21 16-5-5-9 9" />
               </svg>
               <img
-                alt="ID card"
+                id="idcard-preview"
+                alt="Your uploaded ID Card"
                 class="hidden size-full object-contain group-data-[has-image]/upload:block"
               />
               <input

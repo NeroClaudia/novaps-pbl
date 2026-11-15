@@ -67,15 +67,11 @@
       idInput.removeAttribute("data-validate");
     }
 
-    if (upload) {
-      upload.style.display = "none";
-    }
-
     if (customerHint) {
       customerHint.textContent =
           customer.identity_doc_verified
               ? "Identitas sudah diverifikasi. Data profil diambil dari akun customer."
-              : "Identitas belum diverifikasi. Checkout belum dapat dilakukan.";
+              : "Identitas sudah diunggah. Admin akan memverifikasinya bersama pembayaran.";
     }
   }
 
@@ -98,6 +94,60 @@
     }
 
     return result.data;
+  }
+  
+async function loadIdentityPreview() {
+  const upload = form.querySelector("[data-upload]");
+  const idInput = document.getElementById("idcard");
+  const preview = upload?.querySelector("img");
+  const customerHint = document.getElementById("customer-hint");
+
+  if (!upload || !preview) return;
+
+    // Foto hanya bisa dilihat, tidak bisa diganti dari checkout.
+    if (idInput) {
+      idInput.disabled = true;
+      idInput.removeAttribute("data-validate");
+    }
+
+    upload.style.display = "";
+    upload.style.cursor = "default";
+    upload.removeAttribute("data-has-image");
+
+    preview.removeAttribute("src");
+
+    try {
+      const profile = await getAPI("me/profile.php");
+
+      if (!profile.identity_doc_uploaded) {
+        customerHint.textContent =
+          "ID Card belum diunggah. Silakan unggah melalui My Account.";
+        return;
+      }
+
+      preview.onload = () => {
+        upload.setAttribute("data-has-image", "");
+      };
+
+      preview.onerror = () => {
+        upload.removeAttribute("data-has-image");
+        customerHint.textContent =
+          "Foto ID Card gagal ditampilkan. Silakan cek My Account.";
+      };
+
+      preview.src =
+        `${API_BASE}/me/profile.php?image=1&t=${Date.now()}`;
+
+      customerHint.textContent = profile.identity_doc_verified
+        ? "ID Card sudah diverifikasi oleh admin."
+        : "ID Card sudah diunggah. Admin akan memverifikasinya bersama pembayaran.";
+
+    } catch (error) {
+      console.error("Gagal memuat foto identitas:", error);
+
+      customerHint.textContent =
+        "Gagal memuat identitas. Silakan refresh atau login kembali.";
+    }
   }
 
   async function postAPI(path, body) {
@@ -208,12 +258,39 @@
       () => addBlock()
   );
 
-  // Harga hanya estimasi untuk tampilan.
-  // Total pembayaran resmi dihitung backend.
   const prices = {
-    ps4: 50000,
-    ps5: 100000
+    ps4: null,
+    ps5: null
   };
+
+  async function loadPrices() {
+    try {
+      const devices = await getAPI("devices/list.php");
+
+      if (!Array.isArray(devices)) {
+        throw new Error("Format daftar perangkat tidak valid.");
+      }
+
+      for (const category of ["PS4", "PS5"]) {
+        const key = category.toLowerCase();
+
+        const categoryPrices = devices
+          .filter(device => device.category === category)
+          .map(device => Number(device.price_per_day))
+          .filter(price => Number.isFinite(price) && price > 0);
+
+        prices[key] = categoryPrices.length
+          ? Math.min(...categoryPrices)
+          : null;
+      }
+
+      refresh();
+    } catch (error) {
+      console.error("Gagal mengambil harga:", error);
+      showMessage("Harga PS gagal dimuat dari backend.");
+      refresh();
+    }
+  }
 
   function refresh() {
     const items = blocks.map(block => ({
@@ -222,8 +299,11 @@
     }));
 
     form.querySelectorAll("[data-price]").forEach(el => {
-      el.textContent =
-          NovaPS.money(prices[el.dataset.price]) + "/day";
+      const price = prices[el.dataset.price];
+
+      el.textContent = Number.isFinite(price) && price > 0
+        ? NovaPS.money(price) + "/day"
+        : "— /day";
     });
 
     blocks.forEach(block => {
@@ -242,7 +322,9 @@
         item.unit &&
         Number.isInteger(item.days) &&
         item.days >= 1 &&
-        item.days <= 7
+        item.days <= 7 &&
+        Number.isFinite(prices[item.unit]) &&
+        prices[item.unit] > 0
     );
 
     summary.hidden = validItems.length === 0;
@@ -394,6 +476,8 @@
   }
 
   refresh();
+  loadIdentityPreview();
+  loadPrices();
 
   console.log("Order Form API integration loaded.");
 })();
