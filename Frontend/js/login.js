@@ -4,7 +4,7 @@
  * Backend: PHP Session
  */
 (function () {
-  const API_BASE = "/playstation/backend/public/api";
+  const API_BASE = "/api";
 
   const form = document.getElementById("login-form");
 
@@ -113,6 +113,24 @@
       }
 
       const user = result.data;
+
+      // Pastikan PHP session benar-benar aktif.
+      const profileResponse = await fetch(
+        `${API_BASE}/me/profile.php`,
+        {
+          method: "GET",
+          credentials: "same-origin",
+          cache: "no-store"
+        }
+      );
+
+      const profileResult = await profileResponse.json();
+
+      if (!profileResponse.ok || profileResult.success !== true) {
+        throw new Error(
+          "Login berhasil, tetapi session tidak terbaca. Periksa cookie dan Vercel Rewrite."
+        );
+      }
 
       // Penanda UI sementara untuk frontend demo.
       const localEmail =
