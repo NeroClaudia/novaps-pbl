@@ -125,12 +125,6 @@ try {
         json_error('IDENTITY_REQUIRED', 'Unggah dokumen identitas sebelum checkout', 422);
     }
 
-    if (empty($user['identity_doc_type']) || empty($user['identity_doc_url'])) {
-        $pdo->rollBack();
-        json_error('IDENTITY_REQUIRED', 'Unggah dokumen identitas sebelum checkout', 422);
-    }
-
-
     // Ambil alamat profil pada saat checkout
     $addressSnapshot = trim($user['address']);
 
