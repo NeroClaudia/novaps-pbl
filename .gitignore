@@ -12,3 +12,4 @@ Backend/uploads/*
 !Backend/uploads/.htaccess
 /Backend/Testing-API-Playstation-Project/
 /Backend/tests/*.http
+/Backend/tests/
