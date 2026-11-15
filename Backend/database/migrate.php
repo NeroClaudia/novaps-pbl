@@ -132,7 +132,7 @@ function fresh_database(
     run_folder($pdo, 'seeders');
 
     if ($withDemo) {
-        run_folder($pdo, 'demo_seeders');
+        run_folder($pdo, 'seeders/demo-seeders');
     }
 }
 
