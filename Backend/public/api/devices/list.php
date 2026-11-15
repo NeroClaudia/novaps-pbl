@@ -26,18 +26,19 @@ try {
              SELECT r.device_id, MAX(r.end_time) AS end_time
              FROM rental r
              JOIN booking b ON b.booking_id = r.booking_id
+             JOIN payment p ON p.booking_id = b.booking_id
              WHERE r.rental_status IN ('Rented', 'Overdue')
                 OR (
                     r.rental_status = 'Booked'
                     AND r.start_time <= statement_timestamp()
                     AND r.end_time > statement_timestamp()
-                    AND b.payment_status IN (
+                    AND p.payment_status IN (
                         'Pending', 'AwaitingVerification', 'Paid'
                     )
                     AND (
-                        b.payment_status <> 'Pending'
-                        OR b.payment_expires_at IS NULL
-                        OR b.payment_expires_at > statement_timestamp()
+                        p.payment_status <> 'Pending'
+                        OR p.payment_expires_at IS NULL
+                        OR p.payment_expires_at > statement_timestamp()
                     )
                 )
              GROUP BY r.device_id
