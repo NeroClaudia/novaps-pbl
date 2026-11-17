@@ -1,7 +1,6 @@
 <?php
 
-require __DIR__ . '/../../../includes/bootstrap.php';
-/** @var PDO $pdo */
+require __DIR__ . '/../../../app/includes/bootstrap.php';
 
 // 1. Memastikan metode harus POST dan baca JSON body
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

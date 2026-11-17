@@ -1,7 +1,6 @@
 <?php
 
-require __DIR__ . '/../../../includes/bootstrap.php';
-/** @var PDO $pdo */
+require __DIR__ . '/../../../app/includes/bootstrap.php';
 
 header('Cache-Control: private, no-store');
 

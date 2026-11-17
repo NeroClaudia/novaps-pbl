@@ -1,7 +1,6 @@
 <?php
 
-require __DIR__ . '/../../../includes/bootstrap.php';
-/** @var PDO $pdo */
+require __DIR__ . '/../../../app/includes/bootstrap.php';
 
 // 1. Hanya menerima POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

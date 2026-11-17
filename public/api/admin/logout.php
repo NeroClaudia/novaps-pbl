@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/../../../includes/bootstrap.php';
+require __DIR__ . '/../../../app/includes/bootstrap.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_error('METHOD_NOT_ALLOWED', 'Metode HTTP tidak diizinkan. Gunakan metode POST', 405);

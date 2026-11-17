@@ -1,8 +1,8 @@
 
 <?php
 
-require __DIR__ . '/../../../includes/bootstrap.php';
-require_once __DIR__ . '/../../../includes/storage.php';
+require __DIR__ . '/../../../app/includes/bootstrap.php';
+require_once __DIR__ . '/../../../app/includes/storage.php';
 
 header('Cache-Control: private, no-store');
 
