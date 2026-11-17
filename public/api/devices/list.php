@@ -1,7 +1,6 @@
 <?php
 
-require __DIR__ . '/../../../includes/bootstrap.php';
-/** @var PDO $pdo */
+require __DIR__ . '/../../../app/includes/bootstrap.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     json_error('METHOD_NOT_ALLOWED', 'Gunakan method GET', 405);
