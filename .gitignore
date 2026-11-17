@@ -21,3 +21,4 @@ node_modules/
 
 # File testing lokal
 *.http
+SSR_TESTING/
