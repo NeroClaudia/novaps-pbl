@@ -5,9 +5,7 @@ if (PHP_SAPI !== 'cli') {
     exit("Script hanya boleh dijalankan melalui terminal.\n");
 }
 
-require __DIR__ . '/../includes/db.php';
-
-/** @var PDO $pdo */
+require __DIR__ . '/../app/config/db.php';
 
 function ensure_tracking_table(PDO $pdo): void
 {

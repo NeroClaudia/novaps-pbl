@@ -2,7 +2,7 @@
 
 // Membaca .env, konek PDO PostgreSQL dan mengatur zona waktu
 require_once __DIR__ . '/env.php';
-loadEnv(__DIR__ . '/../.env');
+loadEnv(__DIR__ . '/../../.env');
 
 $timezone = env('APP_TIMEZONE', 'Asia/Jakarta');
 date_default_timezone_set($timezone);
