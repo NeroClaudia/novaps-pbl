@@ -4,7 +4,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libpq-dev \
         libonig-dev \
-    && docker-php-ext-install -j"$(nproc)" pdo_pgsql mbstring \
+        libcurl4-openssl-dev \
+    && docker-php-ext-install -j"$(nproc)" \
+        pdo_pgsql mbstring curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/app
