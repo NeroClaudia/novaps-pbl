@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . "/../../../includes/bootstrap.php";
+require __DIR__ . "/../../../app/includes/bootstrap.php";
 header('Cache-Control: no-store');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
