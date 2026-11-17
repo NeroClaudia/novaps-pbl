@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-UPLOAD_ROOT=/var/www/app/uploads
+UPLOAD_ROOT=/var/www/app/storage/uploads
 
 mkdir -p \
     "$UPLOAD_ROOT/payment_proof" \
