@@ -33,5 +33,3 @@ grep -R -n 'LoadModule.*mpm_' \
 apache2ctl -t
 
 exec apache2-foreground
-
-exec apache2-foreground
