@@ -1,11 +1,19 @@
+
+# Environment
 .env
 .env.*
 !.env.example
 
+# Git dan IDE
 .git
 .idea
+
+# Dependencies
 node_modules
 
-uploads
+# Upload pengguna
+/storage/uploads/
+
+# File sementara
 *.log
 *.http
