@@ -1,14 +1,14 @@
 <?php
 
-require_once __DIR__ . '/env.php';
-loadEnv(dirname(__DIR__) . '/.env');
+require_once __DIR__ . '/../config/env.php';
+loadEnv(dirname(__DIR__, 2) . '/.env');
 
 $appDebug = filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN);
 ini_set('display_errors', $appDebug ? '1' : '0');
 ini_set('display_startup_errors', $appDebug ? '1' : '0');
 
-define('BASE_PATH', dirname(__DIR__));
-$uploadPath = trim($_ENV['UPLOAD_PATH'] ?? 'uploads', '/');
+define('BASE_PATH', dirname(__DIR__, 2));
+$uploadPath = trim($_ENV['UPLOAD_PATH'] ?? 'storage/uploads', '/');
 define('UPLOAD_DIR', BASE_PATH . '/' . $uploadPath);
 
 $allowedOriginStr = $_ENV['CORS_ALLOWED_ORIGINS'] ?? '';
@@ -50,5 +50,5 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/helpers.php';
-require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/auth.php';
