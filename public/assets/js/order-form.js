@@ -362,17 +362,10 @@ function loadIdentityPreview() {
           }
       );
 
-      console.log("BOOKING BERHASIL:", booking);
-
-      showMessage(
-          `Booking berhasil!\n` +
-          `Kode booking: ${booking.booking_code}\n` +
-          `Total: ${NovaPS.money(booking.total_cost)}\n` +
-          `Status: ${booking.payment.status}`
-      );
-
-      checkout.textContent = "Booking Created";
+      checkout.textContent = "Redirecting to payment...";
       checkout.disabled = true;
+
+      window.location.replace("/pages/payment.php?order=" + encodeURIComponent(booking.booking_code));
 
       // Tidak diarahkan ke payment.html dulu,
       // karena halaman pembayaran masih memakai localStorage.

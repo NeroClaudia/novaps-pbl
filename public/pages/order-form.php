@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../app/includes/bootstrap.php';
 require_once __DIR__ . '/../../app/functions/customers.php';
 require_once __DIR__ . '/../../app/functions/devices.php';
+require_once __DIR__ . '/../../app/functions/bookings.php';
 
 $auth = require_customer_page();
 
@@ -13,6 +14,15 @@ $currentPage = 'order-form';
 $showOrderButton = false;
 
 try {
+    expire_unpaid_bookings($pdo);
+
+    $unpaidBooking = get_unpaid_booking($pdo, (int) $auth['user_id']);
+
+    if ($unpaidBooking !== null) {
+      header('Location: /pages/payment.php?order=' . rawurldecode($unpaidBooking['booking_code']));
+      exit;
+    }
+
     $profile = get_customer_profile($pdo, (int) $auth['user_id']);
 
     if ($profile === null) {
@@ -63,7 +73,7 @@ foreach ($devices as $device) {
     <link rel="stylesheet" href="/assets/css/order-form.css" />
     <script
       src="/assets/js/shared/session.js"
-      data-require-login="login.html"
+      data-require-login="/pages/login.php"
     ></script>
     <script src="/assets/js/shared/navbar.js" defer></script>
     <script src="/assets/js/shared/validation.js" defer></script>
