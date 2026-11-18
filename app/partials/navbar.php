@@ -1,6 +1,9 @@
 <?php 
      $currentPage = $currentPage ?? 'home';
      $showOrderButton = $showOrderButton ?? true;
+
+     $isCustomerLoggedIn = ($_SESSION['auth']['role'] ?? null) === 'customer' 
+                           && (int) ($_SESSION['auth']['user_id'] ?? 0) > 0;
 ?>
 
 <!-- Navbar -->
@@ -34,6 +37,7 @@
         </a>
 
         <!-- Not logged in -->
+        <?php if (!$isCustomerLoggedIn): ?>
         <nav
                 class="flex items-center gap-3 sm:gap-6 logged-in:hidden"
                 aria-label="Account"
@@ -49,10 +53,11 @@
             >Login</a
             >
         </nav>
+        <?php else: ?>
 
         <!-- Logged in -->
         <nav
-                class="hidden items-center gap-1.5 sm:gap-[18px] logged-in:flex"
+                class="flex items-center gap-1.5 sm:gap-[18px]"
                 aria-label="Account"
         >
             <div class="group/tip relative">
@@ -175,5 +180,6 @@
             >Order Now</a>
             <?php endif; ?>
         </nav>
+        <?php endif; ?>
     </div>
 </header>

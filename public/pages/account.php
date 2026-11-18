@@ -9,7 +9,7 @@ $auth = require_customer_page();
 header('Cache-Control: private, no-store');
 
 $currentPage = 'account';
-$showOrderButton = false;
+$showOrderButton = true;
 
 try {
     $profile = get_customer_profile($pdo, (int) $auth['user_id']);
