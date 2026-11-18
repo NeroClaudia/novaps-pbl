@@ -83,8 +83,7 @@
   );
 
   const rupiah = new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
+    minimumFractionDigits: 0,
     maximumFractionDigits: 0
   });
 
@@ -136,62 +135,53 @@
 
       priceElement.textContent =
         (differentPrices ? "From " : "") +
-        rupiah.format(lowestPrice);
+        "Rp" + rupiah.format(lowestPrice);
     }
   }
 
-  async function updateStock() {
+
+async function updateStock() {
     if (loadingUnits || document.hidden) {
-      return;
+        return;
     }
 
     loadingUnits = true;
 
     try {
-      const devices = await NovaPS.api.get(
-        "devices/list.php"
-      );
-
-      if (!Array.isArray(devices)) {
-        throw new Error(
-          "Format daftar device tidak sesuai."
+        const devices = await NovaPS.api.get(
+            "devices/list.php"
         );
-      }
 
-      renderUnits(devices);
+        if (!Array.isArray(devices)) {
+            throw new Error(
+                "Format daftar device tidak sesuai."
+            );
+        }
 
-      if (unitMessage) {
-        unitMessage.textContent =
-          devices.length === 0
-            ? "No units are listed yet."
-            : "";
-      }
+        renderUnits(devices);
+
+        if (unitMessage) {
+            unitMessage.textContent =
+                devices.length === 0
+                    ? "No units are listed yet."
+                    : "";
+        }
 
     } catch (error) {
-      document.querySelectorAll("[data-stock]")
-        .forEach(element => {
-          element.textContent = "Unable to load";
-        });
+        if (unitMessage) {
+            unitMessage.textContent =
+                "Unable to refresh units. Displayed data may be outdated.";
+        }
 
-      document.querySelectorAll("[data-price]")
-        .forEach(element => {
-          element.textContent = "—";
-        });
-
-      if (unitMessage) {
-        unitMessage.textContent =
-          "Unable to load units. Please try again shortly.";
-      }
-
-      console.error(
-        "Failed to load units:",
-        error
-      );
+        console.error(
+            "Failed to update units:",
+            error
+        );
 
     } finally {
-      loadingUnits = false;
+        loadingUnits = false;
     }
-  }
+}
 
   /* ---------- Demo unpaid-order popup ---------- */
 
@@ -327,25 +317,31 @@
       });
     });
 
-  /* ---------- Initial data ---------- */
 
-  updateStock();
+  /* ---------- Live stock refresh ---------- */
 
-  window.addEventListener(
-    "pageshow",
-    updateStock
-  );
+  const STOCK_REFRESH_INTERVAL = 15000;
+
+  window.addEventListener("pageshow", event => {
+      if (event.persisted) {
+          updateStock();
+      }
+  });
 
   document.addEventListener(
-    "visibilitychange",
-    () => {
-      if (!document.hidden) {
-        updateStock();
+      "visibilitychange",
+      () => {
+          if (!document.hidden) {
+              updateStock();
+          }
       }
-    }
   );
 
-  setInterval(updateStock, 15000);
+  setInterval(
+      updateStock,
+      STOCK_REFRESH_INTERVAL
+  );
+
 
   // Tampilkan pengingat demo hanya setelah
   // session customer dikonfirmasi oleh backend.

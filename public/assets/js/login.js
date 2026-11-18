@@ -134,7 +134,7 @@
       localStorage.removeItem("novaps_orders");
 
       // 4. Redirect ke homepage.
-      window.location.href = "../index.html";
+      window.location.replace("/index.php");
 
     } catch (error) {
       showError(error.message);

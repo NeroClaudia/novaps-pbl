@@ -78,11 +78,7 @@
       closeMenu();
 
       // Setelah logout, kembali ke halaman utama.
-      const redirect =
-        document.body.dataset.logoutRedirect ||
-        (window.location.pathname.includes("/pages/")
-          ? "../index.html"
-          : "index.html");
+      const redirect = document.body.dataset.logoutRedirect || "/index.php";
 
       window.location.replace(redirect);
 

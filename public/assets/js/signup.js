@@ -383,7 +383,7 @@
         // Registration does not automatically
         // create a PHP login session.
         window.location.replace(
-          "login.html?registered=1"
+          "/pages/login.php?registered=1"
         );
 
       } catch (error) {
