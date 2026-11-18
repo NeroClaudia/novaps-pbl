@@ -187,54 +187,71 @@ async function updateStock() {
 
   let unpaidTimer = null;
 
-  function showUnpaid(order) {
+function showUnpaid(order) {
     if (!order || !unpaidElement) return;
 
-    const payLink = document.getElementById(
-      "unpaidPay"
-    );
-
-    const info = document.getElementById(
-      "unpaidInfo"
-    );
-
-    const countdown = document.getElementById(
-      "unpaidCountdown"
-    );
+    const payLink = document.getElementById("unpaidPay");
+    const info = document.getElementById("unpaidInfo");
+    const countdown = document.getElementById("unpaidCountdown");
 
     if (!payLink || !info || !countdown) return;
 
     payLink.href =
-      "pages/payment.html?order=" +
-      encodeURIComponent(order.id);
+        "/pages/payment.php?order=" +
+        encodeURIComponent(order.booking_code);
 
     info.textContent =
-      `${order.id} · ${NovaPS.money(order.total)}`;
+        `${order.booking_code} · Rp${rupiah.format(order.total_cost)}`;
 
-    function tick() {
-      const current = NovaPS.orders.get(order.id);
-
-      if (!current || current.status !== "not_paid") {
-        clearInterval(unpaidTimer);
-        unpaidTimer = null;
-        unpaidModal.close();
-        updateStock();
-        return;
-      }
-
-      countdown.textContent = NovaPS.formatClock(
-        NovaPS.orders.msLeft(current),
-        true
-      );
-    }
+    const hasDeadline = order.payment.seconds_left !== null;
+    const initialSeconds = Number(order.payment.seconds_left);
+    const startedAt = performance.now();
 
     clearInterval(unpaidTimer);
 
-    tick();
+    function tick() {
+        if (!hasDeadline) {
+            countdown.textContent = "--:--";
+            return;
+        }
 
-    unpaidTimer = setInterval(tick, 1000);
+        const elapsed = Math.floor(
+            (performance.now() - startedAt) / 1000
+        );
+
+        const remaining = Math.max(
+            0,
+            initialSeconds - elapsed
+        );
+
+        countdown.textContent =
+            String(Math.floor(remaining / 60)).padStart(2, "0") +
+            ":" +
+            String(remaining % 60).padStart(2, "0");
+
+        if (remaining === 0) {
+            clearInterval(unpaidTimer);
+            unpaidTimer = null;
+
+            unpaidModal.close();
+
+            getUnpaidBooking()
+                .then(current => {
+                    if (current) showUnpaid(current);
+                    updateStock();
+                })
+                .catch(console.error);
+        }
+    }
+
     unpaidModal.open();
-  }
+
+    if (hasDeadline) {
+        unpaidTimer = setInterval(tick, 1000);
+    }
+
+    tick();
+}
 
   /* ---------- Authentication ---------- */
 
@@ -247,14 +264,8 @@ async function updateStock() {
     return NovaPS.refreshSession();
   }
 
-  function getUnpaidDemoOrder() {
-    // Sistem pesanan lama masih memakai localStorage.
-    // Akan diganti API booking saat integrasi payment.
-    if (!NovaPS.orders?.unpaid) {
-      return null;
-    }
-
-    return NovaPS.orders.unpaid();
+  async function getUnpaidBooking() {
+    return NovaPS.api.get("me/unpaid-booking.php");
   }
 
   /* ---------- Order Now / Choose & Rent ---------- */
@@ -291,7 +302,7 @@ async function updateStock() {
           }
 
           // Kompatibilitas sementara untuk order demo.
-          const unpaidOrder = getUnpaidDemoOrder();
+          const unpaidOrder = await getUnpaidBooking();
 
           if (unpaidOrder) {
             showUnpaid(unpaidOrder);
@@ -345,15 +356,39 @@ async function updateStock() {
 
   // Tampilkan pengingat demo hanya setelah
   // session customer dikonfirmasi oleh backend.
-  NovaPS.authReady.then(isAuthenticated => {
-    if (!isAuthenticated) return;
 
-    const unpaidOrder = getUnpaidDemoOrder();
+  async function checkUnpaidOnHome() {
+      const authenticated = await NovaPS.authReady;
 
-    if (unpaidOrder) {
-      showUnpaid(unpaidOrder);
-    }
+      if (!authenticated || !NovaPS.isLoggedIn()) return;
+
+      try {
+          const unpaidOrder = await getUnpaidBooking();
+
+          if (unpaidOrder) {
+              showUnpaid(unpaidOrder);
+          } else {
+              clearInterval(unpaidTimer);
+              unpaidTimer = null;
+              unpaidModal.close();
+          }
+
+      } catch (error) {
+          console.error(
+              "Failed to check unpaid booking:",
+              error
+          );
+      }
+  }
+
+  checkUnpaidOnHome();
+
+  window.addEventListener("pageshow", event => {
+      if (event.persisted) {
+          checkUnpaidOnHome();
+      }
   });
+
 
   // Tutup popup apabila autentikasi berubah.
   document.addEventListener(

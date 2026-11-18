@@ -1,6 +1,7 @@
 <?php
 
 require __DIR__ . '/../../../app/includes/bootstrap.php';
+require_once __DIR__ . '/../../../app/includes/storage.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_error('METHOD_NOT_ALLOWED', 'Gunakan method POST', 405);
@@ -47,7 +48,9 @@ if ($size > $maxBytes) {
     json_error('FILE_TOO_LARGE', 'Ukuran bukti pembayaran maksimal 2 MB', 413);
 }
 
-$savedPath = null;
+$uploadedPath = null;
+$committed = false;
+$commitAttempted = false;
 
 try {
     $mime = (new finfo(FILEINFO_MIME_TYPE))->file($tmpPath);
@@ -109,9 +112,16 @@ try {
         json_error('INVALID_PAYMENT_DEADLINE', 'Batas waktu pembayaran QRIS tidak tersedia', 409);
     }
 
-    $fileName = bin2hex(random_bytes(16)) . '.' . $extensions[$mime];
-    $relativePath = 'payment_proof/' . $fileName;
+    $imageInfo = @getimagesize($tmpPath);
 
+    if ($imageInfo === false || ($imageInfo['mime'] ?? null) !== $mime) {
+        $pdo->rollBack();
+        json_error('INVALID_IMAGE', 'Bukti pembayaran bukan gambar yang valid', 422);
+    }
+
+    $uploadedPath = storage_new_object_path('bookings/' . $bookingId, $extensions[$mime]);
+
+    storage_upload(storage_payment_bucket(), $uploadedPath, $tmpPath, $mime);
 
     $update = $pdo->prepare(
         "UPDATE payment
@@ -126,38 +136,36 @@ try {
 
     $update->execute([
         'payment_id' => (int) $bookingData['payment_id'],
-        'proof_path' => $relativePath
+        'proof_path' => $uploadedPath
     ]);
 
     if ($update->rowCount() !== 1) {
         $pdo->rollBack();
+        
+        storage_delete(storage_payment_bucket(), $uploadedPath);
+
+        $uploadedPath = null;
+        
         json_error('INVALID_STATUS_TRANSITION', 'Pembayaran sudah diproses atau batas waktu upload telah berakhir', 409);
     }
 
-    $uploadRoot = UPLOAD_DIR;
-    $directory = $uploadRoot . '/payment_proof';
-    if (!is_dir($directory) && !@mkdir($directory, 0700, true) && !is_dir($directory)) {
-        throw new RuntimeException('Direktori bukti pembayaran belum dibuat');
-    }
-
-    $resolveDirectory = realpath($directory);
-    if ($resolveDirectory === false) {
-        throw new RuntimeException('Directory bukti pembayaran tidak dapat ditemukan');
-    }
-
-    $destination = $resolveDirectory . DIRECTORY_SEPARATOR . $fileName;
-    if (!@move_uploaded_file($tmpPath, $destination)) {
-        throw new RuntimeException('File bukti pembayaran tidak dapat dipindahkan');
-    }
-
-    $savedPath = $destination;
+    $commitAttempted = true;
     $pdo->commit();
+    $committed = true;
+
 } catch (Throwable $e) {
+    $rolledBack = false;
+
     if ($pdo->inTransaction()) {
-        $pdo->rollback();
+        $rolledBack = $pdo->rollBack();
     }
-    if ($savedPath !== null && !@unlink($savedPath)) {
-        error_log('Gagal membersihkan file bukti pembayaran ' . $savedPath);
+
+    if (!$committed && (!$commitAttempted || $rolledBack) && $uploadedPath !== null) {
+        try {
+            storage_delete(storage_payment_bucket(), $uploadedPath);
+        } catch (Throwable $cleanupError) {
+            error_log('Payment Storage Cleanup Error: ' . $cleanupError->getMessage());
+        }
     }
 
     error_log('Booking Payment Proof API Error: ' . $e->getMessage());

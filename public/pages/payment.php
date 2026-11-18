@@ -43,6 +43,11 @@ try {
     exit('Unable to load payment information.');
 }
 
+if ($booking['payment']['status'] !== 'Pending') {
+    header('Location: /pages/order-detail.php?order=' . rawurldecode($bookingCode));
+    exit;
+}
+
 $isPayable =
     $booking['payment']['status'] === 'Pending'
     && $booking['payment_method'] === 'QRIS'
@@ -76,23 +81,20 @@ function payment_money(float $amount): string
     <link rel="stylesheet" href="/assets/css/payment.css" />
     <script
       src="/assets/js/shared/session.js"
-      data-require-login="login.html"
+      data-require-login="/pages/login.php"
     ></script>
     <script src="/assets/js/shared/navbar.js" defer></script>
-    <script src="/assets/js/shared/orders.js" defer></script>
-    <script src="/assets/js/shared/rental-alerts.js" defer></script>
-    <script src="/assets/js/shared/image.js" defer></script>
-    <script src="/assets/js/payment.js" defer></script>
+    <script src="/assets/js/payment.js?v=3" defer></script>
   </head>
   <body
     class="min-h-screen bg-slate-50 text-slate-800"
-    data-logout-redirect="../index.html"
+    data-logout-redirect="/index.php"
   >
     <?php require __DIR__ . '/../../app/partials/navbar.php'; ?>
 
     <main class="mx-auto w-[896px] max-w-[calc(100%-2rem)] pt-5 pb-16">
       <a
-        href="../index.html"
+        href="/index.php"
         class="inline-block text-2xl text-blue-600 underline underline-offset-4 transition-all duration-150 hover:-translate-x-1 hover:text-blue-700"
         >&larr; Back to Home</a
       >
@@ -128,7 +130,7 @@ function payment_money(float $amount): string
 
           <?php if ($isPayable): ?>
           <img
-            src="../assets/img/qris.png"
+            src="/assets/img/qris.png"
             alt="QRIS payment code"
             width="284"
             height="480"
@@ -178,7 +180,7 @@ function payment_money(float $amount): string
                 id="proof"
                 name="payment_proof"
                 accept="image/jpeg,image/png"
-                disabled
+                <?= !$isPayable ? 'disabled' : '' ?>
                 class="absolute inset-0 cursor-pointer opacity-0"
               />
             </label>
@@ -265,7 +267,6 @@ function payment_money(float $amount): string
         <button
           type="button"
           id="cancel-btn"
-          disabled
           class="btn border-2 border-red-600 bg-white px-[25px] py-2.5 text-base font-semibold text-red-600 hover:bg-red-600 hover:text-white"
         >
           Cancel Order

@@ -1,6 +1,7 @@
 <?php
 
 require __DIR__ . '/../../../../app/includes/bootstrap.php';
+require_once __DIR__ . '/../../../../app/includes/storage.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_error('METHOD_NOT_ALLOWED', 'Gunakan metode POST', 405);
@@ -84,38 +85,20 @@ try {
     // Pastikan lokasi file identitas aman dan file tersedia.
     $identityPath = (string) $customer['identity_doc_url'];
 
-    if (!preg_match(
-        '~^identity_docs/[a-f0-9]{32}\.(jpg|png)$~D',
+    $expectedIdentity =
+        '~^customers/' . (int) $booking['customer_id'] .
+        '/[a-f0-9]{32}\.(jpg|png)$~D';
+
+    if (!preg_match($expectedIdentity, $identityPath)) {
+        $pdo->rollBack();
+
+        json_error('IDENTITY_UNAVAILABLE', 'Lokasi dokumen identitas tidak valid', 409);
+    }
+
+    storage_download(
+        storage_identity_bucket(),
         $identityPath
-    )) {
-        $pdo->rollBack();
-        json_error(
-            'IDENTITY_UNAVAILABLE',
-            'Lokasi dokumen identitas tidak valid',
-            409
-        );
-    }
-
-    $identityDirectory = realpath(UPLOAD_DIR . '/identity_docs');
-    $identityFile = realpath(UPLOAD_DIR . '/' . $identityPath);
-
-    $identityInside = $identityDirectory !== false &&
-        $identityFile !== false &&
-        is_file($identityFile) &&
-        (
-            PHP_OS_FAMILY === 'Windows'
-                ? strcasecmp(dirname($identityFile), $identityDirectory) === 0
-                : dirname($identityFile) === $identityDirectory
-        );
-
-    if (!$identityInside) {
-        $pdo->rollBack();
-        json_error(
-            'IDENTITY_UNAVAILABLE',
-            'File identitas customer tidak tersedia',
-            409
-        );
-    }
+    );
 
     // 3. Kunci data pembayaran dari tabel payment.
     $stmt = $pdo->prepare(
@@ -156,17 +139,24 @@ try {
 
         $proofPath = (string) $payment['payment_proof_url'];
 
-        if (!preg_match(
-            '~^payment_proof/[a-f0-9]{32}\.(jpg|png)$~D',
-            $proofPath
-        )) {
+        $expectedProof =
+            '~^bookings/' . $bookingId .
+            '/[a-f0-9]{32}\.(jpg|png)$~D';
+
+        if (!preg_match($expectedProof, $proofPath)) {
             $pdo->rollBack();
+
             json_error(
                 'PAYMENT_PROOF_UNAVAILABLE',
                 'Lokasi bukti pembayaran tidak valid',
                 409
             );
         }
+
+        storage_download(
+            storage_payment_bucket(),
+            $proofPath
+        );
 
         $proofDirectory = realpath(UPLOAD_DIR . '/payment_proof');
         $proofFile = realpath(UPLOAD_DIR . '/' . $proofPath);

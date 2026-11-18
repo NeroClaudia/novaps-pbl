@@ -65,6 +65,9 @@ function get_customer_booking(PDO $pdo, int $customerId, string $bookingCode): ?
     $stmt = $pdo->prepare(
         "SELECT
             b.booking_code,
+            b.created_at,
+            b.cancel_reason,
+            b.cancelled_at,
             b.address_snapshot,
             u.full_name,
             p.payment_method,
@@ -137,6 +140,9 @@ function get_customer_booking(PDO $pdo, int $customerId, string $bookingCode): ?
 
     return [
       'booking_code' => (string) $first['booking_code'],
+      'created_at' => $first['created_at'],
+      'cancel_reason' => $first['cancel_reason'],
+      'cancelled_at' => $first['cancelled_at'],
       'customer' => [
         'full_name' => $first['full_name'],
         'address' => $first['address_snapshot']

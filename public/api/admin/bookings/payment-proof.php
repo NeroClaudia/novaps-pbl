@@ -1,6 +1,7 @@
 <?php
 
 require __DIR__ . '/../../../../app/includes/bootstrap.php';
+require_once __DIR__ . '/../../../../app/includes/storage.php';
 
 header('Cache-Control: private, no-store');
 
@@ -37,56 +38,30 @@ try {
 
     $relativePath = $booking['payment_proof_url'];
 
+
     if (empty($relativePath)) {
         json_error('NOT_FOUND', 'Bukti pembayaran belum tersedia', 404);
     }
 
-    // File upload menggunakan nama acak 32 karakter.
-    if (!preg_match('~^payment_proof/[a-f0-9]{32}\.(jpg|png)$~D',$relativePath)) {
-        json_error('NOT_FOUND', 'Bukti pembayaran tidak tersedia', 404);
+    $expectedPattern =
+        '~^bookings/' . $bookingId .
+        '/[a-f0-9]{32}\.(jpg|png)$~D';
+
+    if (!preg_match($expectedPattern, $relativePath)) {
+        json_error('NOT_FOUND', 'Lokasi bukti pembayaran tidak valid', 404);
     }
 
-    $directory = realpath(UPLOAD_DIR . '/payment_proof');
-
-    $filePath = realpath(UPLOAD_DIR . '/' . $relativePath);
-
-    if ($directory === false || $filePath === false || !is_file($filePath)) {
-        json_error('NOT_FOUND', 'File bukti pembayaran tidak ditemukan', 404);
-    }
-
-    // Cegah akses file di luar folder payment_proof.
-    $insideDirectory = PHP_OS_FAMILY === 'Windows' ? strcasecmp(dirname($filePath), $directory) === 0 : dirname($filePath) === $directory;
-
-    if (!$insideDirectory) {
-        json_error('NOT_FOUND', 'File bukti pembayaran tidak ditemukan', 404);
-    }
-
-    $maxBytes = 2 * 1024 * 1024;
-
-    $contents = file_get_contents(
-        $filePath,
-        false,
-        null,
-        0,
-        $maxBytes + 1
+    $image = storage_download(
+        storage_payment_bucket(),
+        $relativePath
     );
 
-    if ($contents === false || $contents === '' || strlen($contents) > $maxBytes) {
-        throw new RuntimeException('File bukti pembayaran tidak valid');
-    }
+    $contents = $image['bytes'];
+    $mime = $image['mime'];
 
-    $mime = (new finfo(FILEINFO_MIME_TYPE))->buffer($contents);
-
-    $extensions = [
-        'image/jpeg' => 'jpg',
-        'image/png' => 'png'
-    ];
-
-    if (!isset($extensions[$mime])) {
-        throw new RuntimeException('Format gambar tidak didukung');
-    }
-
-    $extension = $extensions[$mime];
+    $extension = $mime === 'image/png'
+        ? 'png'
+        : 'jpg';
 
 } catch (Throwable $e) {
     error_log('Admin Payment Proof API Error: ' . $e->getMessage());

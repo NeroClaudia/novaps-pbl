@@ -74,7 +74,7 @@ foreach(['PS4', 'PS5'] as $category) {
     <script src="/assets/js/shared/navbar.js?v=2" defer></script>
     <script src="/assets/js/shared/orders.js" defer></script>
     <script src="/assets/js/shared/rental-alerts.js" defer></script>
-    <script src="/assets/js/index.js?v=2" defer></script>
+    <script src="/assets/js/index.js?v=3" defer></script>
 </head>
 <body class="bg-white text-slate-800">
 
@@ -522,7 +522,7 @@ foreach(['PS4', 'PS5'] as $category) {
             </button>
             <a
                     id="unpaidPay"
-                    href="pages/payment.html"
+                    href="/pages/payment.html"
                     class="btn btn-indigo flex-1 px-0 py-[11px] text-base"
             >Pay Now</a
             >
