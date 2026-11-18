@@ -1,6 +1,7 @@
 <?php
 
 require __DIR__ . '/../../../app/includes/bootstrap.php';
+require_once __DIR__ . '/../../../app/functions/bookings.php';
 
 // 1. Memastikan metode harus POST dan baca JSON body
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -127,34 +128,16 @@ try {
     // Ambil alamat profil pada saat checkout
     $addressSnapshot = trim($user['address']);
 
-    //Cegah customer membuat booking baru apabila masih memiliki booking yang belum selesai
-    $stmtUnpaid = $pdo->prepare(
-            "SELECT b.booking_code
-        FROM booking b
-        JOIN payment p ON p.booking_id = b.booking_id
-        WHERE b.customer_id = :customer_id
-        AND p.payment_status = 'Pending'
-        AND (
-            p.payment_expires_at IS NULL
-            OR p.payment_expires_at > statement_timestamp()
-        )
-        ORDER BY b.booking_id DESC
-        LIMIT 1"
-    );
-    $stmtUnpaid->execute(['customer_id' => $customerId]);
+    $unpaidBooking = get_unpaid_booking($pdo, $customerId);
 
-    $unpaidBooking = $stmtUnpaid->fetch();
-
-    if ($unpaidBooking) {
+    if ($unpaidBooking !== null) {
         $pdo->rollBack();
 
         json_response([
             'success' => false,
             'code' => 'UNPAID_BOOKING_EXISTS',
             'message' => 'Selesaikan pembayaran sebelumnya sebelum membuat booking baru',
-            'data' => [
-                'booking_code' => $unpaidBooking['booking_code']
-            ]
+            'data' => $unpaidBooking
         ], 409);
     }
 
@@ -215,7 +198,7 @@ try {
     }
 
     $bookingId = (int) $bookingRow['booking_id'];
-    $bookingCode = $bookingRow['booking_code'];
+    $bookingCode = (string) $bookingRow['booking_code'];
 
     $stmtPayment = $pdo->prepare(
         "INSERT INTO payment (booking_id, payment_method, payment_status, payment_expires_at)
