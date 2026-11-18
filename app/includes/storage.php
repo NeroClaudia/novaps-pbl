@@ -162,8 +162,6 @@ function storage_request(string $method, string $url, ?string $body = null, ?str
     );
     $error = curl_error($curl);
 
-    curl_close($curl);
-
     if ($success === false) {
         throw new RuntimeException('Koneksi Supabase Storage gagal: ' . $error);
     }

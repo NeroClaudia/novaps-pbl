@@ -147,10 +147,15 @@
         cache: "no-store"
       });
 
+      if (response.status === 401 || response.status === 403) {
+        location.replace("/pages/login.php");
+        return;
+      }
+
       const result = await response.json();
 
       if (response.status === 401 || response.status === 403) {
-        location.replace("login.html");
+        location.replace("/pages/login.php");
         return;
       }
 
@@ -299,5 +304,31 @@
       "Change password will be enabled after backend integration.";
   }
 
-  loadProfile();
+  function initializeProfile() {
+    const initialProfile = document.getElementById("initial-profile");
+
+    if (!initialProfile) {
+      loadProfile();
+      return;
+    }
+
+    try {
+      const data = JSON.parse(initialProfile.textContent);
+
+      if (!data || !data.user_id) {
+        throw new Error("Invalid initial profile");
+      }
+
+      profile = data;
+
+      render();
+      setEditing(false);
+
+    } catch (error) {
+      console.error("Initial profile error:", error);
+      loadProfile();
+    }
+  }
+
+  initializeProfile();
 })();

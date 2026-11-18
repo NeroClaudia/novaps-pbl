@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__ . '/../../../app/functions/customers.php';
 require __DIR__ . '/../../../app/includes/bootstrap.php';
 require_once __DIR__ . '/../../../app/includes/storage.php';
 
@@ -10,40 +11,6 @@ $customerId = (int) ($auth['user_id'] ?? 0);
 
 if ($customerId < 1) {
     json_error('UNAUTHORIZED', 'Sesi tidak valid', 401);
-}
-
-function customerProfile(PDO $pdo, int $userId): array
-{
-    $stmt = $pdo->prepare(
-        "SELECT user_id, full_name, phone, email, address,
-                identity_doc_type, identity_doc_url,
-                identity_doc_verified
-         FROM users
-         WHERE user_id = :id AND role = 'customer'"
-    );
-    $stmt->execute(['id' => $userId]);
-    $user = $stmt->fetch();
-
-    if (!$user) {
-        json_error('NOT_FOUND', 'Profil tidak ditemukan', 404);
-    }
-
-    $verified = in_array(
-        $user['identity_doc_verified'],
-        [true, 1, '1', 't', 'true'],
-        true
-    );
-
-    return [
-        'user_id' => (int) $user['user_id'],
-        'full_name' => $user['full_name'],
-        'phone' => $user['phone'],
-        'email' => $user['email'],
-        'address' => $user['address'],
-        'identity_doc_type' => $user['identity_doc_type'],
-        'identity_doc_uploaded' => !empty($user['identity_doc_url']),
-        'identity_doc_verified' => $verified
-    ];
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -120,13 +87,20 @@ if ($method === 'GET' && ($_GET['image'] ?? '') === '1') {
 // Ambil profil langsung dari PostgreSQL.
 if ($method === 'GET') {
     try {
+        $profile = get_customer_profile($pdo, $customerId);
+
+        if ($profile === null) {
+            json_error('NOT_FOUND', 'Profil tidak ditemukan', 404);
+        }
+
         json_response([
             'success' => true,
-            'data' => customerProfile($pdo, $customerId)
+            'data' => $profile,
         ]);
+
     } catch (PDOException $e) {
         error_log('Profile GET Error: ' . $e->getMessage());
-        json_error('SERVER_ERROR', 'Gagal memuat profil', 500);
+        json_error('SERVER_ERROR', 'Gagal memuat profil', 500 );
     }
 }
 
@@ -320,10 +294,14 @@ try {
 
     $update->execute();
 
-    $responseProfile = customerProfile(
+    $responseProfile = get_customer_profile(
         $pdo,
         $customerId
     );
+
+    if ($responseProfile === null) {
+        throw new RuntimeException('Profil customer tidak ditemukan');
+    }
 
     $pdo->commit();
 

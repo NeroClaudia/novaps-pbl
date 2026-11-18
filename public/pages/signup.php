@@ -28,7 +28,7 @@ $authPage = 'signup';
     <script src="/assets/js/shared/session.js"></script>
     <script src="/assets/js/shared/validation.js" defer></script>
     <script src="/assets/js/shared/image.js" defer></script>
-    <script src="/assets/js/signup.js?v=4" defer></script>
+    <script src="/assets/js/signup.js?v=5" defer></script>
   </head>
   <body class="min-h-screen bg-slate-50 text-slate-800">
   <?php require __DIR__ . '/../../app/partials/auth-navbar.php'; ?>

@@ -1,3 +1,8 @@
+<?php 
+     $currentPage = $currentPage ?? 'home';
+     $showOrderButton = $showOrderButton ?? true;
+?>
+
 <!-- Navbar -->
 <header class="h-[68px] bg-slate-900">
     <div class="wrap flex h-full items-center justify-between">
@@ -119,6 +124,7 @@
                         aria-expanded="false"
                         aria-label="My Account"
                         aria-describedby="tip-account"
+                        <?= $currentPage === 'account' ? 'aria-current="page"' : '' ?>
                 >
                     <svg
                             width="24"
@@ -161,12 +167,13 @@
                     </button>
                 </div>
             </div>
+            <?php if ($showOrderButton): ?>
             <a
                     href="/pages/order-form.php"
                     data-order
                     class="btn btn-cyan px-3 py-[7px] text-[15px] sm:px-[18px] sm:text-lg"
-            >Order Now</a
-            >
+            >Order Now</a>
+            <?php endif; ?>
         </nav>
     </div>
 </header>

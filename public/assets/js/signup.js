@@ -97,6 +97,7 @@
 
     preview.removeAttribute("src");
     preview.classList.add("hidden");
+    preview.style.display = "none";
 
     if (placeholder) {
       placeholder.classList.remove("hidden");
@@ -129,38 +130,43 @@
     return "";
   }
 
-  function showPreview(file) {
+
+function showPreview(file) {
     clearPreview();
 
     previewUrl = URL.createObjectURL(file);
 
     preview.onload = () => {
-      preview.classList.remove("hidden");
+        preview.classList.remove("hidden");
 
-      if (placeholder) {
-        placeholder.classList.add("hidden");
-      }
+        preview.style.display = "block";
+        preview.style.width = "100%";
+        preview.style.height = "100%";
+        preview.style.objectFit = "contain";
 
-      upload.setAttribute("data-has-image", "");
+        if (placeholder) {
+            placeholder.classList.add("hidden");
+        }
+
+        upload.setAttribute("data-has-image", "");
     };
 
     preview.onerror = () => {
-      clearPreview();
-      fields.identityFile.value = "";
+        clearPreview();
+        fields.identityFile.value = "";
 
-      showError(
-        fields.identityFile,
-        "Unable to preview this image. " +
-        "Please choose another file."
-      );
+        showError(
+            fields.identityFile,
+            "Unable to preview this image. Please choose another file."
+        );
     };
 
     preview.src = previewUrl;
 
     if (fileName) {
-      fileName.textContent = file.name;
+        fileName.textContent = file.name;
     }
-  }
+}
 
   fields.identityFile.addEventListener(
     "change",

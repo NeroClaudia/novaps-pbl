@@ -13,3 +13,15 @@ function require_login(array $roles = []): array
     }
     return $auth;
 }
+
+function require_customer_page(): array
+{
+    $auth = $_SESSION['auth'] ?? null;
+
+    if (!is_array($auth) || ($auth['role'] ?? null) !== 'customer' || (int) ($auth['user_id'] ?? 0) < 1) {
+        header('Location: /pages/login.php');
+        exit;
+    }
+
+    return $auth;
+}
