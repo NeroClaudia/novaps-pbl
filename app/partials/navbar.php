@@ -39,7 +39,7 @@
         <!-- Not logged in -->
         <?php if (!$isCustomerLoggedIn): ?>
         <nav
-                class="flex items-center gap-3 sm:gap-6 logged-in:hidden"
+                class="flex items-center gap-3 sm:gap-6"
                 aria-label="Account"
         >
             <a

@@ -93,7 +93,7 @@ foreach(['PS4', 'PS5'] as $category) {
             and has a large selection of games you can play with friends.
         </p>
         <div class="flex flex-wrap gap-6">
-            <a href="pages/order-form.html" data-order class="btn btn-cyan"
+            <a href="/pages/order-form.php" data-order class="btn btn-cyan"
             >Order Now</a
             >
             <a href="#steps" class="btn btn-outline">How to order</a>
@@ -335,7 +335,7 @@ foreach(['PS4', 'PS5'] as $category) {
                 </details>
                 <div class="mt-auto pt-6">
                     <a
-                            href="pages/order-form.html?unit=ps4"
+                            href="/pages/order-form.php?unit=ps4"
                             data-order
                             data-order-unit="ps4"
                             class="btn btn-indigo w-full py-3"
@@ -386,7 +386,7 @@ foreach(['PS4', 'PS5'] as $category) {
                 </details>
                 <div class="mt-auto pt-6">
                     <a
-                            href="pages/order-form.html?unit=ps5"
+                            href="/pages/order-form.php?unit=ps5"
                             data-order
                             data-order-unit="ps5"
                             class="btn btn-indigo w-full py-3"
@@ -405,7 +405,7 @@ foreach(['PS4', 'PS5'] as $category) {
             Ready to play? Book Now!
         </h2>
         <a
-                href="pages/order-form.html"
+                href="/pages/order-form.php"
                 data-order
                 class="btn bg-white px-[25px] py-3.5 font-semibold text-indigo-500"
         >Order Now</a

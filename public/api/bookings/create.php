@@ -26,13 +26,13 @@ $startDt = new DateTimeImmutable('now', $timeZone);
 $paymentMethod = $input['payment_method'] ?? '';
 $allowedMethods = ['QRIS', 'Cash'];
 if (!is_string($paymentMethod) || !in_array($paymentMethod, $allowedMethods, true)) {
-    json_error('VALIDATION_ERROR', 'Metode pembayaran harus salah satu dari QRIS, Transfer Bank, atau Cash', 422);
+    json_error('VALIDATION_ERROR', 'Metode pembayaran harus salah satu dari QRIS atau Cash', 422);
 }
 
-// e. Validasi daftar items (1 sampai 4 item)
+// e. Validasi daftar items (1 sampai 2 item)
 $rawItems = $input['items'] ?? null;
-if (!is_array($rawItems) || !array_is_list($rawItems) || count($rawItems) === 0 || count($rawItems) > 4) {
-    json_error('VALIDATION_ERROR', 'items harus berupa array daftar dan berisi 1 sampai 4 item', 422);
+if (!is_array($rawItems) || !array_is_list($rawItems) || count($rawItems) < 1 ||count($rawItems) > 2) {
+    json_error('VALIDATION_ERROR', 'Maksimal 2 perangkat dalam satu booking', 422);
 }
 
 $validatedItems = [];
@@ -126,6 +126,37 @@ try {
 
     // Ambil alamat profil pada saat checkout
     $addressSnapshot = trim($user['address']);
+
+    //Cegah customer membuat booking baru apabila masih memiliki booking yang belum selesai
+    $stmtUnpaid = $pdo->prepare(
+            "SELECT b.booking_code
+        FROM booking b
+        JOIN payment p ON p.booking_id = b.booking_id
+        WHERE b.customer_id = :customer_id
+        AND p.payment_status = 'Pending'
+        AND (
+            p.payment_expires_at IS NULL
+            OR p.payment_expires_at > statement_timestamp()
+        )
+        ORDER BY b.booking_id DESC
+        LIMIT 1"
+    );
+    $stmtUnpaid->execute(['customer_id' => $customerId]);
+
+    $unpaidBooking = $stmtUnpaid->fetch();
+
+    if ($unpaidBooking) {
+        $pdo->rollBack();
+
+        json_response([
+            'success' => false,
+            'code' => 'UNPAID_BOOKING_EXISTS',
+            'message' => 'Selesaikan pembayaran sebelumnya sebelum membuat booking baru',
+            'data' => [
+                'booking_code' => $unpaidBooking['booking_code']
+            ]
+        ], 409);
+    }
 
     // Batasi jumlah booking aktif
     $stmtActive = $pdo->prepare(

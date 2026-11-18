@@ -29,52 +29,11 @@
   // Informasi customer hanya untuk tampilan.
   // Backend mengambil data customer dari session PHP.
 
-  const customer = JSON.parse(
-      sessionStorage.getItem("novaps_customer") || "null"
+  const initialData = JSON.parse(
+    document.getElementById("initial-order-data").textContent
   );
 
-  const customerSection = form.querySelector("section");
-
-  if (customerSection && customer) {
-    const profileFields = {
-      fullname: customer.full_name || "",
-      phone: customer.phone || "",
-      address: customer.address || "",
-      email: customer.email || ""
-    };
-
-    Object.entries(profileFields).forEach(([id, value]) => {
-      const input = document.getElementById(id);
-
-      if (!input) return;
-
-      input.value = value;
-      input.readOnly = true;
-      input.placeholder = value
-          ? ""
-          : "Data belum tersedia dari backend";
-
-      // Data profil tidak diedit saat checkout.
-      input.removeAttribute("data-validate");
-    });
-
-    const idInput = document.getElementById("idcard");
-    const upload = customerSection.querySelector("[data-upload]");
-    const customerHint = document.getElementById("customer-hint");
-
-    if (idInput) {
-      idInput.disabled = true;
-      idInput.removeAttribute("data-validate");
-    }
-
-    if (customerHint) {
-      customerHint.textContent =
-          customer.identity_doc_verified
-              ? "Identitas sudah diverifikasi. Data profil diambil dari akun customer."
-              : "Identitas sudah diunggah. Admin akan memverifikasinya bersama pembayaran.";
-    }
-  }
-
+  const customer = initialData.customer;
 
   function showMessage(message) {
     formError.textContent = message;
@@ -96,59 +55,54 @@
     return result.data;
   }
   
-async function loadIdentityPreview() {
-  const upload = form.querySelector("[data-upload]");
-  const idInput = document.getElementById("idcard");
-  const preview = upload?.querySelector("img");
-  const customerHint = document.getElementById("customer-hint");
 
-  if (!upload || !preview) return;
+function loadIdentityPreview() {
+    const upload = form.querySelector("[data-upload]");
+    const preview = upload?.querySelector("img");
+    const customerHint = document.getElementById("customer-hint");
 
-    // Foto hanya bisa dilihat, tidak bisa diganti dari checkout.
-    if (idInput) {
-      idInput.disabled = true;
-      idInput.removeAttribute("data-validate");
-    }
+    if (!upload || !preview || !customerHint) return;
 
-    upload.style.display = "";
     upload.style.cursor = "default";
     upload.removeAttribute("data-has-image");
 
     preview.removeAttribute("src");
+    preview.style.display = "none";
 
-    try {
-      const profile = await getAPI("me/profile.php");
-
-      if (!profile.identity_doc_uploaded) {
+    if (!customer.identity_doc_uploaded) {
         customerHint.textContent =
-          "ID Card belum diunggah. Silakan unggah melalui My Account.";
+            "ID Card belum diunggah. Silakan unggah melalui My Account.";
+
         return;
-      }
+    }
 
-      preview.onload = () => {
+    preview.onload = () => {
+        preview.classList.remove("hidden");
+        preview.style.display = "block";
+        preview.style.width = "100%";
+        preview.style.height = "100%";
+        preview.style.objectFit = "contain";
+
         upload.setAttribute("data-has-image", "");
-      };
+        upload.style.minHeight = "160px";
+    };
 
-      preview.onerror = () => {
+    preview.onerror = () => {
+        preview.style.display = "none";
         upload.removeAttribute("data-has-image");
-        customerHint.textContent =
-          "Foto ID Card gagal ditampilkan. Silakan cek My Account.";
-      };
+        upload.style.minHeight = "";
 
-      preview.src =
+        customerHint.textContent =
+            "Foto ID Card gagal ditampilkan. Silakan cek My Account.";
+    };
+
+    preview.src =
         `${API_BASE}/me/profile.php?image=1&t=${Date.now()}`;
 
-      customerHint.textContent = profile.identity_doc_verified
+    customerHint.textContent = customer.identity_doc_verified
         ? "ID Card sudah diverifikasi oleh admin."
         : "ID Card sudah diunggah. Admin akan memverifikasinya bersama pembayaran.";
-
-    } catch (error) {
-      console.error("Gagal memuat foto identitas:", error);
-
-      customerHint.textContent =
-        "Gagal memuat identitas. Silakan refresh atau login kembali.";
-    }
-  }
+}
 
   async function postAPI(path, body) {
     const response = await fetch(`${API_BASE}/${path}`, {
@@ -258,39 +212,7 @@ async function loadIdentityPreview() {
       () => addBlock()
   );
 
-  const prices = {
-    ps4: null,
-    ps5: null
-  };
-
-  async function loadPrices() {
-    try {
-      const devices = await getAPI("devices/list.php");
-
-      if (!Array.isArray(devices)) {
-        throw new Error("Format daftar perangkat tidak valid.");
-      }
-
-      for (const category of ["PS4", "PS5"]) {
-        const key = category.toLowerCase();
-
-        const categoryPrices = devices
-          .filter(device => device.category === category)
-          .map(device => Number(device.price_per_day))
-          .filter(price => Number.isFinite(price) && price > 0);
-
-        prices[key] = categoryPrices.length
-          ? Math.min(...categoryPrices)
-          : null;
-      }
-
-      refresh();
-    } catch (error) {
-      console.error("Gagal mengambil harga:", error);
-      showMessage("Harga PS gagal dimuat dari backend.");
-      refresh();
-    }
-  }
+  const prices = initialData.prices;
 
   function refresh() {
     const items = blocks.map(block => ({
@@ -354,14 +276,20 @@ async function loadIdentityPreview() {
     }
 
     const valid =
+        customer.identity_doc_uploaded &&
+        Boolean(customer.identity_doc_type) &&
         items.length > 0 &&
         items.length === validItems.length;
 
     checkout.disabled = !valid;
 
-    hint.textContent = !valid
-        ? "Pilih PS dan durasi penyewaan."
-        : "Waktu mulai sewa akan dihitung otomatis saat Checkout.";
+    hint.textContent = !customer.identity_doc_uploaded
+      ? "Upload ID Card melalui My Account terlebih dahulu."
+      : !customer.identity_doc_type
+        ? "Lengkapi jenis identitas melalui My Account."
+        : !valid
+            ? "Pilih PS dan durasi penyewaan."
+            : "Waktu mulai sewa akan dihitung otomatis saat Checkout.";
   }
 
   // Cari device_id nyata dari database.
@@ -477,7 +405,6 @@ async function loadIdentityPreview() {
 
   refresh();
   loadIdentityPreview();
-  loadPrices();
 
   console.log("Order Form API integration loaded.");
 })();
