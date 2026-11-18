@@ -157,27 +157,7 @@ try {
             storage_payment_bucket(),
             $proofPath
         );
-
-        $proofDirectory = realpath(UPLOAD_DIR . '/payment_proof');
-        $proofFile = realpath(UPLOAD_DIR . '/' . $proofPath);
-
-        $proofInside = $proofDirectory !== false &&
-            $proofFile !== false &&
-            is_file($proofFile) &&
-            (
-                PHP_OS_FAMILY === 'Windows'
-                    ? strcasecmp(dirname($proofFile), $proofDirectory) === 0
-                    : dirname($proofFile) === $proofDirectory
-            );
-
-        if (!$proofInside) {
-            $pdo->rollBack();
-            json_error(
-                'PAYMENT_PROOF_UNAVAILABLE',
-                'File bukti pembayaran tidak tersedia',
-                409
-            );
-        }
+        
     } elseif ($method === 'Cash') {
         if ($status !== 'Pending') {
             $pdo->rollBack();
