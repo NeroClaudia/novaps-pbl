@@ -40,7 +40,7 @@ try {
         'Cancelled' => 0
     ];
 
-    $fulfillmentQuery = $pdo->prepare(
+    $fulfillmentQuery = $pdo->query(
         "SELECT fulfillment_status, COUNT(*) AS total
          FROM booking
          GROUP BY fulfillment_status"
