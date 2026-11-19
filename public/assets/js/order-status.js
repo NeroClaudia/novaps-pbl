@@ -1,190 +1,308 @@
+
 /*
- * Order Status page: order history (newest first) with status tabs.
- * Requires js/shared/session.js, tabs.js and orders.js.
+ * NovaPS - Order Status
+ * PHP SSR + AJAX cancellation
  */
-(function () {
-  function $(id) {
-    return document.getElementById(id);
-  }
 
-  var list = $("order-list");
-  var emptyState = $("empty-state");
-  var message = $("empty-message");
-  var cta = $("empty-cta");
-  var current = "all";
-  var countdowns = []; // { el, order } for the "Not Paid" cards
+(() => {
+    const $ = id => document.getElementById(id);
 
-  var messages = {
-    all: "You haven’t ordered anything yet",
-    "not-paid": "No unpaid orders.",
-    pending: "No pending orders.",
-    shipped: "No shipped orders.",
-    complete: "No completed orders yet.",
-    canceled: "No canceled orders.",
-    rejected: "No rejected orders.",
-  };
-
-  var BTN = "btn px-3 py-1 text-sm font-medium";
-  var BTN_OUTLINE =
-    BTN +
-    " border-slate-800 bg-white text-slate-800 hover:bg-slate-800 hover:text-white";
-  var BTN_INDIGO = BTN + " btn-indigo";
-
-  function el(tag, className, text) {
-    var node = document.createElement(tag);
-    if (className) node.className = className;
-    if (text !== undefined) node.textContent = text; // plain text only
-    return node;
-  }
-
-  function link(label, href, className) {
-    var a = el("a", className, label);
-    a.href = href;
-    return a;
-  }
-
-  function card(order) {
-    var li = el("li", "rounded-lg border border-slate-200 bg-white p-6");
-    var status = NovaPS.STATUS[order.status];
-    var detail = "order-detail.html?order=" + encodeURIComponent(order.id);
-
-    var top = el(
-      "div",
-      "flex flex-wrap items-start justify-between gap-x-4 gap-y-1",
-    );
-    var info = el("div", "min-w-0");
-    var names = order.items.map(function (i) {
-      return NovaPS.PRODUCTS[i.unit].name;
-    });
-    var units = order.items.map(function (i) {
-      return (
-        NovaPS.PRODUCTS[i.unit].name + " (" + NovaPS.formatDays(i.days) + ")"
-      );
-    });
-    var extension = order.type === "extend";
-    info.appendChild(
-      el(
-        "p",
-        "font-semibold text-black",
-        names.join(" + ") + (extension ? " (Extend)" : ""),
-      ),
-    );
-    info.appendChild(
-      el(
-        "p",
-        "text-[13px] break-words text-slate-500",
-        extension
-          ? names.join(" + ") +
-              ", Extend " +
-              NovaPS.formatDays(order.items[0].days)
-          : units.join(", ") + " · " + order.customer.address,
-      ),
-    );
-    info.appendChild(
-      el(
-        "p",
-        "text-[13px] text-slate-500",
-        NovaPS.formatDate(order.createdAt) +
-          ", " +
-          NovaPS.formatTime(order.createdAt),
-      ),
-    );
-    info.appendChild(
-      el(
-        "p",
-        "text-[13px] text-slate-500",
-        "Total " + NovaPS.money(order.total),
-      ),
+    const tabs = $("tabs");
+    const cards = Array.from(
+        document.querySelectorAll("[data-order-card]")
     );
 
-    var right = el("p", "flex items-center gap-3 text-[15px]");
-    if (order.status === "not_paid") {
-      var clock = el("span", "text-black tabular-nums");
-      right.appendChild(clock);
-      countdowns.push({ el: clock, order: order });
-    }
-    right.appendChild(el("span", status.text, status.label));
+    const emptyState = $("empty-state");
+    const emptyMessage = $("empty-message");
+    const emptyCta = $("empty-cta");
 
-    top.appendChild(info);
-    top.appendChild(right);
-
-    var actions = el("div", "mt-3 flex flex-wrap justify-end gap-2");
-    actions.appendChild(link("Look Detail", detail, BTN_OUTLINE));
-    if (order.status === "not_paid") {
-      var cancel = el(
-        "button",
-        BTN +
-          " border-red-600 bg-white text-red-600 hover:bg-red-600 hover:text-white",
-        "Cancel",
-      );
-      cancel.type = "button";
-      cancel.addEventListener("click", function () {
-        NovaPS.askCancel(order.id, render); // asks for a reason, then refreshes the list
-      });
-      actions.appendChild(cancel);
-      actions.appendChild(
-        link(
-          "Pay Now",
-          "payment.html?order=" + encodeURIComponent(order.id),
-          BTN_INDIGO,
-        ),
-      );
-    }
-    if (order.status === "returned" && !extension) {
-      actions.appendChild(
-        link(
-          "Order Again",
-          "order-form.html?unit=" + order.items[0].unit,
-          BTN_INDIGO,
-        ),
-      );
+    if (!tabs || !emptyState || !emptyMessage || !emptyCta) {
+        return;
     }
 
-    li.appendChild(top);
-    li.appendChild(actions);
-    return li;
-  }
+    const messages = {
+        "all": "You haven’t ordered anything yet",
+        "not-paid": "No unpaid orders.",
+        "pending": "No pending orders.",
+        "shipped": "No shipped orders.",
+        "complete": "No completed orders yet.",
+        "canceled": "No canceled orders.",
+        "rejected": "No rejected orders."
+    };
 
-  function updateCountdowns() {
-    var expired = false;
-    countdowns.forEach(function (c) {
-      var left = NovaPS.orders.msLeft(c.order);
-      if (left <= 0) expired = true;
-      else c.el.textContent = NovaPS.formatClock(left);
-    });
-    if (expired) render(); // the order was canceled automatically
-  }
+    let currentTab = "all";
 
-  function render() {
-    var orders = NovaPS.orders.all(); // newest first
-    var shown =
-      current === "all"
-        ? orders
-        : orders.filter(function (o) {
-            var status = current.replace("-", "_");
-            return (
-              o.status === status ||
-              (status === "complete" && o.status === "returned")
+    function render() {
+        let visible = 0;
+
+        cards.forEach(card => {
+            const matches =
+                currentTab === "all" ||
+                card.dataset.status === currentTab;
+
+            card.hidden = !matches;
+
+            if (matches) visible++;
+        });
+
+        emptyState.hidden = visible > 0;
+
+        emptyMessage.textContent =
+            messages[currentTab] || "No orders.";
+
+        emptyCta.hidden =
+            currentTab !== "all" || cards.length > 0;
+    }
+
+    // Tabs: mouse dan keyboard
+    const tabButtons = Array.from(
+        tabs.querySelectorAll('[role="tab"]')
+    );
+
+    function selectTab(button, focus = false) {
+        currentTab = button.dataset.tab;
+
+        tabButtons.forEach(tab => {
+            const selected = tab === button;
+
+            tab.setAttribute(
+                "aria-selected",
+                String(selected)
             );
-          });
 
-    list.textContent = "";
-    countdowns = [];
-    shown.forEach(function (order) {
-      list.appendChild(card(order));
+            tab.tabIndex = selected ? 0 : -1;
+        });
+
+        if (focus) button.focus();
+
+        render();
+    }
+
+    tabButtons.forEach((tab, index) => {
+        tab.addEventListener("click", () => {
+            selectTab(tab);
+        });
+
+        tab.addEventListener("keydown", event => {
+            let next = -1;
+
+            if (event.key === "ArrowRight") {
+                next = (index + 1) % tabButtons.length;
+            } else if (event.key === "ArrowLeft") {
+                next =
+                    (index - 1 + tabButtons.length) %
+                    tabButtons.length;
+            } else if (event.key === "Home") {
+                next = 0;
+            } else if (event.key === "End") {
+                next = tabButtons.length - 1;
+            }
+
+            if (next >= 0) {
+                event.preventDefault();
+                selectTab(tabButtons[next], true);
+            }
+        });
     });
 
-    emptyState.hidden = shown.length > 0;
-    message.textContent = messages[current];
-    cta.hidden = current !== "all"; // "Order Now" only when there are no orders at all
-    updateCountdowns();
-  }
+    // Countdown berdasarkan waktu dari backend.
+    const clocks = Array.from(
+        document.querySelectorAll("[data-countdown]")
+    ).map(element => ({
+        element,
+        seconds: Number(element.dataset.seconds),
+        startedAt: performance.now()
+    }));
 
-  NovaPS.initTabs($("tabs"), function (key) {
-    current = key;
+    let refreshingExpired = false;
+
+    function updateCountdowns() {
+        let expired = false;
+
+        for (const clock of clocks) {
+            const elapsed = Math.floor(
+                (performance.now() - clock.startedAt) / 1000
+            );
+
+            const remaining = Math.max(
+                0,
+                clock.seconds - elapsed
+            );
+
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+
+            clock.element.textContent =
+                String(minutes).padStart(2, "0") +
+                ":" +
+                String(seconds).padStart(2, "0");
+
+            if (remaining === 0) {
+                expired = true;
+            }
+        }
+
+        if (expired && !refreshingExpired) {
+            refreshingExpired = true;
+
+            // Backend memproses expiry saat halaman dimuat.
+            window.location.reload();
+        }
+    }
+
+    // Modal pembatalan
+    const modal = $("cancelModal");
+    const reason = $("cancelReason");
+    const error = $("cancelError");
+    const keepOrder = $("keepOrder");
+    const confirmCancel = $("confirmCancel");
+
+    let selectedCode = null;
+    let busy = false;
+    let lastFocus = null;
+
+    function setModal(open) {
+        modal.toggleAttribute("data-open", open);
+        modal.setAttribute("aria-hidden", String(!open));
+
+        document.body.classList.toggle(
+            "overflow-hidden",
+            open
+        );
+
+        if (open) {
+            lastFocus = document.activeElement;
+            reason.focus();
+        } else {
+            lastFocus?.focus();
+        }
+    }
+
+    document.querySelectorAll("[data-cancel-order]")
+        .forEach(button => {
+            button.addEventListener("click", () => {
+                if (busy) return;
+
+                selectedCode = button.dataset.bookingCode;
+
+                reason.value = "";
+                error.textContent = "";
+
+                setModal(true);
+            });
+        });
+
+    modal.querySelectorAll("[data-reason]")
+        .forEach(button => {
+            button.addEventListener("click", () => {
+                reason.value = button.dataset.reason;
+                error.textContent = "";
+                reason.focus();
+            });
+        });
+
+    keepOrder.addEventListener("click", () => {
+        if (!busy) setModal(false);
+    });
+
+    modal.addEventListener("click", event => {
+        if (event.target === modal && !busy) {
+            setModal(false);
+        }
+    });
+
+    document.addEventListener("keydown", event => {
+        if (
+            event.key === "Escape" &&
+            modal.hasAttribute("data-open") &&
+            !busy
+        ) {
+            setModal(false);
+        }
+    });
+
+    confirmCancel.addEventListener("click", async () => {
+        if (busy || !selectedCode) return;
+
+        const cancellationReason = reason.value.trim();
+
+        if (
+            cancellationReason.length < 5 ||
+            cancellationReason.length > 200
+        ) {
+            error.textContent =
+                "Please enter a reason (5–200 characters).";
+
+            reason.focus();
+            return;
+        }
+
+        busy = true;
+        confirmCancel.disabled = true;
+        keepOrder.disabled = true;
+
+        confirmCancel.textContent = "Cancelling...";
+        error.textContent = "";
+
+        try {
+            const response = await fetch(
+                "/api/bookings/cancel.php",
+                {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        booking_code: selectedCode,
+                        reason: cancellationReason
+                    })
+                }
+            );
+
+            if (response.status === 401) {
+                window.location.replace("/pages/login.php");
+                return;
+            }
+
+            const result = await response.json();
+
+            if (!response.ok || result.success !== true) {
+                throw new Error(
+                    result.message || "Cancellation failed."
+                );
+            }
+
+            window.location.replace(
+                "/pages/order-detail.php?order=" +
+                encodeURIComponent(selectedCode)
+            );
+
+        } catch (err) {
+            error.textContent = err.message;
+
+        } finally {
+            busy = false;
+            confirmCancel.disabled = false;
+            keepOrder.disabled = false;
+            confirmCancel.textContent = "Cancel order";
+        }
+    });
+
     render();
-  });
+    updateCountdowns();
 
-  render();
-  setInterval(updateCountdowns, 1000);
+    setInterval(updateCountdowns, 1000);
+
+    window.addEventListener("pageshow", event => {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+            window.location.reload();
+        }
+    });
 })();

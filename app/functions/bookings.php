@@ -157,3 +157,133 @@ function get_customer_booking(PDO $pdo, int $customerId, string $bookingCode): ?
       'total_cost' => $grandTotal
     ];
 }
+
+//Seluruh riwayat booking milik satu customer
+// data diurutkan berdasarkan waktu booking terbaru
+function get_customer_bookings(PDO $pdo, int $customerId): array
+{
+    $stmt = $pdo->prepare(
+        "SELECT
+            b.booking_id,
+            b.booking_code,
+            b.address_snapshot,
+            b.created_at,
+            b.cancel_reason,
+            p.payment_method,
+            p.payment_status,
+            p.payment_expires_at,
+            p.payment_proof_url,
+            COALESCE(
+                (
+                    SELECT SUM(r.total_cost)
+                    FROM rental r
+                    WHERE r.booking_id = b.booking_id
+                ), 0
+            ) AS total_cost
+         FROM booking b
+         JOIN payment p ON p.booking_id = b.booking_id
+         WHERE b.customer_id = :customer_id
+         ORDER BY b.created_at DESC, b.booking_id DESC"
+    );
+
+    $stmt->execute(['customer_id' => $customerId]);
+
+    $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (!$bookings) {
+        return [];
+    }
+
+    $itemStmt = $pdo->prepare(
+        "SELECT
+            r.device_id,
+            d.device_name,
+            d.category,
+            r.duration_hours,
+            r.total_cost,
+            r.rental_status
+         FROM rental r
+         JOIN device d ON d.device_id = r.device_id
+         WHERE r.booking_id = :booking_id
+         ORDER BY r.rental_id ASC"
+    );
+
+    $result = [];
+
+    foreach ($bookings as $booking) {
+        $itemStmt->execute([
+            'booking_id' => (int) $booking['booking_id']
+        ]);
+
+        $items = [];
+        $rentalStatuses = [];
+
+        foreach ($itemStmt->fetchAll(PDO::FETCH_ASSOC) as $item) {
+            $rentalStatuses[] = $item['rental_status'];
+
+            $items[] = [
+                'device_id' => (int) $item['device_id'],
+                'device_name' => $item['device_name'],
+                'category' => $item['category'],
+                'duration_days' => intdiv(
+                    (int) $item['duration_hours'],
+                    24
+                ),
+                'total_cost' => (float) $item['total_cost'],
+                'rental_status' => $item['rental_status']
+            ];
+        }
+
+        $paymentStatus = $booking['payment_status'];
+
+        $isPending = $paymentStatus === 'Pending';
+        $hasDeadline = $booking['payment_expires_at'] !== null;
+
+        $expiresAt = $hasDeadline
+            ? new DateTimeImmutable($booking['payment_expires_at'])
+            : null;
+
+        $secondsLeft = $isPending && $expiresAt !== null
+            ? max(0, $expiresAt->getTimestamp() - time())
+            : null;
+
+        // Status UI berasal dari payment + kondisi rental.
+        if ($paymentStatus === 'Pending') {
+            $uiStatus = 'not-paid';
+        } elseif ($paymentStatus === 'AwaitingVerification') {
+            $uiStatus = 'pending';
+        } elseif (in_array($paymentStatus, ['Cancelled', 'Expired'], true)) {
+            $uiStatus = 'canceled';
+        } elseif ($paymentStatus === 'Rejected') {
+            $uiStatus = 'rejected';
+        } elseif ($paymentStatus === 'Paid') {
+            $uiStatus = 'complete';
+        } else {
+            $uiStatus = 'pending';
+        }
+
+        $result[] = [
+            'booking_code' => (string) $booking['booking_code'],
+            'created_at' => (new DateTimeImmutable(
+                $booking['created_at']
+            ))->format(DATE_ATOM),
+            'address' => $booking['address_snapshot'],
+            'cancel_reason' => $booking['cancel_reason'],
+            'payment_method' => $booking['payment_method'],
+            'payment_status' => $paymentStatus,
+            'status' => $uiStatus,
+            'rental_statuses' => $rentalStatuses,
+            'total_cost' => (float) $booking['total_cost'],
+            'payment' => [
+                'expires_at' => $expiresAt?->format(DATE_ATOM),
+                'seconds_left' => $secondsLeft,
+                'proof_uploaded' => !empty(
+                    $booking['payment_proof_url']
+                )
+            ],
+            'items' => $items
+        ];
+    }
+
+    return $result;
+}
