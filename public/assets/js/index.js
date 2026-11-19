@@ -114,6 +114,14 @@
       if (stockElement) {
         stockElement.textContent =
           `Available now: ${availableCount}`;
+
+          if (availableCount === 0) {
+            stockElement.style.color = "#dc2626";
+          } else if (availableCount <= 5) {
+            stockElement.style.color = "#f97316";
+          } else {
+            stockElement.style.color = "#16a34a";
+          }
       }
 
       if (!priceElement) continue;

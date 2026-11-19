@@ -44,9 +44,16 @@ foreach(['PS4', 'PS5'] as $category) {
             . number_format($lowestPrice, 0, ',', '.');
     }
 
+    $stockCount = count($availableUnits);
+
+    $stockColor = $stockCount === 0 
+        ? '#dc2626'
+        : ($stockCount <= 5 ? '#f97316' : '#16a34a');
+
     $unitSummary[$category] = [
         'stock' => count($availableUnits),
-        'stock_label' => $deviceLoadFailed ? 'Unable to load' : 'Available now: ' . count($availableUnits),
+        'stock_label' => $deviceLoadFailed ? 'Unable to load' : 'Available now: ' . $stockCount,
+        'stock_color' => $deviceLoadFailed ? '#64748b' : $stockColor,
         'price_label' => $priceLabel,
     ];
 }
@@ -74,7 +81,7 @@ foreach(['PS4', 'PS5'] as $category) {
     <script src="/assets/js/shared/navbar.js?v=2" defer></script>
     <script src="/assets/js/shared/orders.js" defer></script>
     <script src="/assets/js/shared/rental-alerts.js" defer></script>
-    <script src="/assets/js/index.js?v=3" defer></script>
+    <script src="/assets/js/index.js?v=4" defer></script>
 </head>
 <body class="bg-white text-slate-800">
 
@@ -299,7 +306,7 @@ foreach(['PS4', 'PS5'] as $category) {
             >
                 <div class="flex justify-between text-[15px]">
                     <strong class="font-semibold text-black">PS4</strong
-                    ><span data-stock="ps4"><?= htmlspecialchars($unitSummary['PS4']['stock_label']) ?></span>
+                    ><span data-stock="ps4" style="color: <?= $unitSummary['PS4']['stock_color'] ?>"><?= htmlspecialchars($unitSummary['PS4']['stock_label']) ?></span>
                 </div>
                 <p class="mb-[18px] mt-9 font-display text-[32px] font-bold text-black">
                     <span data-price="ps4"><?= htmlspecialchars($unitSummary['PS4']['price_label']) ?></span>
@@ -350,7 +357,7 @@ foreach(['PS4', 'PS5'] as $category) {
             >
                 <div class="flex justify-between text-[15px]">
                     <strong class="font-semibold text-black">PS5</strong
-                    ><span data-stock="ps5" class="text-yellow-600"><?= htmlspecialchars($unitSummary['PS5']['stock_label']) ?></span
+                    ><span data-stock="ps5" style="color:<?= $unitSummary['PS5']['stock_color'] ?>"><?= htmlspecialchars($unitSummary['PS5']['stock_label']) ?></span
                 >
                 </div>
                 <p class="mb-[18px] mt-9 font-display text-[32px] font-bold text-black">

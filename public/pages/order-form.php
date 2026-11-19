@@ -80,17 +80,17 @@ foreach ($devices as $device) {
     <script src="/assets/js/shared/image.js" defer></script>
     <script src="/assets/js/shared/orders.js" defer></script>
     <script src="/assets/js/shared/rental-alerts.js" defer></script>
-    <script src="/assets/js/order-form.js?v=6" defer></script>
+    <script src="/assets/js/order-form.js?v=10" defer></script>
   </head>
   <body
     class="min-h-screen bg-slate-50 text-slate-800"
-    data-logout-redirect="../index.html"
+    data-logout-redirect="/index.php"
   >
     <?php require __DIR__ . '/../../app/partials/navbar.php'; ?>
 
     <main class="mx-auto w-[640px] max-w-[calc(100%-2rem)] pt-5 pb-16">
       <a
-        href="../index.html"
+        href="/index.php"
         class="inline-block text-2xl text-blue-600 underline underline-offset-4 transition-all duration-150 hover:-translate-x-1 hover:text-blue-700"
         >&larr; Back to Home</a
       >
@@ -229,7 +229,7 @@ foreach ($devices as $device) {
           <p id="customer-hint" class="mt-3 text-xs text-slate-500">
             Filled in from your account. To change it, go to
             <a
-              href="account.html"
+              href="account.php"
               class="text-blue-600 underline underline-offset-2 hover:text-blue-700"
               >My Profile</a
             >.
@@ -305,7 +305,7 @@ foreach ($devices as $device) {
         ></p>
         <div class="mt-6 flex items-center justify-between">
           <a
-            href="../index.html"
+            href="/index.php"
             class="btn border-2 border-slate-800 bg-white px-[25px] py-2.5 text-base font-semibold text-slate-800 hover:bg-slate-800 hover:text-white"
             >Back to home</a
           >

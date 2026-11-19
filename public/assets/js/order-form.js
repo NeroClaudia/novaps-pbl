@@ -26,6 +26,8 @@
 
   const blocks = [];
 
+  let availabilityRequest = 0;
+
   // Informasi customer hanya untuk tampilan.
   // Backend mengambil data customer dari session PHP.
 
@@ -186,7 +188,10 @@ function loadIdentityPreview() {
     unitsEl.appendChild(block);
     blocks.push(block);
 
-    block.addEventListener("change", refresh);
+    block.addEventListener("change", () => {
+      refresh();
+      updateAvailability();
+    });
 
     block.querySelector("[data-remove-unit]").addEventListener(
         "click",
@@ -198,6 +203,7 @@ function loadIdentityPreview() {
 
           renumber();
           refresh();
+          updateAvailability();
         }
     );
 
@@ -209,10 +215,16 @@ function loadIdentityPreview() {
 
   document.getElementById("add-unit").addEventListener(
       "click",
-      () => addBlock()
+      () => {
+        addBlock();
+        updateAvailability();
+      }
   );
 
-  const prices = initialData.prices;
+  const prices = {
+    ps4: Number(initialData.prices.ps4),
+    ps5: Number(initialData.prices.ps5)
+  }
 
   function refresh() {
     const items = blocks.map(block => ({
@@ -233,11 +245,6 @@ function loadIdentityPreview() {
       const duration = block.querySelector("[data-duration]");
 
       duration.disabled = !selected;
-
-      block.querySelectorAll("[data-available]").forEach(label => {
-        label.textContent = "Check availability at checkout";
-        label.className = "shrink-0 text-slate-500";
-      });
     });
 
     const validItems = items.filter(item =>
@@ -367,9 +374,6 @@ function loadIdentityPreview() {
 
       window.location.replace("/pages/payment.php?order=" + encodeURIComponent(booking.booking_code));
 
-      // Tidak diarahkan ke payment.html dulu,
-      // karena halaman pembayaran masih memakai localStorage.
-
     } catch (error) {
       console.error("CHECKOUT ERROR:", error);
 
@@ -397,6 +401,115 @@ function loadIdentityPreview() {
   }
 
   refresh();
+
+  updateAvailability();
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      updateAvailability();
+    }
+  });
+
+  setInterval(() => {
+    if (!document.hidden) {
+      updateAvailability();
+    }
+  }, 15000);
+
+async function updateAvailability() {
+    const requestId = ++availabilityRequest;
+
+    const startTime = getCurrentWIB();
+
+    for (const block of blocks) {
+        const selectedDays = daysOf(block);
+        const days = selectedDays >= 1 ? selectedDays : 1;
+
+        for (const radio of block.querySelectorAll(
+            'input[type="radio"]'
+        )) {
+            const label = radio.closest("label")
+                ?.querySelector("[data-available]");
+
+            if (label) {
+                label.textContent = "Checking...";
+                label.className = "shrink-0 text-slate-500";
+            }
+        }
+
+        for (const category of ["PS4", "PS5"]) {
+            const params = new URLSearchParams({
+                start_time: startTime,
+                duration_days: String(days),
+                category
+            });
+
+            try {
+                const devices = await getAPI(
+                    `devices/available.php?${params}`
+                );
+
+                if (requestId !== availabilityRequest) {
+                    return;
+                }
+
+                const radio = block.querySelector(
+                    `input[value="${category.toLowerCase()}"]`
+                );
+
+                const label = radio?.closest("label")
+                    ?.querySelector("[data-available]");
+
+                if (!radio || !label) continue;
+
+                const count = devices.length;
+
+                radio.disabled = count === 0;
+
+                if (count === 0) {
+                  label.textContent = "Out of stock";
+                  label.style.color = "#dc2626";
+                } else if (count <= 5) {
+                  label.textContent = `${count} available`;
+                  label.style.color = "#f97316";
+                } else {
+                  label.textContent = `${count} available`;
+                  label.style.color = "#16a34a";
+                }
+
+                if (radio.disabled && radio.checked) {
+                    radio.checked = false;
+                    refresh();
+                }
+
+            } catch (error) {
+                if (requestId !== availabilityRequest) return;
+
+                console.error(
+                    "Availability check failed:",
+                    error
+                );
+
+                const radio = block.querySelector(
+                    `input[value="${category.toLowerCase()}"]`
+                );
+
+                const label = radio?.closest("label")
+                    ?.querySelector("[data-available]");
+
+                if (radio) {
+                    radio.disabled = false;
+                }
+
+                if (label) {
+                    label.textContent = "Unable to check";
+                    label.className = "shrink-0 text-slate-500";
+                }
+            }
+        }
+    }
+}
+
   loadIdentityPreview();
 
   console.log("Order Form API integration loaded.");
