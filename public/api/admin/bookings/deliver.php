@@ -67,7 +67,7 @@ try {
     // Kunci device agar tidak ada checkout paralel
     // yang menggunakan perangkat yang sama.
     $stmt = $pdo->prepare(
-        "SELECT d.device_id
+        "SELECT d.device_id, d.status
          FROM device d
          JOIN rental r ON r.device_id = d.device_id
          WHERE r.booking_id = :booking_id
@@ -80,6 +80,13 @@ try {
 
     if (!$lockedDevices) {
         throw new RuntimeException('Tidak ada perangkat pada booking');
+    }
+
+    foreach ($lockedDevices as $device) {
+        if ($device['status'] !== 'Available') {
+            $pdo->rollBack();
+        }
+        json_error('DEVICE_UNAVAILABLE', "Perangkat ID {$device['device_id']} tidak dapat diaktifkan", 409);
     }
 
     $stmt = $pdo->prepare(
