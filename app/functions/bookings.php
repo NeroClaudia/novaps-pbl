@@ -31,6 +31,7 @@ function get_unpaid_booking(PDO $pdo, int $customerId): ?array
         JOIN payment p
             ON p.booking_id = b.booking_id
         WHERE b.customer_id = :customer_id
+          AND b.fulfillment_status = 'Pending'
           AND p.payment_status = 'Pending'
           AND (
               p.payment_expires_at IS NULL
@@ -66,6 +67,9 @@ function get_customer_booking(PDO $pdo, int $customerId, string $bookingCode): ?
         "SELECT
             b.booking_code,
             b.created_at,
+            b.fulfillment_status,
+            b.shipped_at,
+            b.completed_at,
             b.cancel_reason,
             b.cancelled_at,
             b.address_snapshot,
@@ -150,6 +154,9 @@ function get_customer_booking(PDO $pdo, int $customerId, string $bookingCode): ?
 
     return [
       'booking_code' => (string) $first['booking_code'],
+      'fulfillment_status' => $first['fulfillment_status'],
+      'shipped_at' => $first['shipped_at'],
+      'completed_at' => $first['completed_at'],
       'created_at' => $first['created_at'],
       'cancel_reason' => $first['cancel_reason'],
       'cancelled_at' => $first['cancelled_at'],
@@ -178,6 +185,9 @@ function get_customer_bookings(PDO $pdo, int $customerId): array
             b.booking_code,
             b.address_snapshot,
             b.created_at,
+            b.fulfillment_status,
+            b.shipped_at,
+            b.completed_at,
             b.cancel_reason,
             p.payment_method,
             p.payment_status,
@@ -257,20 +267,31 @@ function get_customer_bookings(PDO $pdo, int $customerId): array
             ? max(0, $expiresAt->getTimestamp() - time())
             : null;
 
+        $fulfillmentStatus = $booking['fulfillment_status'];
+
         // Status UI berasal dari payment + kondisi rental.
-        if ($paymentStatus === 'Pending') {
-            $uiStatus = 'not-paid';
-        } elseif ($paymentStatus === 'AwaitingVerification') {
-            $uiStatus = 'pending';
-        } elseif (in_array($paymentStatus, ['Cancelled', 'Expired'], true)) {
-            $uiStatus = 'canceled';
-        } elseif ($paymentStatus === 'Rejected') {
-            $uiStatus = 'rejected';
-        } elseif ($paymentStatus === 'Paid') {
-            $uiStatus = 'complete';
-        } else {
-            $uiStatus = 'pending';
-        }
+        $uiStatus = match (true) {
+            $paymentStatus === 'Rejected' => 'rejected',
+
+            $fulfillmentStatus === 'Cancelled',
+            in_array(
+                $paymentStatus,
+                ['Cancelled', 'Expired'],
+                true
+            ) => 'canceled',
+
+            $paymentStatus === 'Pending' => 'not-paid',
+
+            $paymentStatus === 'AwaitingVerification' => 'pending',
+
+            $paymentStatus === 'Paid'
+                && $fulfillmentStatus === 'Shipped' => 'shipped',
+
+            $paymentStatus === 'Paid'
+                && $fulfillmentStatus === 'Complete' => 'complete',
+
+            default => 'pending'
+        };
 
         $result[] = [
             'booking_code' => (string) $booking['booking_code'],
@@ -281,6 +302,9 @@ function get_customer_bookings(PDO $pdo, int $customerId): array
             'cancel_reason' => $booking['cancel_reason'],
             'payment_method' => $booking['payment_method'],
             'payment_status' => $paymentStatus,
+            'fulfillment_status' => $fulfillmentStatus,
+            'shipped_at' =>  $booking['shipped_at'],
+            'completed_at' => $booking['completed_at'],
             'status' => $uiStatus,
             'rental_statuses' => $rentalStatuses,
             'total_cost' => (float) $booking['total_cost'],
@@ -322,6 +346,7 @@ function get_customer_rentals(PDO $pdo, int $customerId): array
          JOIN device d ON d.device_id = r.device_id
          WHERE b.customer_id = :customer_id
            AND p.payment_status = 'Paid'
+           AND b.fulfillment_status = 'Complete'
            AND r.rental_status IN (
                'Rented', 'Overdue', 'Returned'
            )
