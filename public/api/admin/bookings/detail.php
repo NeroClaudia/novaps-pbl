@@ -59,6 +59,10 @@ try {
             to_char(
                 b.created_at,
                 'YYYY-MM-DD\"T\"HH24:MI:SSTZH:TZM'
+            ) AS created_at,
+            to_char(
+                b.shipped_at,
+                'YYYY-MM-DD\"T\"HH24:MI:SSTZH:TZM'
             ) AS shipped_at,
             to_char(
                 b.completed_at,
@@ -213,7 +217,7 @@ try {
             'total_cost' => $itemTotal,
             'rental_status' => $row['rental_status'],
 
-            'timeline' => build_timeline($row),
+            'timeline' => build_timeline(array_merge($row, ['created_at' => $booking['created_at']])),
             'condition_at_return' => $row['condition_at_return']
         ];
     }
