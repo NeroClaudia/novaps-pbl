@@ -167,12 +167,24 @@ function expire_unpaid_bookings(PDO $pdo): void
               AND payment_expires_at IS NOT NULL
               AND payment_expires_at <= statement_timestamp()
             RETURNING booking_id
+        ),
+        cancelled_rentals AS (
+            UPDATE rental
+            SET rental_status = 'Cancelled'
+            WHERE booking_id IN (
+                SELECT booking_id FROM expired
+            )
+              AND rental_status = 'Booked'
+            RETURNING booking_id
         )
-        UPDATE rental
-        SET rental_status = 'Cancelled'
+        UPDATE booking
+        SET fulfillment_status = 'Cancelled',
+            cancel_reason = 'Payment time expired',
+            cancelled_at = statement_timestamp()
         WHERE booking_id IN (
             SELECT booking_id FROM expired
         )
-          AND rental_status = 'Booked'"
+          AND fulfillment_status = 'Pending'"
     );
 }
+

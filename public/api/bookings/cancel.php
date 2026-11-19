@@ -45,6 +45,7 @@ try {
     $stmt = $pdo->prepare(
         "SELECT
             b.booking_id,
+            b.fulfillment_status,
             p.payment_id,
             p.payment_status
          FROM booking b
@@ -67,7 +68,7 @@ try {
         json_error('NOT_FOUND', 'Booking tidak ditemukan', 404);
     }
 
-    if ($booking['payment_status'] !== 'Pending') {
+    if ($booking['payment_status'] !== 'Pending' || $booking['fulfillment_status'] !== 'Pending') {
         $pdo->rollBack();
         json_error('INVALID_STATUS_TRANSITION', 'Booking tidak dapat dibatalkan', 409);
     }
@@ -97,15 +98,20 @@ try {
 
     $stmt = $pdo->prepare(
         "UPDATE booking
-         SET cancel_reason = :reason,
-             cancelled_at = NOW()
-         WHERE booking_id = :booking_id"
+            SET fulfillment_status  = 'Cancelled',
+                cancel_reason = :reason,
+                cancelled_at = clock_timestamp()
+            WHERE booking_id = :booking_id AND fulfillment_status = 'Pending'"
     );
 
     $stmt->execute([
         'reason' => $reason,
         'booking_id' => $bookingId
     ]);
+
+    if ($stmt->rowCount() !== 1) {
+        throw new RuntimeException('Status booking gagal diperbarui');
+    }
 
     $stmt = $pdo->prepare(
         "UPDATE rental
@@ -125,6 +131,7 @@ try {
         'data' => [
             'booking_code' => $bookingCode,
             'payment_status' => 'Cancelled',
+            'fulfillment_status' => 'Cancelled',
             'cancel_reason' => $reason
         ]
     ]);
