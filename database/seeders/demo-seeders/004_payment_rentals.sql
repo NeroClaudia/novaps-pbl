@@ -34,7 +34,7 @@ FROM (
         ('DEMO0002', 'Cash', 'Paid', NULL),
         ('DEMO0003', 'QRIS', 'Paid', 'payment_proof/demo-0003.jpg'),
         ('DEMO0004', 'QRIS', 'Pending', NULL),
-        ('DEMO0005', 'Cash', 'Pending', NULL)
+        ('DEMO0005', 'Cash', 'Cancelled', NULL)
 ) AS sample (
     booking_code,
     payment_method,
@@ -103,7 +103,7 @@ FROM (
         ('DEMO0002', 'SN-PS4-002', 1, 'Overdue'),
         ('DEMO0003', 'SN-PS5-002', 2, 'Returned'),
         ('DEMO0004', 'SN-PS5-002', 1, 'Booked'),
-        ('DEMO0005', 'SN-PS4-002', 2, 'Booked')
+        ('DEMO0005', 'SN-PS4-002', 2, 'Cancelled')
 ) AS sample (
     booking_code,
     serial_number,

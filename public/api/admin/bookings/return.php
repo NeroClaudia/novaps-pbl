@@ -14,10 +14,6 @@ require_login(['admin', 'owner']);
 $input = read_json_body();
 
 // 4. Validasi rental_id (wajib, integer >= 1)
-$rentalId = filter_var($input['rental_id'] ?? null, FILTER_VALIDATE_INT, [
-    'options' => ['min_range' => 1]
-]);
-
 $rentalId = $input['rental_id'] ?? null;
 
 if (!is_int($rentalId) || $rentalId < 1) {
@@ -39,19 +35,6 @@ if (array_key_exists('condition_at_return', $input) && $input['condition_at_retu
         json_error('VALIDATION_ERROR', 'condition_at_return maksimal 100 karakter', 422);
     }
     $conditionAtReturn = $trimmedCond !== '' ? $trimmedCond : null;
-}
-
-// 6. Validasi condition_notes (opsional, string, maks 255 karakter)
-$conditionNotes = null;
-if (array_key_exists('condition_notes', $input) && $input['condition_notes'] !== null) {
-    if (!is_string($input['condition_notes'])) {
-        json_error('VALIDATION_ERROR', 'condition_notes harus berupa teks', 422);
-    }
-    $trimmedNotes = trim($input['condition_notes']);
-    if (mb_strlen($trimmedNotes) > 255) {
-        json_error('VALIDATION_ERROR', 'condition_notes maksimal 255 karakter', 422);
-    }
-    $conditionNotes = $trimmedNotes !== '' ? $trimmedNotes : null;
 }
 
 // 8. Transaksi Database
@@ -105,24 +88,27 @@ try {
     }
 
     // c. Update rental menjadi Returned (COALESCE menjaga nilai jika parameter null)
+
     $stmtUpdate = $pdo->prepare(
         "UPDATE rental
-     SET rental_status = 'Returned',
-         returned_at = clock_timestamp(),
-         condition_at_return = COALESCE(:cond, condition_at_return),
-         condition_notes = COALESCE(:notes, condition_notes)
-     WHERE rental_id = :rental_id
-       AND rental_status IN ('Rented', 'Overdue')
-     RETURNING to_char(
-         returned_at,
-         'YYYY-MM-DD\"T\"HH24:MI:SSTZH:TZM'
-     ) AS returned_at"
+        SET rental_status = 'Returned',
+            returned_at = clock_timestamp(),
+            condition_at_return = COALESCE(
+                :cond, condition_at_return
+            )
+        WHERE rental_id = :rental_id
+        AND rental_status IN ('Rented', 'Overdue')
+        RETURNING to_char(
+            returned_at,
+            'YYYY-MM-DD\"T\"HH24:MI:SSTZH:TZM'
+        ) AS returned_at"
     );
+
     $stmtUpdate->execute([
         'cond' => $conditionAtReturn,
-        'notes' => $conditionNotes,
-        'rental_id' => $rentalId,
+        'rental_id' => $rentalId
     ]);
+
     $returnedAt = $stmtUpdate->fetchColumn();
 
     if ($returnedAt === false) {

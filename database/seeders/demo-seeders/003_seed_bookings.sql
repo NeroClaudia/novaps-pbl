@@ -1,7 +1,7 @@
 -- Data contoh booking pelanggan.
 -- address_snapshot menyimpan alamat saat checkout.
 
-INSERT INTO booking (booking_code, customer_id, staff_id, booking_channel, fulfillment_status, shipped_at, completed_at, created_at, ddress_snapshot)
+INSERT INTO booking (booking_code, customer_id, staff_id, booking_channel, fulfillment_status, shipped_at, completed_at, created_at, address_snapshot)
 SELECT
     sample.booking_code,
     customer.user_id,

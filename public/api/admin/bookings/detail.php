@@ -55,10 +55,15 @@ try {
             b.booking_code,
             b.booking_channel,
             b.address_snapshot,
+            b.fulfillment_status,
             to_char(
                 b.created_at,
                 'YYYY-MM-DD\"T\"HH24:MI:SSTZH:TZM'
-            ) AS created_at,
+            ) AS shipped_at,
+            to_char(
+                b.completed_at,
+                'YYYY-MM-DD\"T\"HH24:MI:SSTZH:TZM'
+            ) AS completed_at,
 
             c.user_id AS customer_id,
             c.full_name AS customer_name,
@@ -163,9 +168,7 @@ try {
                 'YYYY-MM-DD\"T\"HH24:MI:SSTZH:TZM'
             ) AS returned_at,
 
-            r.condition_at_pickup,
-            r.condition_at_return,
-            r.condition_notes
+            r.condition_at_return
 
          FROM rental r
          JOIN device d
@@ -211,10 +214,7 @@ try {
             'rental_status' => $row['rental_status'],
 
             'timeline' => build_timeline($row),
-
-            'condition_at_pickup' => $row['condition_at_pickup'],
-            'condition_at_return' => $row['condition_at_return'],
-            'condition_notes' => $row['condition_notes']
+            'condition_at_return' => $row['condition_at_return']
         ];
     }
 
@@ -251,9 +251,14 @@ try {
         }
     }
 
-    $canVerify = $identityUploaded
+    $canVerify = $booking['fulfillment_status'] === 'Pending'
+        && $identityUploaded
         && !empty($booking['identity_doc_type'])
         && $paymentReady
+        && $allBooked;
+
+    $canDeliver = $booking['fulfillment_status'] === 'Shipped'
+        && $booking['payment_status'] === 'Paid'
         && $allBooked;
 
     // 6. Kirim detail booking ke dashboard admin.
@@ -265,6 +270,9 @@ try {
             'booking_channel' => $booking['booking_channel'],
             'created_at' => $booking['created_at'],
             'address_snapshot' => $booking['address_snapshot'],
+            'fulfillment_status' => $booking['fulfillment_status'],
+            'shipped_at' => $booking['shipped_at'],
+            'completed_at' => $booking['completed_at'],
 
             'customer' => [
                 'user_id' => (int) $booking['customer_id'],
@@ -301,7 +309,8 @@ try {
                 'identity_verified' => $identityVerified,
                 'payment_proof_uploaded' => $proofUploaded,
                 'payment_verified' => $paymentVerified,
-                'can_verify' => $canVerify
+                'can_verify' => $canVerify,
+                'can_deliver' => $canDeliver
             ],
 
             'verified_by' => $booking['verified_by'],
