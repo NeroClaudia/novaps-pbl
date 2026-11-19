@@ -47,6 +47,15 @@ try {
     $stmt = $pdo->prepare(
         "SELECT
             b.booking_code,
+            b.fulfillment_status,
+            to_char(
+                b.shipped_at,
+                'YYYY-MM-DD\"T\"HH24:MI:SSTZH:TZM'
+            ) AS shipped_at,
+            to_char(
+                b.completed_at,
+                'YYYY-MM-DD\"T\"HH24:MI:SSTZH:TZM'
+            ) AS completed_at,
             b.cancel_reason,
             to_char(
                 b.cancelled_at,
@@ -207,6 +216,9 @@ try {
         'data' => [
             'booking_code' => (string) $first['booking_code'],
             'created_at' => $first['created_at'],
+            'fulfillment_status' => $first['fulfillment_status'],
+            'shipped_at' => $first['shipped_at'],
+            'completed_at' => $first['completed_at'],
 
             'cancel_reason' => $first['cancel_reason'],
             'cancelled_at' => $first['cancelled_at'],

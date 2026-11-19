@@ -269,7 +269,7 @@ function get_customer_bookings(PDO $pdo, int $customerId): array
 
         $fulfillmentStatus = $booking['fulfillment_status'];
 
-        // Status UI berasal dari payment + kondisi rental.
+        // Status UI berasal dari payment + fulfillment.
         $uiStatus = match (true) {
             $paymentStatus === 'Rejected' => 'rejected',
 
