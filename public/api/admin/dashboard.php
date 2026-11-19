@@ -33,40 +33,71 @@ try {
         $counts[$row['rental_status']] = (int) $row['total'];
     }
 
+    $fulfillmentCounts = [
+        'Pending' => 0,
+        'Shipped' => 0,
+        'Complete' => 0,
+        'Cancelled' => 0
+    ];
+
+    $fulfillmentQuery = $pdo->prepare(
+        "SELECT fulfillment_status, COUNT(*) AS total
+         FROM booking
+         GROUP BY fulfillment_status"
+    );
+
+    foreach ($fulfillmentQuery->fetchAll() as $row) {
+        $fulfillmentCounts[$row['fulfillment_status']] = (int) $row['total'];
+    }
     // Total tiap item dijumlahkan satu kali.
     // Zona waktu mengikuti koneksi database: Asia/Jakarta.
+
     $revenueQuery = $pdo->query(
         "SELECT
             COALESCE(
                 SUM(r.total_cost) FILTER (
-                    WHERE b.paid_at >= date_trunc('day', statement_timestamp())
-                      AND b.paid_at <
-                          date_trunc('day', statement_timestamp())
-                          + INTERVAL '1 day'
+                    WHERE p.paid_at >=
+                        date_trunc('day', statement_timestamp())
+                    AND p.paid_at <
+                        date_trunc('day', statement_timestamp())
+                        + INTERVAL '1 day'
                 ),
                 0
             ) AS revenue_today,
+
             COALESCE(
                 SUM(r.total_cost) FILTER (
-                    WHERE b.paid_at >= date_trunc('month', statement_timestamp())
-                      AND b.paid_at <
-                          date_trunc('month', statement_timestamp())
-                          + INTERVAL '1 month'
+                    WHERE p.paid_at >=
+                        date_trunc('month', statement_timestamp())
+                    AND p.paid_at <
+                        date_trunc('month', statement_timestamp())
+                        + INTERVAL '1 month'
                 ),
                 0
             ) AS revenue_this_month
-         FROM booking b
-         JOIN rental r ON r.booking_id = b.booking_id
-         WHERE b.payment_status = 'Paid'"
+
+        FROM payment p
+        JOIN rental r ON r.booking_id = p.booking_id
+        WHERE p.payment_status = 'Paid'"
     );
+
     $revenue = $revenueQuery->fetch();
 
     $pendingQuery = $pdo->query(
         "SELECT COUNT(*)
-         FROM booking
-         WHERE payment_status = 'AwaitingVerification'
-           AND payment_verified_at IS NULL"
+         FROM payment p
+            JOIN booking b ON b.booking_id = p.booking_id
+         WHERE b.fulfillment_status = 'Pending'
+            AND p.payment_verified_at IS NULL
+            AND (
+                p.payment_status = 'AwaitingVerification'
+                OR (
+                    p.payment_method = 'Cash'
+            AND p.payment_status = 'Pending'
+           )
+       )"
     );
+
     $pendingVerifications = (int) $pendingQuery->fetchColumn();
 
     $identityQuery = $pdo->query(
@@ -122,6 +153,7 @@ try {
         'success' => true,
         'data' => [
             'counts' => $counts,
+            'fulfillment_counts' => $fulfillmentCounts,
             'revenue_today' => (float) $revenue['revenue_today'],
             'revenue_this_month' => (float) $revenue['revenue_this_month'],
             'pending_payment_verifications' => $pendingVerifications,
