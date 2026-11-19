@@ -66,7 +66,7 @@ FROM (
             'DEMO0005',
             '083456789012',
             NULL,
-            'WhatsApp',
+            'Online',
             'Cancelled',
             INTERVAL '30 minutes',
             'Jl. Veteran, Malang'

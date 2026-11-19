@@ -113,7 +113,7 @@ try {
 
     // Pakai satu waktu aktivasi untuk semua perangkat.
     $stmt = $pdo->query(
-        "SELECT clock_timestamp() AS activated_at"
+        "SELECT date_trunc('second', clock_timestamp()) AS activated_at"
     );
     $activatedAt = $stmt->fetchColumn();
 

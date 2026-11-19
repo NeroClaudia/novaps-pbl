@@ -29,7 +29,15 @@ function get_devices(PDO $pdo): array
                  ON b.booking_id = r.booking_id
              JOIN payment p
                  ON p.booking_id = b.booking_id
-             WHERE r.rental_status IN ('Rented', 'Overdue')
+            WHERE
+                r.rental_status IN ('Rented', 'Overdue')
+
+                OR (
+                    r.rental_status = 'Booked'
+                    AND b.fulfillment_status = 'Shipped'
+                    AND p.payment_status = 'Paid'
+                )
+
                 OR (
                     r.rental_status = 'Booked'
                     AND r.start_time <= statement_timestamp()
