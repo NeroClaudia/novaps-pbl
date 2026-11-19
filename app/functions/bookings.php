@@ -92,7 +92,12 @@ function get_customer_booking(PDO $pdo, int $customerId, string $bookingCode): ?
             r.duration_hours,
             r.price_per_day,
             r.total_cost,
-            r.rental_status
+            r.rental_status,
+            r.start_time,
+            r.end_time,
+            r.rented_at,
+            r.overdue_at,
+            r.returned_at
         FROM booking b
         JOIN users u
             ON u.user_id = b.customer_id
@@ -132,7 +137,12 @@ function get_customer_booking(PDO $pdo, int $customerId, string $bookingCode): ?
             ),
             'price_per_day' => (float) $row['price_per_day'],
             'total_cost' => $itemCost,
-            'rental_status' => $row['rental_status']
+            'rental_status' => $row['rental_status'],
+            'start_time' => $row['start_time'],
+            'end_time' => $row['end_time'],
+            'rented_at' => $row['rented_at'],
+            'overdue_at' => $row['overdue_at'],
+            'returned_at' => $row['returned_at']
         ];
 
         $grandTotal += $itemCost;

@@ -24,6 +24,7 @@ if (!preg_match('/^[A-Z0-9]{8}$/', $bookingCode)) {
 
 try {
     expire_unpaid_bookings($pdo);
+    mark_overdue($pdo);
 
     $booking = get_customer_booking(
         $pdo,
@@ -45,50 +46,112 @@ try {
 
 $status = $booking['payment']['status'];
 
-$view = match ($status) {
-    'Expired' => [
+$rentalStatuses = array_column(
+    $booking['items'],
+    'rental_status'
+);
+
+$hasOverdue = in_array(
+    'Overdue',
+    $rentalStatuses,
+    true
+);
+
+$hasRented = in_array(
+    'Rented',
+    $rentalStatuses,
+    true
+);
+
+$allReturned = count($rentalStatuses) > 0
+    && count(array_unique($rentalStatuses)) === 1
+    && $rentalStatuses[0] === 'Returned';
+
+$view = match (true) {
+    $status === 'Expired' => [
         'title' => 'Order Canceled',
-        'subtitle' => 'The payment time ran out, so this order was canceled automatically.',
+        'subtitle' => 'The payment deadline has expired.',
         'reason' => 'Payment time expired',
         'note' => 'You can place a new order anytime.',
         'tone' => 'text-red-500',
         'glyph' => 'cross'
     ],
-    'Cancelled' => [
+
+    $status === 'Cancelled' => [
         'title' => 'Order Canceled',
-        'subtitle' => 'You canceled this order.',
+        'subtitle' => 'This order has been canceled.',
         'reason' => $booking['cancel_reason'] ?? '',
         'note' => 'You can place a new order anytime.',
         'tone' => 'text-red-500',
         'glyph' => 'cross'
     ],
-    'AwaitingVerification' => [
-        'title' => 'Your Payment Is Complete!',
-        'subtitle' => 'Your payment proof has been received and is awaiting admin verification.',
-        'reason' => '',
-        'note' => 'Please wait for admin verification.',
-        'tone' => 'text-green-500',
-        'glyph' => 'check'
-    ],
-    'Paid' => [
-        'title' => 'Payment Verified',
-        'subtitle' => 'Your payment has been verified by the admin.',
-        'reason' => '',
-        'note' => '',
-        'tone' => 'text-green-500',
-        'glyph' => 'check'
-    ],
-    'Rejected' => [
+
+    $status === 'Rejected' => [
         'title' => 'Order Rejected',
-        'subtitle' => 'Your order was rejected by the admin.',
+        'subtitle' => 'Your payment was rejected.',
         'reason' => $booking['cancel_reason'] ?? '',
-        'note' => '',
+        'note' => 'Please contact the admin for assistance.',
         'tone' => 'text-red-500',
         'glyph' => 'cross'
     ],
-    default => [
+
+    $status === 'AwaitingVerification' => [
+        'title' => 'Waiting for Verification',
+        'subtitle' => 'Your payment proof was received and is awaiting admin verification.',
+        'reason' => '',
+        'note' => 'Your rental is not active yet.',
+        'tone' => 'text-amber-500',
+        'glyph' => 'clock'
+    ],
+
+    $status === 'Pending' => [
         'title' => 'Waiting for Payment',
-        'subtitle' => 'Please complete your payment.',
+        'subtitle' => 'Please complete your payment before the deadline.',
+        'reason' => '',
+        'note' => 'Your rental is not active yet.',
+        'tone' => 'text-amber-500',
+        'glyph' => 'clock'
+    ],
+
+    $status === 'Paid' && $hasOverdue => [
+        'title' => 'Rental Overdue',
+        'subtitle' => 'One or more rental units have passed their return deadline.',
+        'reason' => '',
+        'note' => 'Please return the overdue units. No late fee is charged.',
+        'tone' => 'text-red-500',
+        'glyph' => 'clock'
+    ],
+
+    $status === 'Paid' && $hasRented => [
+        'title' => 'Rental in Progress',
+        'subtitle' => 'Your payment is verified and your rental is active.',
+        'reason' => '',
+        'note' => 'Check Time Remaining for your rental countdown.',
+        'tone' => 'text-green-500',
+        'glyph' => 'check'
+    ],
+
+    $status === 'Paid' && $allReturned => [
+        'title' => 'Rental Completed',
+        'subtitle' => 'All rental units have been returned.',
+        'reason' => '',
+        'note' => 'Thank you for renting with NovaPS!',
+        'tone' => 'text-green-500',
+        'glyph' => 'check'
+    ],
+
+    $status === 'Paid' => [
+        'title' => 'Payment Verified',
+        'subtitle' => 'Your payment has been verified.',
+        'reason' => '',
+        'note' => 'Please check the rental status below.',
+        'tone' => 'text-green-500',
+        'glyph' => 'check'
+    ],
+
+    default => [
+        'title' => 'Order Status',
+        'subtitle' => 'Please check your order information.',
         'reason' => '',
         'note' => '',
         'tone' => 'text-amber-500',
@@ -190,7 +253,7 @@ function detail_money(float $amount): string
             <?php
             $rows = [
                 'Order ID' => $booking['booking_code'],
-                'Status' => $status === 'Expired' ? 'Canceled' : $status,
+                'Payment Status' => $status === 'Expired' ? 'Expired' : $status,
                 'Customer' => $booking['customer']['full_name'],
                 'Address' => $booking['customer']['address'],
                 'Date' => (new DateTimeImmutable($booking['created_at']))
@@ -233,6 +296,79 @@ function detail_money(float $amount): string
                     <span><?= detail_money($item['total_cost']) ?></span>
                 </div>
 
+                <?php
+                $rentalStatus = $item['rental_status'];
+
+                $rentalColor = match ($rentalStatus) {
+                    'Rented' => '#16a34a',
+                    'Overdue' => '#dc2626',
+                    'Returned' => '#16a34a',
+                    'Cancelled' => '#dc2626',
+                    default => '#d97706'
+                };
+
+                $formatRentalDate = static function (
+                    ?string $value
+                ): string {
+                    if ($value === null) {
+                        return '—';
+                    }
+
+                    return (new DateTimeImmutable($value))
+                        ->setTimezone(new DateTimeZone('Asia/Jakarta'))
+                        ->format('d M Y, H:i');
+                };
+                ?>
+
+                <div class="flex justify-between gap-4 py-0.5">
+                    <span>Rental Status</span>
+
+                    <span
+                        class="font-semibold"
+                        style="color: <?= $rentalColor ?>;"
+                    >
+                        <?= detail_escape($rentalStatus) ?>
+                    </span>
+                </div>
+
+                <div class="flex justify-between gap-4 py-0.5">
+                    <span>Rental Start</span>
+                    <span class="text-right">
+                        <?= detail_escape(
+                            $formatRentalDate($item['start_time'])
+                        ) ?>
+                    </span>
+                </div>
+
+                <div class="flex justify-between gap-4 py-0.5">
+                    <span>Return Deadline</span>
+                    <span class="text-right">
+                        <?= detail_escape(
+                            $formatRentalDate($item['end_time'])
+                        ) ?>
+                    </span>
+                </div>
+
+                <?php if ($item['returned_at'] !== null): ?>
+                    <div class="flex justify-between gap-4 py-0.5">
+                        <span>Returned At</span>
+                        <span class="text-right">
+                            <?= detail_escape(
+                                $formatRentalDate($item['returned_at'])
+                            ) ?>
+                        </span>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($rentalStatus === 'Overdue'): ?>
+                    <p
+                        class="mt-1 text-right text-sm"
+                        style="color: #dc2626;"
+                    >
+                        Return deadline exceeded. No late fee.
+                    </p>
+                <?php endif; ?>
+
             <?php endforeach; ?>
 
             <div class="my-1.5 border-t border-slate-300"></div>
@@ -255,6 +391,16 @@ function detail_money(float $amount): string
                 Back to the home page
             </a>
 
+            <a href="/pages/order-status.php" class="btn border-2 border-slate-400 bg-white px-6 py-2.5 text-base font-semibold text-slate-500">
+                Order Status
+            </a>
+
+            <?php if ($status === 'Paid' && ($hasRented || $hasOverdue)): ?>
+                <a href="/pages/time-remaining.php" class="btn btn-indigo px-6 py-2.5 text-base font-semibold">
+                    Time Remaining
+                </a>
+            <?php endif; ?>
+
             <?php if (in_array($status, ['Expired', 'Cancelled', 'Rejected'], true)): ?>
 
                 <a href="/pages/order-form.php"
@@ -262,7 +408,7 @@ function detail_money(float $amount): string
                     Order Again
                 </a>
 
-            <?php elseif ($status === 'Pending'): ?>
+            <?php elseif ($status === 'Pending' && $booking['payment_method'] === 'QRIS'): ?>
 
                 <a href="/pages/payment.php?order=<?= rawurlencode($bookingCode) ?>"
                 class="btn btn-indigo px-6 py-2.5 text-base font-semibold">
