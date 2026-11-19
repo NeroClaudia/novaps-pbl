@@ -287,3 +287,73 @@ function get_customer_bookings(PDO $pdo, int $customerId): array
 
     return $result;
 }
+
+//Daftar rental customer yang sudah dibayar dan berstatus Rented, Overdue, atau Returned.
+function get_customer_rentals(PDO $pdo, int $customerId): array
+{
+    $stmt = $pdo->prepare(
+        "SELECT
+            r.rental_id,
+            r.device_id,
+            r.rental_status,
+            r.duration_hours,
+            r.total_cost,
+            r.end_time,
+            r.rented_at,
+            r.overdue_at,
+            r.returned_at,
+            d.device_name,
+            d.category,
+            b.booking_code,
+            b.address_snapshot
+         FROM rental r
+         JOIN booking b ON b.booking_id = r.booking_id
+         JOIN payment p ON p.booking_id = b.booking_id
+         JOIN device d ON d.device_id = r.device_id
+         WHERE b.customer_id = :customer_id
+           AND p.payment_status = 'Paid'
+           AND r.rental_status IN (
+               'Rented', 'Overdue', 'Returned'
+           )
+         ORDER BY
+           CASE WHEN r.rental_status = 'Returned'
+               THEN 1 ELSE 0 END,
+           r.end_time ASC,
+           r.rental_id DESC"
+    );
+
+    $stmt->execute(['customer_id' => $customerId]);
+
+    $result = [];
+
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $endTime = new DateTimeImmutable($row['end_time']);
+
+        $returnedAt = $row['returned_at'] !== null
+            ? new DateTimeImmutable($row['returned_at'])
+            : null;
+
+        $result[] = [
+            'rental_id' => (int) $row['rental_id'],
+            'booking_code' => (string) $row['booking_code'],
+            'device_id' => (int) $row['device_id'],
+            'device_name' => (string) $row['device_name'],
+            'category' => (string) $row['category'],
+            'address' => (string) $row['address_snapshot'],
+            'duration_days' => intdiv(
+                (int) $row['duration_hours'],
+                24
+            ),
+            'total_cost' => (float) $row['total_cost'],
+            'rental_status' => (string) $row['rental_status'],
+            'end_time' => $endTime->format(DATE_ATOM),
+            'end_timestamp' => $endTime->getTimestamp(),
+            'returned_at' => $returnedAt?->format(DATE_ATOM),
+            'returned_late' => $returnedAt !== null
+                && $returnedAt->getTimestamp() >
+                   $endTime->getTimestamp()
+        ];
+    }
+
+    return $result;
+}
