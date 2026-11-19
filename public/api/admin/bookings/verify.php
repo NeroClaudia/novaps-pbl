@@ -288,7 +288,7 @@ try {
                 static fn(array $rental): array => [
                     'rental_id' => (int) $rental['rental_id'],
                     'device_id' => (int) $rental['device_id'],
-                    'rental_status' => 'Rented'
+                    'rental_status' => $rental['rental_status']
                 ],
                 $rentals
             )

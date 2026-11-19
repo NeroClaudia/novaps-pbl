@@ -67,7 +67,7 @@ FROM (
             '083456789012',
             NULL,
             'WhatsApp',
-            'Pending',
+            'Cancelled',
             INTERVAL '30 minutes',
             'Jl. Veteran, Malang'
         )
