@@ -5,7 +5,7 @@ CREATE TABLE booking (
     customer_id             INT NOT NULL REFERENCES users(user_id),
     staff_id                INT REFERENCES users(user_id),
     booking_channel         VARCHAR(20) NOT NULL DEFAULT 'Online'
-        CHECK (booking_channel IN ('Online', 'Walk-in', 'WhatsApp')),
+        CHECK (booking_channel IN ('Online', 'Walk-in')),
     fulfillment_status      VARCHAR(20) NOT NULL DEFAULT 'Pending'
         CHECK (fulfillment_status IN (
                 'Pending',
