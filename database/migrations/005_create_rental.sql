@@ -19,10 +19,8 @@ CREATE TABLE rental
     rented_at TIMESTAMPTZ,
     overdue_at TIMESTAMPTZ,
     returned_at TIMESTAMPTZ,
-    condition_at_pickup VARCHAR(100),
     condition_at_return VARCHAR(100),
-    condition_notes VARCHAR(255),
-
+    
     CONSTRAINT uq_booking_device UNIQUE (booking_id, device_id),
     CONSTRAINT chk_end_after_start CHECK (end_time > start_time),
     CONSTRAINT chk_duration_matches_end CHECK (end_time = start_time + duration_hours * INTERVAL '1 hour')

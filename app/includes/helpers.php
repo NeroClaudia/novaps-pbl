@@ -98,9 +98,10 @@ function slot_is_free(
                   OR p.payment_expires_at IS NULL
                   OR p.payment_expires_at > statement_timestamp()
               )
-              AND r.start_time < CAST(:end_db AS TIMESTAMPTZ)
-              AND r.end_time > CAST(:start_db AS TIMESTAMPTZ)
-        )"
+        
+                AND ((b.fulfillment_status = 'Shipped' AND p.payment_status = 'Paid') OR r.rental_status = 'Overdue'
+                    OR (r.rental_status = 'Rented' AND r.end_time < statement_timestamp())
+                    OR (r.start_time < CAST(:end_db AS TIMESTAMPTZ) AND r.end_time > CAST(:start_db AS TIMESTAMPTZ))))"
     );
 
     $stmt->execute([

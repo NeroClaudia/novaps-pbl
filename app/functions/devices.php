@@ -133,8 +133,16 @@ function get_available_devices(PDO $pdo, DateTimeImmutable $startTime, DateTimeI
                      OR p.payment_expires_at IS NULL
                      OR p.payment_expires_at > statement_timestamp()
                  )
-                 AND r.start_time < CAST(:end_time AS timestamptz)
-                 AND r.end_time > CAST(:start_time AS timestamptz)
+                AND (
+                    (
+                        b.fulfillment_status = 'Shipped'
+                        AND p.payment_status = 'Paid'
+                    )
+                    OR (
+                        r.start_time < CAST(:end_time AS timestamptz)
+                        AND r.end_time > CAST(:start_time AS timestamptz)
+                    )
+                )
            )
          ORDER BY
              d.category ASC,

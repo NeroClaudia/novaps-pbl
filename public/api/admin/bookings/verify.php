@@ -41,7 +41,7 @@ try {
 
     // 1. Kunci booking dan cari customer.
     $stmt = $pdo->prepare(
-        "SELECT booking_id, booking_code, customer_id
+        "SELECT booking_id, booking_code, customer_id, fulfillment_status
          FROM booking
          WHERE booking_id = :booking_id
          FOR UPDATE"
@@ -52,6 +52,11 @@ try {
     if (!$booking) {
         $pdo->rollBack();
         json_error('NOT_FOUND', 'Booking tidak ditemukan', 404);
+    }
+
+    if ($booking['fulfillment_status'] !== 'Pending') {
+        $pdo->rollBack();
+        json_error('INVALID_STATUS_TRANSITION', 'Pesanan sudah diproses sebelumnya', 409);
     }
 
     // 2. Kunci identitas customer agar tidak berubah
@@ -253,28 +258,19 @@ try {
     // 7. Catat admin yang memverifikasi booking.
     $stmt = $pdo->prepare(
         "UPDATE booking
-         SET staff_id = :staff_id
-         WHERE booking_id = :booking_id"
+         SET staff_id = :staff_id,
+            fulfillment_status = 'Shipped',
+            shipped_at = NOW()
+         WHERE booking_id = :booking_id
+            AND fulfillment_status = 'Pending'"
     );
     $stmt->execute([
         'staff_id' => (int) $auth['user_id'],
         'booking_id' => $bookingId
     ]);
 
-    // 8. Aktifkan rental.
-    $stmt = $pdo->prepare(
-        "UPDATE rental
-         SET rental_status = 'Rented',
-             rented_at = NOW()
-         WHERE booking_id = :booking_id
-           AND rental_status = 'Booked'"
-    );
-    $stmt->execute(['booking_id' => $bookingId]);
-
-    if ($stmt->rowCount() !== count($rentals)) {
-        throw new RuntimeException(
-            'Tidak semua item rental berhasil diperbarui'
-        );
+    if ($stmt->rowCount() !== 1) {
+        throw new RuntimeException('Gagal mengubah status pesanan menjadi Shipped');
     }
 
     $pdo->commit();
@@ -286,6 +282,7 @@ try {
             'booking_code' => $booking['booking_code'],
             'identity_doc_verified' => true,
             'payment_status' => 'Paid',
+            'fulfillment_status' => 'Shipped',
             'verified_by' => $auth['full_name'],
             'items' => array_map(
                 static fn(array $rental): array => [
@@ -297,6 +294,7 @@ try {
             )
         ]
     ]);
+    
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
