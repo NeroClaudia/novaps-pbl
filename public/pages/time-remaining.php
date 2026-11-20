@@ -77,7 +77,7 @@ $tabs = [
           content="width=device-width, initial-scale=1">
 
     <title>Time Remaining Status - NovaPS</title>
-
+    <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
     <link rel="preconnect"
           href="https://fonts.googleapis.com">
 
