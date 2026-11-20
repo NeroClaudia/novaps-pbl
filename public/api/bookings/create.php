@@ -18,6 +18,49 @@ if ($customerId === false || $customerId === null) {
 
 $input = read_json_body();
 
+//Lokasi pengiriman dari order form, jika tidak dikirim, gunakan alamat yang ada di profil customer
+$hasCustomAddress = array_key_exists('delivery_address', $input);
+$deliveryAddress = $input['delivery_address'] ?? null;
+
+if ($hasCustomAddress && !is_string($deliveryAddress)) {
+    json_error('VALIDATION_ERROR', 'Alamat pengiriman harus berupa teks', 422);
+}
+
+if ($hasCustomAddress) {
+    $deliveryAddress = trim($deliveryAddress);
+
+    if (mb_strlen($deliveryAddress) > 1000) {
+        json_error('VALIDATION_ERROR', 'Alamat pengiriman maksimal 1000 karakter', 422);
+    }
+}
+
+$latitude = $input['delivery_latitude'] ?? null;
+$longitude = $input['delivery_longitude'] ?? null;
+
+$hasLatitude = $latitude !== null;
+$hasLongitude = $longitude !== null;
+
+//Koordinat tidak boleh hanya salah satu
+if ($hasLatitude !== $hasLongitude) {
+    json_error('VALIDATION_ERROR', 'Latitude dan longitude harus dikirim bersamaan', 422);
+}
+
+$hasCoordinates = $hasLatitude && $hasLongitude;
+
+if ($hasCoordinates) {
+    if (
+        (!is_int($latitude) && !is_float($latitude)) ||
+        (!is_int($longitude) && !is_float($longitude)) ||
+        !is_finite((float) $latitude) ||
+        !is_finite((float) $longitude) ||
+        $latitude < -90 ||
+        $latitude > 90 ||
+        $longitude < -180 ||
+        $longitude > 180
+    ) {
+        json_error('VALIDATION_ERROR', 'Koordinat lokasi pengiriman tidak valid', 422);
+    }
+}
 // c. Validasi start_time (Wajib, format YYYY-MM-DDTHH:MM:SS, maksimal 5 menit di masa lalu)
 $timeZone = new DateTimeZone('Asia/Jakarta');
 
@@ -115,7 +158,7 @@ try {
     }
 
     // Pastikan profil data lengkap
-    if (trim((string) $user['full_name']) === '' || trim((string) $user['phone']) === '' || trim((string) $user['address']) === '') {
+    if (trim((string) $user['full_name']) === '' || trim((string) $user['phone']) === '') {
         $pdo->rollBack();
         json_error('PROFILE_INCOMPLETE', 'Lengkapi nama, nomor telepon, dan alamat sebelum checkout', 422);
     }
@@ -125,8 +168,18 @@ try {
         json_error('IDENTITY_REQUIRED', 'Unggah dokumen identitas sebelum checkout', 422);
     }
 
-    // Ambil alamat profil pada saat checkout
-    $addressSnapshot = trim($user['address']);
+    //Gunakan alamat dari form jika dikirim. Jika belum gunakan alamat dari profil
+    $addressSnapshot = $hasCustomAddress ? $deliveryAddress : trim((string) ($user['address'] ?? ''));
+
+    //Customer boleh hanya menentukan titik peta tanpa mengetahui alamat lengkap
+    if ($addressSnapshot === '' && $hasCoordinates) {
+        $addressSnapshot = 'Titik pengiriman dipilih melalui peta';
+    }
+
+    if ($addressSnapshot === '') {
+        $pdo->rollBack();
+        json_error('DELIVERY_LOCATION_REQUIRED', 'Isi alamat pengiriman atau pilih titik pada peta', 422);
+    }
 
     $unpaidBooking = get_unpaid_booking($pdo, $customerId);
 
@@ -183,12 +236,28 @@ try {
 
     $windowMinutes = $paymentMethod === 'Cash' ? null : $paymentWindow;
 
-    $stmtBooking = $pdo->prepare("INSERT INTO booking (customer_id, booking_channel, address_snapshot)
-                                  VALUES (:customer_id, 'Online', :address_snapshot)
-                                  RETURNING booking_id, booking_code");
+    $stmtBooking = $pdo->prepare(
+        "INSERT INTO booking (
+        customer_id,
+        booking_channel,
+        address_snapshot,
+        delivery_latitude,
+        delivery_longitude
+    )VALUES (
+        :customer_id,
+        'Online',
+        :address_snapshot,
+        :delivery_latitude,
+        :delivery_longitude
+    )
+    RETURNING booking_id, booking_code"
+    );
+
     $stmtBooking->execute([
         'customer_id' => $customerId,
         'address_snapshot' => $addressSnapshot,
+        'delivery_latitude' => $hasCoordinates ? (string) $latitude : null,
+        'delivery_longitude' => $hasCoordinates ? (string) $longitude : null,
     ]);
 
     $bookingRow = $stmtBooking->fetch();
@@ -313,6 +382,9 @@ try {
         'success' => true,
         'data' => [
             'booking_code'   => $bookingCode,
+            'address_snapshot' => $addressSnapshot,
+            'delivery_latitude' => $hasCoordinates ? (float) $latitude : null,
+            'delivery_longitude' => $hasCoordinates ? (float) $longitude : null,
             'start_time' => $startDt->format('Y-m-d\TH:i:sP'),
             'payment_method' => $paymentMethod,
             'total_cost'     => $grandTotal,

@@ -1713,3 +1713,27 @@
     }
   }
 }
+
+/* Leaflet delivery map */
+#delivery-map {
+    height: 320px;
+    min-height: 320px;
+    width: 100%;
+    background: #e2e8f0;
+    z-index: 0;
+}
+
+#delivery-map .leaflet-container {
+    font-family: Inter, sans-serif;
+}
+
+#delivery-map .leaflet-control-attribution {
+    font-size: 10px;
+}
+
+@media (max-width: 640px) {
+    #delivery-map {
+        height: 260px;
+        min-height: 260px;
+    }
+}

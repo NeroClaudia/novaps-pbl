@@ -70,6 +70,7 @@ foreach ($devices as $device) {
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="/assets/css/order-form.css" />
     <script
       src="/assets/js/shared/session.js"
@@ -80,7 +81,9 @@ foreach ($devices as $device) {
     <script src="/assets/js/shared/image.js" defer></script>
     <script src="/assets/js/shared/orders.js" defer></script>
     <script src="/assets/js/shared/rental-alerts.js" defer></script>
-    <script src="/assets/js/order-form.js?v=10" defer></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <script src="/assets/js/delivery-map.js?v=1" defer></script>
+    <script src="/assets/js/order-form.js?v=11" defer></script>
   </head>
   <body
     class="min-h-screen bg-slate-50 text-slate-800"
@@ -146,13 +149,12 @@ foreach ($devices as $device) {
             ></p>
           </div>
           <div data-field class="group/field mb-2.5">
-            <label for="address" class="mb-0.5 block text-base">Address</label>
+            <label for="address" class="mb-0.5 block text-base">Delivery Address / Landmark</label>
             <input
               type="text"
               id="address"
               name="address"
               autocomplete="street-address"
-              data-validate="required"
               class="field-input h-10"
               readonly
               value="<?= htmlspecialchars($profile['address'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
@@ -163,6 +165,36 @@ foreach ($devices as $device) {
               class="mt-0.5 text-[11px] text-red-600 empty:hidden"
             ></p>
           </div>
+
+          <!-- Delivery Location -->
+           <div class="mb-4">
+            <h3 class="mb-2 text-base font-semibold">
+              Delivery Location
+            </h3>
+            <p class="mb-3 text-sm text-slate-500">
+                Pilih titik pengiriman pada peta.
+                Klik peta untuk memindahkan pin, atau gunakan GPS.
+                Alamat dan patokan tetap dapat diisi secara manual.
+            </p>
+
+            <div id="delivery-map" class="w-full rounded-lg border-slate-200" aria-label="Peta lokasi pengiriman"></div>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button type="button" id="use-current-location" class="btn btn-indigo px-4 py-2 text-sm">Gunakan lokasi saat ini</button>
+              <button type="button" id="clear-delivery-pin" class="btn border border-slate-300 px-4 py-2 text-sm">Hapus pin</button>
+            </div>
+
+            <p id="delivery-location-status" role="status" aria-live="polite" class="mt-2 text-sm text-slate-600">Belum ada titik pengiriman yang dipilih</p>
+            <p id="delivery-coordinates" class="mt-1 text-xs text-slate-500"></p>
+
+            <input type="hidden" id="delivery-latitude" name="delivery_latitude">
+            <input type="hidden" id="delivery-longitude" name="delivery_longitude">
+
+            <p class="mt-2 text-xs text-slate-500">
+              Pastikan pin sesuai tujuan pengiriman.
+              Alamat di My Profile tidak akan berubah
+            </p>
+           </div>
+
           <div data-field class="group/field mb-2.5">
             <label for="email" class="mb-0.5 block text-base">Email</label>
             <input

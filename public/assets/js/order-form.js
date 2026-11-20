@@ -15,6 +15,9 @@
   const formError = document.getElementById("form-error");
   const summary = document.getElementById("summary");
   const summaryRows = document.getElementById("summary-rows");
+  const deliveryAddress = document.getElementById("address");
+  const deliveryLatitude = document.getElementById("delivery-latitude");
+  const deliveryLongitude = document.getElementById("delivery-longitude");
 
   if (!form || !template) {
     console.error("Elemen Order Form tidak lengkap.", {
@@ -282,9 +285,14 @@ function loadIdentityPreview() {
       );
     }
 
+    const hasDeliveryAddress = deliveryAddress.value.trim() !== "";
+
+    const hasDeliveryPin = deliveryLatitude.value !== "" && deliveryLongitude.value !== "";
+
     const valid =
         customer.identity_doc_uploaded &&
         Boolean(customer.identity_doc_type) &&
+        (hasDeliveryAddress || hasDeliveryPin) &&
         items.length > 0 &&
         items.length === validItems.length;
 
@@ -298,6 +306,10 @@ function loadIdentityPreview() {
             ? "Pilih PS dan durasi penyewaan."
             : "Waktu mulai sewa akan dihitung otomatis saat Checkout.";
   }
+
+  deliveryAddress.addEventListener("input", refresh);
+  deliveryLatitude.addEventListener("change", refresh);
+  deliveryLongitude.addEventListener("change", refresh);
 
   // Cari device_id nyata dari database.
   async function resolveItems(startTime) {
@@ -361,12 +373,38 @@ function loadIdentityPreview() {
 
       console.log("Device terpilih:", items);
 
+      const address = deliveryAddress.value.trim();
+      const latitudeText = deliveryLatitude.value;
+      const longitudeText = deliveryLongitude.value;
+
+      const hasPin = latitudeText !== "" && longitudeText !== "";
+
+      if (!address && !hasPin) {
+        throw new Error(
+          "Isi alamat pengiriman atau pilih titik pada peta."
+        );
+      }
+
+      if (
+        (latitudeText === "") !== (longitudeText === "")
+      ) {
+        throw new Error("Koordinat pengiriman belum lengkap.");
+      }
+
+      const payload = {
+        payment_method: "QRIS",
+        delivery_address: address,
+        items
+      };
+
+      if (hasPin) {
+        payload.delivery_latitude = Number(latitudeText);
+        payload.delivery_longitude = Number(longitudeText);
+      }
+
       const booking = await postAPI(
-          "bookings/create.php",
-          {
-            payment_method: "QRIS",
-            items
-          }
+        "bookings/create.php",
+        payload
       );
 
       checkout.textContent = "Redirecting to payment...";
