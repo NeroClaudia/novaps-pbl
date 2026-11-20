@@ -160,7 +160,7 @@ try {
     // Pastikan profil data lengkap
     if (trim((string) $user['full_name']) === '' || trim((string) $user['phone']) === '') {
         $pdo->rollBack();
-        json_error('PROFILE_INCOMPLETE', 'Lengkapi nama, nomor telepon, dan alamat sebelum checkout', 422);
+        json_error('PROFILE_INCOMPLETE', 'Lengkapi nama dan nomor telepon sebelum checkout', 422);
     }
 
     if (empty($user['identity_doc_type']) || empty($user['identity_doc_url'])) {

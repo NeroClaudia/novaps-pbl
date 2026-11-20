@@ -156,7 +156,6 @@ foreach ($devices as $device) {
               name="address"
               autocomplete="street-address"
               class="field-input h-10"
-              readonly
               value="<?= htmlspecialchars($profile['address'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
             />
             <p

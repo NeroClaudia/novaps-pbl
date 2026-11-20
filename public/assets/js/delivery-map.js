@@ -163,6 +163,9 @@
     longitudeInput.value = "";
     coordinatesElement.textContent = "";
 
+    latitudeInput.dispatchEvent(new Event("change", {bubbles: true}));
+    longitudeInput.dispatchEvent(new Event("change", {bubbles: true}));
+
     setStatus("Pin dihapus. Gunakan alamat teks atau pilih titik baru.");
   });
 
