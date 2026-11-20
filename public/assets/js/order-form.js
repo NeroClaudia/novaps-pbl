@@ -19,6 +19,10 @@
   const deliveryLatitude = document.getElementById("delivery-latitude");
   const deliveryLongitude = document.getElementById("delivery-longitude");
 
+  const deliveryModeInputs = form.querySelectorAll('input[name="delivery_mode"]');
+  const addressLabel = document.getElementById("delivery-address-label");
+  const addressHint = document.getElementById("delivery-address-hint");
+
   if (!form || !template) {
     console.error("Elemen Order Form tidak lengkap.", {
       form,
@@ -44,6 +48,62 @@
     formError.textContent = message;
     formError.style.whiteSpace = "pre-line";
   }
+
+  let addressDraft = deliveryAddress.value;
+  let mapDraft = "";
+
+  function getDeliveryMode() {
+    return form.querySelector(
+      'input[name="delivery_mode"]:checked'
+    )?.value || "address";
+  }
+
+  function switchDeliveryMode(nextMode) {
+    const currentMode = getDeliveryMode();
+
+    // Simpan draft masing-masing mode.
+    if (currentMode !== nextMode) {
+      if (currentMode === "address") {
+        addressDraft = deliveryAddress.value;
+      } else {
+        mapDraft = deliveryAddress.value;
+      }
+
+      deliveryModeInputs.forEach(radio => {
+        radio.checked = radio.value === nextMode;
+      });
+
+      deliveryAddress.value =
+        nextMode === "map" ? mapDraft : addressDraft;
+    }
+
+    const isMapMode = nextMode === "map";
+
+    addressLabel.textContent = isMapMode
+      ? "Patokan Tambahan (Opsional)"
+      : "Alamat Pengiriman";
+
+    deliveryAddress.placeholder = isMapMode
+      ? "Contoh: Kos Melati, pagar hitam"
+      : "Masukkan alamat pengiriman";
+
+    addressHint.textContent = isMapMode
+      ? "Pin pada peta adalah tujuan utama. " +
+        "Isi patokan tambahan jika diperlukan."
+      : "Alamat ini akan digunakan sebagai tujuan " +
+        "pengiriman tanpa koordinat pin.";
+
+    refresh();
+  }
+
+  // Customer mengganti pilihan secara manual.
+  deliveryModeInputs.forEach(radio => {
+    radio.addEventListener("change", () => {
+      if (radio.checked) {
+        switchDeliveryMode(radio.value);
+      }
+    });
+  });
 
   async function getAPI(path) {
     const response = await fetch(`${API_BASE}/${path}`, {
@@ -273,7 +333,9 @@ function loadIdentityPreview() {
           NovaPS.summaryRows({
             customer: {
               fullname: customer?.full_name || "-",
-              address: "Dari profil database"
+              address: getDeliveryMode() === "map" ? 
+                ("Titik lokasi pada peta" + (deliveryAddress.value.trim() ? " — " + deliveryAddress.value.trim() : "")) 
+                    : (deliveryAddress.value.trim() || "-")
             },
             items: validItems.map(item => ({
               unit: item.unit,
@@ -289,12 +351,18 @@ function loadIdentityPreview() {
 
     const hasDeliveryPin = deliveryLatitude.value !== "" && deliveryLongitude.value !== "";
 
-    const valid =
-        customer.identity_doc_uploaded &&
-        Boolean(customer.identity_doc_type) &&
-        (hasDeliveryAddress || hasDeliveryPin) &&
-        items.length > 0 &&
-        items.length === validItems.length;
+  const deliveryMode = getDeliveryMode();
+
+  const validDelivery = deliveryMode === "map"
+    ? hasDeliveryPin
+    : hasDeliveryAddress;
+
+  const valid =
+      customer.identity_doc_uploaded &&
+      Boolean(customer.identity_doc_type) &&
+      validDelivery &&
+      items.length > 0 &&
+      items.length === validItems.length;
 
     checkout.disabled = !valid;
 
@@ -308,8 +376,29 @@ function loadIdentityPreview() {
   }
 
   deliveryAddress.addEventListener("input", refresh);
-  deliveryLatitude.addEventListener("change", refresh);
-  deliveryLongitude.addEventListener("change", refresh);
+
+  function onDeliveryPinChange() {
+    const hasPin =
+      deliveryLatitude.value !== "" &&
+      deliveryLongitude.value !== "";
+
+    // Klik peta atau GPS otomatis mengaktifkan mode peta.
+    if (hasPin && getDeliveryMode() !== "map") {
+      switchDeliveryMode("map");
+    } else {
+      refresh();
+    }
+  }
+
+  deliveryLatitude.addEventListener(
+    "change",
+    onDeliveryPinChange
+  );
+
+  deliveryLongitude.addEventListener(
+    "change",
+    onDeliveryPinChange
+  );
 
   // Cari device_id nyata dari database.
   async function resolveItems(startTime) {
@@ -373,31 +462,37 @@ function loadIdentityPreview() {
 
       console.log("Device terpilih:", items);
 
+      const deliveryMode = getDeliveryMode();
       const address = deliveryAddress.value.trim();
+
       const latitudeText = deliveryLatitude.value;
       const longitudeText = deliveryLongitude.value;
 
-      const hasPin = latitudeText !== "" && longitudeText !== "";
+      const hasPin =
+        latitudeText !== "" &&
+        longitudeText !== "";
 
-      if (!address && !hasPin) {
+      if (deliveryMode === "address" && !address) {
         throw new Error(
-          "Isi alamat pengiriman atau pilih titik pada peta."
+          "Alamat pengiriman wajib diisi."
         );
       }
 
-      if (
-        (latitudeText === "") !== (longitudeText === "")
-      ) {
-        throw new Error("Koordinat pengiriman belum lengkap.");
+      if (deliveryMode === "map" && !hasPin) {
+        throw new Error(
+          "Pilih titik pengiriman pada peta terlebih dahulu."
+        );
       }
 
       const payload = {
         payment_method: "QRIS",
+        delivery_mode: deliveryMode,
         delivery_address: address,
         items
       };
 
-      if (hasPin) {
+      // Koordinat hanya dikirim untuk mode peta.
+      if (deliveryMode === "map") {
         payload.delivery_latitude = Number(latitudeText);
         payload.delivery_longitude = Number(longitudeText);
       }

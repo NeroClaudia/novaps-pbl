@@ -83,7 +83,7 @@ foreach ($devices as $device) {
     <script src="/assets/js/shared/rental-alerts.js" defer></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
     <script src="/assets/js/delivery-map.js?v=1" defer></script>
-    <script src="/assets/js/order-form.js?v=11" defer></script>
+    <script src="/assets/js/order-form.js?v=12" defer></script>
   </head>
   <body
     class="min-h-screen bg-slate-50 text-slate-800"
@@ -148,22 +148,63 @@ foreach ($devices as $device) {
               class="mt-0.5 text-[11px] text-red-600 empty:hidden"
             ></p>
           </div>
-          <div data-field class="group/field mb-2.5">
-            <label for="address" class="mb-0.5 block text-base">Delivery Address / Landmark</label>
+
+          <!-- Pilihan sumber alamat pengiriman -->
+          <fieldset class="mb-4">
+            <legend class="mb-2 text-base font-semibold">
+              Metode Penentuan Alamat Pengiriman
+            </legend>
+
+            <div class="grid gap-2">
+              <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3">
+                <input
+                  type="radio"
+                  name="delivery_mode"
+                  value="address"
+                  checked
+                />
+                <span>Gunakan alamat teks</span>
+              </label>
+
+              <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3">
+                <input
+                  type="radio"
+                  name="delivery_mode"
+                  value="map"
+                />
+                <span>Gunakan titik lokasi pada peta</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div data-field class="group/field mb-3">
+            <label
+              for="address"
+              id="delivery-address-label"
+              class="mb-1 block text-base"
+            >
+              Alamat Pengiriman
+            </label>
+
             <input
               type="text"
               id="address"
               name="address"
               autocomplete="street-address"
+              maxlength="1000"
               class="field-input h-10"
               value="<?= htmlspecialchars($profile['address'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
             />
+
             <p
-              data-error
-              role="alert"
-              class="mt-0.5 text-[11px] text-red-600 empty:hidden"
-            ></p>
+              id="delivery-address-hint"
+              class="mt-1 text-xs text-slate-500"
+            >
+              Alamat My Profile digunakan sebagai default.
+              Kamu boleh mengubahnya untuk pesanan ini.
+            </p>
           </div>
+
 
           <!-- Delivery Location -->
            <div class="mb-4">
@@ -171,9 +212,9 @@ foreach ($devices as $device) {
               Delivery Location
             </h3>
             <p class="mb-3 text-sm text-slate-500">
-                Pilih titik pengiriman pada peta.
-                Klik peta untuk memindahkan pin, atau gunakan GPS.
-                Alamat dan patokan tetap dapat diisi secara manual.
+              Klik peta, geser pin, atau gunakan lokasi perangkat.
+              Memilih pin akan otomatis menjadikan titik peta
+              sebagai tujuan utama pengiriman.
             </p>
 
             <div id="delivery-map" class="w-full rounded-lg border-slate-200" aria-label="Peta lokasi pengiriman"></div>

@@ -18,6 +18,13 @@ if ($customerId === false || $customerId === null) {
 
 $input = read_json_body();
 
+$deliveryMode = $input['delivery_mode'] ?? 'legacy';
+
+if (!in_array($deliveryMode, ['address', 'map' , 'legacy'], true)) {
+    json_error('VALIDATION_ERROR', 'Metode lokasi pengiriman tidak valid', 422);
+}
+
+
 //Lokasi pengiriman dari order form, jika tidak dikirim, gunakan alamat yang ada di profil customer
 $hasCustomAddress = array_key_exists('delivery_address', $input);
 $deliveryAddress = $input['delivery_address'] ?? null;
@@ -60,6 +67,16 @@ if ($hasCoordinates) {
     ) {
         json_error('VALIDATION_ERROR', 'Koordinat lokasi pengiriman tidak valid', 422);
     }
+}
+
+//Mode alamat teks tidak boleh membawa koordianat supaya tidak ada dua tujuan yang berbeda
+if ($deliveryMode === 'address' && $hasCoordinates) {
+    json_error('VALIDATION_ERROR', 'Mode alamat tidak boleh menyertakan koordinat', 422);
+}
+
+//Mode peta wajib memiliki titik lokasi
+if ($deliveryMode === 'map' && !$hasCoordinates) {
+    json_error('DELIVERY_LOCATION_REQUIRED', 'Pilih titik lokasi pengiriman pada peta', 422);
 }
 // c. Validasi start_time (Wajib, format YYYY-MM-DDTHH:MM:SS, maksimal 5 menit di masa lalu)
 $timeZone = new DateTimeZone('Asia/Jakarta');
@@ -168,18 +185,51 @@ try {
         json_error('IDENTITY_REQUIRED', 'Unggah dokumen identitas sebelum checkout', 422);
     }
 
-    //Gunakan alamat dari form jika dikirim. Jika belum gunakan alamat dari profil
-    $addressSnapshot = $hasCustomAddress ? $deliveryAddress : trim((string) ($user['address'] ?? ''));
 
-    //Customer boleh hanya menentukan titik peta tanpa mengetahui alamat lengkap
-    if ($addressSnapshot === '' && $hasCoordinates) {
-        $addressSnapshot = 'Titik pengiriman dipilih melalui peta';
+    $profileAddress = trim((string) ($user['address'] ?? ''));
+
+    if ($deliveryMode === 'map') {
+        // Koordinat menjadi sumber utama tujuan pengiriman.
+        // Teks hanya patokan tambahan, bukan alamat profil.
+        $landmark = $hasCustomAddress
+            ? $deliveryAddress
+            : '';
+
+        $addressSnapshot = $landmark !== ''
+            ? 'Lokasi pin - Patokan: ' . $landmark
+            : 'Titik pengiriman dipilih melalui peta';
+
+    } elseif ($deliveryMode === 'address') {
+        // Alamat yang customer isi secara eksplisit.
+        $addressSnapshot = $hasCustomAddress
+            ? $deliveryAddress
+            : '';
+
+    } else {
+        // Kompatibilitas dengan versi checkout lama.
+        $addressSnapshot = $hasCustomAddress
+            ? $deliveryAddress
+            : $profileAddress;
+
+        if ($addressSnapshot === '' && $hasCoordinates) {
+            $addressSnapshot =
+                'Titik pengiriman dipilih melalui peta';
+        }
     }
 
     if ($addressSnapshot === '') {
         $pdo->rollBack();
-        json_error('DELIVERY_LOCATION_REQUIRED', 'Isi alamat pengiriman atau pilih titik pada peta', 422);
+
+        json_error(
+            'DELIVERY_LOCATION_REQUIRED',
+            'Isi alamat pengiriman atau pilih titik pada peta',
+            422
+        );
     }
+
+    // Koordinat disimpan hanya jika menggunakan mode peta
+    // atau format lama yang masih menyertakan titik lokasi.
+    $saveCoordinates = $hasCoordinates && $deliveryMode !== 'address';
 
     $unpaidBooking = get_unpaid_booking($pdo, $customerId);
 
@@ -256,8 +306,8 @@ try {
     $stmtBooking->execute([
         'customer_id' => $customerId,
         'address_snapshot' => $addressSnapshot,
-        'delivery_latitude' => $hasCoordinates ? (string) $latitude : null,
-        'delivery_longitude' => $hasCoordinates ? (string) $longitude : null,
+        'delivery_latitude' => $saveCoordinates ? (string) $latitude : null,
+        'delivery_longitude' => $saveCoordinates ? (string) $longitude : null,
     ]);
 
     $bookingRow = $stmtBooking->fetch();
@@ -383,8 +433,9 @@ try {
         'data' => [
             'booking_code'   => $bookingCode,
             'address_snapshot' => $addressSnapshot,
-            'delivery_latitude' => $hasCoordinates ? (float) $latitude : null,
-            'delivery_longitude' => $hasCoordinates ? (float) $longitude : null,
+            'delivery_mode' => $deliveryMode,
+            'delivery_latitude' => $saveCoordinates ? (float) $latitude : null,
+            'delivery_longitude' => $saveCoordinates ? (float) $longitude : null,
             'start_time' => $startDt->format('Y-m-d\TH:i:sP'),
             'payment_method' => $paymentMethod,
             'total_cost'     => $grandTotal,
