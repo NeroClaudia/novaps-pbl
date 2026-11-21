@@ -70,7 +70,7 @@ $staffName = htmlspecialchars(
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="/assets/css/admin-dashboard.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-    <script src="/assets/js/admin-dashboard-ssr.js?v=2" defer></script>
+    <script src="/assets/js/admin-dashboard-ssr.js?v=3" defer></script>
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-800">
     <header

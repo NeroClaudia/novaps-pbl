@@ -134,6 +134,62 @@
     parent.appendChild(row);
   }
 
+  function createDocumentViewer({
+    title,
+    url,
+    available
+  }) {
+    const section = document.createElement("section");
+    section.className =
+      "mt-4 rounded-lg border border-slate-200 p-3";
+
+    const heading = document.createElement("h3");
+    heading.className = "mb-2 font-semibold";
+    heading.textContent = title;
+
+    const status = document.createElement("p");
+    status.className = "text-sm text-slate-500";
+
+    section.append(heading, status);
+
+    const ready = new Promise(resolve => {
+      if (!available) {
+        status.textContent = "Dokumen belum tersedia.";
+        resolve(false);
+        return;
+      }
+
+      status.textContent = "Memuat dokumen...";
+
+      const image = document.createElement("img");
+
+      image.className =
+        "mt-2 max-h-[320px] w-full rounded-lg " +
+        "border object-contain";
+
+      image.alt = title;
+      image.referrerPolicy = "no-referrer";
+
+      image.addEventListener("load", () => {
+        status.textContent =
+          "Dokumen berhasil dimuat. Silakan periksa isinya.";
+        resolve(true);
+      }, { once: true });
+
+      image.addEventListener("error", () => {
+        status.textContent =
+          "Dokumen gagal dimuat. Verifikasi tidak dapat dilakukan.";
+        image.remove();
+        resolve(false);
+      }, { once: true });
+
+      section.appendChild(image);
+      image.src = url;
+    });
+
+    return { section, ready };
+  }
+
   let deliveryMap = null;
 
   function destroyDeliveryMap() {
@@ -287,7 +343,7 @@
       button.textContent = "Memproses...";
 
       try {
-        await postAdmin("booking/deliver.php", {
+        await postAdmin("bookings/deliver.php", {
           booking_id: booking.booking_id,
           delivery_confirmed: true
         });
@@ -363,10 +419,182 @@
       );
     }
 
+    // Dokumen identitas customer.
+    const identityDocument = createDocumentViewer({
+      title: "Dokumen Identitas Customer",
+      url:
+        `${API}/bookings/identity-document.php` +
+        `?booking_id=${encodeURIComponent(booking.booking_id)}`,
+      available: Boolean(
+        booking.customer?.identity_doc_uploaded
+      )
+    });
+
+    // Bukti pembayaran, hanya wajib untuk QRIS.
+    const isQRIS = booking.payment?.method === "QRIS";
+
+    const paymentDocument = isQRIS
+      ? createDocumentViewer({
+          title: "Bukti Pembayaran QRIS",
+          url:
+            `${API}/bookings/payment-proof.php` +
+            `?booking_id=${encodeURIComponent(booking.booking_id)}`,
+          available: Boolean(booking.payment?.proof_uploaded)
+        })
+      : {
+          section: document.createElement("div"),
+          ready: Promise.resolve(true)
+        };
+
+    modalBody.appendChild(identityDocument.section);
+
+    if (isQRIS) {
+      modalBody.appendChild(paymentDocument.section);
+    } else {
+      addDetailRow(
+        modalBody,
+        "Pembayaran Cash",
+        "Admin wajib memastikan pembayaran telah diterima."
+      );
+    }
+
+    renderVerificationAction(booking, {
+      identity: identityDocument,
+      payment: paymentDocument
+    });
+
+    renderDeliveryAction(booking);
+
     // Pada tahap ini modal masih read-only.
     // Verifikasi dan deliver disambungkan setelah UI diuji.
     modal.setAttribute("data-open", "");
     modal.setAttribute("aria-hidden", "false");
+  }
+
+  function renderVerificationAction(booking, documents) {
+    if (!booking.verification?.can_verify) return;
+
+    const panel = document.createElement("div");
+    panel.className =
+      "mt-4 w-full rounded-lg border border-slate-200 p-3";
+
+    const heading = document.createElement("h3");
+    heading.className = "mb-3 font-semibold";
+    heading.textContent = "Verifikasi Admin";
+
+    function makeCheckbox(labelText) {
+      const label = document.createElement("label");
+      label.className =
+        "mb-3 flex items-start gap-2 text-sm cursor-pointer";
+
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.className = "mt-1";
+
+      const text = document.createElement("span");
+      text.textContent = labelText;
+
+      label.append(input, text);
+
+      return { label, input };
+    }
+
+    const identity = makeCheckbox(
+      "Saya sudah memeriksa dokumen identitas customer."
+    );
+
+    const payment = makeCheckbox(
+      booking.payment.method === "QRIS"
+        ? "Saya sudah memeriksa bukti pembayaran QRIS."
+        : "Saya sudah menerima dan memeriksa pembayaran Cash."
+    );
+
+    const status = document.createElement("p");
+    status.className = "mb-3 text-xs text-slate-500";
+    status.textContent = "Menunggu dokumen dimuat...";
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className =
+      "btn btn-indigo px-4 py-2 text-sm font-semibold";
+    button.textContent = "Verify Payment";
+    button.disabled = true;
+
+    let documentsReady = false;
+    let submitting = false;
+
+    function updateButton() {
+      button.disabled =
+        !documentsReady ||
+        submitting ||
+        !identity.input.checked ||
+        !payment.input.checked;
+    }
+
+    identity.input.addEventListener("change", updateButton);
+    payment.input.addEventListener("change", updateButton);
+
+    Promise.all([
+      documents.identity.ready,
+      documents.payment.ready
+    ]).then(([identityReady, paymentReady]) => {
+      documentsReady = identityReady && paymentReady;
+
+      status.textContent = documentsReady
+        ? "Dokumen tersedia. Periksa sebelum mengonfirmasi."
+        : "Verifikasi tidak tersedia karena dokumen gagal dimuat.";
+
+      updateButton();
+    });
+
+    button.addEventListener("click", async () => {
+      if (
+        !documentsReady ||
+        !identity.input.checked ||
+        !payment.input.checked ||
+        submitting
+      ) {
+        return;
+      }
+
+      const confirmed = window.confirm(
+        `Setujui identitas dan pembayaran booking ` +
+        `${booking.booking_code}?`
+      );
+
+      if (!confirmed) return;
+
+      submitting = true;
+      button.textContent = "Verifying...";
+      updateButton();
+
+      try {
+        await postAdmin("bookings/verify.php", {
+          booking_id: booking.booking_id,
+          identity_confirmed: true,
+          payment_confirmed: true
+        });
+
+        closeModal();
+        await loadDashboard();
+
+      } catch (error) {
+        status.textContent = error.message;
+        submitting = false;
+        button.textContent = "Verify Payment";
+        updateButton();
+      }
+    });
+
+    panel.append(
+      heading,
+      identity.label,
+      payment.label,
+      status,
+      button
+    );
+
+    modalActions.appendChild(panel);
   }
 
   function closeModal() {
