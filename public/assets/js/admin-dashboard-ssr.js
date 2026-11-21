@@ -537,7 +537,7 @@
       rejectError.textContent = "";
 
       try {
-        await postAdmin("booking/reject.php", {
+        await postAdmin("bookings/reject.php", {
           booking_id: booking.booking_id,
           reason
         });
@@ -547,7 +547,7 @@
 
       } catch (error) {
         rejectError.textContent = error.message;
-        confirmReject.disabled = true;
+        confirmReject.disabled = false;
         confirmReject.textContent = "Confirm Reject";
       }
     };
