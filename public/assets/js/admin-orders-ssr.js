@@ -213,7 +213,7 @@
       params.set(selected[0], selected[1]);
     }
 
-    if (filter.value === "cancelled") {
+    if (filter.value === "canceled") {
       params.set("exclude_rejected", "true");
     }
 

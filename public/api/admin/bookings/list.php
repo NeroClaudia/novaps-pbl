@@ -63,7 +63,7 @@ if (isset($_GET['payment_status'])) {
 
 //Khusus filter cancelled, kecuali booking yang ditolak admin
 if (isset($_GET['exclude_rejected'])) {
-    if ($_GET['exclude_rejected'] !== true) {
+    if ($_GET['exclude_rejected'] !== 'true') {
         json_error('VALIDATION_ERROR', 'exclude_rejected harus bernilai true', 422);
     }
 
