@@ -197,6 +197,71 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
         min-width: 760px
       }
     }
+
+    .novaps-admin-nav {
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
+      padding: 12px;
+      overflow-x: auto;
+    }
+
+    .novaps-admin-link {
+      display: block;
+      flex-shrink: 0;
+      padding: 8px 16px;
+      border-radius: 6px;
+
+      color: #cbd5e1;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 24px;
+      white-space: nowrap;
+      text-decoration: none;
+
+      transition:
+        background-color 150ms,
+        color 150ms,
+        transform 150ms;
+    }
+
+    /* Hover */
+    .novaps-admin-link:not(.is-disabled):hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      transform: translateX(2px);
+    }
+
+    /* Menu aktif */
+    .novaps-admin-link[aria-current="page"] {
+      background-color: #6366f1;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .novaps-admin-link[aria-current="page"]:hover {
+      background-color: #6366f1;
+      color: #ffffff;
+      transform: none;
+    }
+
+    /* Menu yang belum tersedia */
+    .novaps-admin-link.is-disabled {
+      color: #64748b;
+      cursor: default;
+    }
+
+    /* Desktop sidebar */
+    @media (min-width: 768px) {
+      .novaps-admin-nav {
+        flex-direction: column;
+        padding: 24px;
+      }
+
+      .novaps-admin-link {
+        width: 100%;
+      }
+    }
   </style>
   <script src="/assets/js/admin-units-ssr.js?v=1" defer></script>
 </head>
@@ -214,12 +279,34 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
   </header>
   <div class="md:grid md:grid-cols-[256px_1fr]">
     <aside class="bg-slate-900 md:min-h-[calc(100vh-68px)]">
-      <nav aria-label="Admin menu" class="flex gap-1 overflow-x-auto p-3 md:flex-col md:p-6">
-        <a href="/admin/dashboard.php" class="block rounded-md px-4 py-2 text-base text-slate-300 hover:text-white">Dashboard</a>
-        <a href="/admin/orders.php" class="block rounded-md px-4 py-2 text-base text-slate-300 hover:text-white">Orders</a>
-        <span class="block rounded-md px-4 py-2 text-base text-slate-500" aria-disabled="true">Time Remaining</span>
-        <a href="/admin/units.php" aria-current="page" class="block rounded-md bg-indigo-500 px-4 py-2 text-base font-semibold text-white">Unit</a>
-        <span class="block rounded-md px-4 py-2 text-base text-slate-500" aria-disabled="true">Users</span>
+      <nav class="novaps-admin-nav" aria-label="Admin menu">
+
+        <a href="/admin/dashboard.php"
+          class="novaps-admin-link">
+          Dashboard
+        </a>
+
+        <a href="/admin/orders.php"
+          class="novaps-admin-link">
+          Orders
+        </a>
+
+        <span class="novaps-admin-link is-disabled"
+              aria-disabled="true">
+          Time Remaining
+        </span>
+
+        <a href="/admin/units.php"
+          class="novaps-admin-link"
+          aria-current="page">
+          Unit
+        </a>
+
+        <span class="novaps-admin-link is-disabled"
+              aria-disabled="true">
+          Users
+        </span>
+
       </nav>
     </aside>
     <main class="min-w-0 p-4 md:p-6">
