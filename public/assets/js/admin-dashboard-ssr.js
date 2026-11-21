@@ -776,7 +776,7 @@
     el("queue-empty").hidden = queue.length > 0;
   }
 
-  async function loadDashboard() {
+  async function fetchDashboardData() {
     try {
       const [summary, list] = await Promise.all([
         getJSON("dashboard.php"),
@@ -819,6 +819,79 @@
       }
     }
   }
+
+  const refreshButton = el("refresh-dashboard");
+  const refreshStatus = el("dashboard-refresh-status");
+
+  let activeRefresh = null;
+  let refreshAgain = false;
+
+  function setRefreshStatus(message) {
+    if (refreshStatus) {
+      refreshStatus.textContent = message;
+    }
+  }
+
+  function loadDashboard() {
+    if (activeRefresh) {
+      refreshAgain = true;
+      return activeRefresh;
+    }
+
+    activeRefresh = (async () => {
+      if (refreshButton) refreshButton.disabled = true;
+
+      try {
+        do {
+          refreshAgain = false;
+          setRefreshStatus("Memperbarui...");
+
+          await fetchDashboardData();
+        } while (refreshAgain);
+
+        setRefreshStatus(
+          "Diperbarui " +
+          new Date().toLocaleTimeString("id-ID", {
+            timeZone: "Asia/Jakarta",
+            hour: "2-digit",
+            minute: "2-digit"
+          })
+        );
+      } finally {
+        if (refreshButton) refreshButton.disabled = false;
+        activeRefresh = null;
+      }
+    })();
+
+    return activeRefresh;
+  }
+
+  // Refresh manual tanpa reload halaman.
+  refreshButton?.addEventListener("click", () => {
+    if (!modal?.hasAttribute("data-open")) {
+      void loadDashboard();
+    }
+  });
+
+  // Refresh otomatis setiap 60 detik.
+  setInterval(() => {
+    if (
+      !document.hidden &&
+      !modal?.hasAttribute("data-open")
+    ) {
+      void loadDashboard();
+    }
+  }, 60000);
+
+  // Saat kembali ke tab Dashboard.
+  document.addEventListener("visibilitychange", () => {
+    if (
+      !document.hidden &&
+      !modal?.hasAttribute("data-open")
+    ) {
+      void loadDashboard();
+    }
+  });
 
   // Menu akun admin.
   const adminButton = el("adminBtn");

@@ -70,7 +70,7 @@ $staffName = htmlspecialchars(
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="/assets/css/admin-dashboard.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-    <script src="/assets/js/admin-dashboard-ssr.js?v=6" defer></script>
+    <script src="/assets/js/admin-dashboard-ssr.js?v=7" defer></script>
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-800">
     <header
@@ -177,9 +177,28 @@ $staffName = htmlspecialchars(
         </nav>
       </aside>
       <main class="min-w-0 p-4 md:p-6">
+
+      <div class="flex flex-wrap items-center justify-between gap-3">
         <h1 class="font-display text-[32px] font-bold text-slate-800">
           Dashboard
         </h1>
+
+        <div class="flex items-center gap-3">
+          <span id="dashboard-refresh-status"
+                class="text-sm text-slate-500"
+                aria-live="polite">
+            Menunggu data...
+          </span>
+
+          <button
+            type="button"
+            id="refresh-dashboard"
+            class="btn btn-indigo px-4 py-2 text-sm font-semibold">
+            Refresh Data
+          </button>
+        </div>
+      </div>
+
         <section
           aria-label="Order status totals"
           class="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6"
