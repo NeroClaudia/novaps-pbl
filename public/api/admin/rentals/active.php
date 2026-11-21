@@ -79,6 +79,8 @@ try {
          ORDER BY r.end_time ASC, r.rental_id ASC"
     );
 
+    $stmt->execute();
+
     $rentals = [];
 
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {

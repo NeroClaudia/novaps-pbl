@@ -137,10 +137,7 @@
 
       chip.setAttribute(
         "aria-pressed",
-        String(
-          filter.value === chip.dataset.chip ||
-          (filter.value === "all" && chip.dataset.chip === "all")
-        )
+        String(filter.value === chip.dataset.chip)
       );
     });
   }

@@ -46,20 +46,12 @@ $esc = static fn(string $value): string =>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Time Remaining - NovaPS Admin</title>
-
-    <link rel="stylesheet"
-          href="/assets/css/admin-time-remaining.css">
-
-    <link rel="stylesheet"
-          href="/assets/css/admin-layout.css?v=1">
-
-    <meta name="admin-csrf"
-          content="<?= $esc($_SESSION['admin_csrf']) ?>">
-
+        <link rel="stylesheet" href="/assets/css/admin-time-remaining.css">
+        <link rel="stylesheet" href="/assets/css/admin-layout.css?v=1">
+        <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
+    <meta name="admin-csrf" content="<?= $esc($_SESSION['admin_csrf']) ?>">
     <style>
         .time-header {
             display: flex;
@@ -85,10 +77,25 @@ $esc = static fn(string $value): string =>
             cursor: pointer;
         }
 
+        .time-card[aria-pressed="false"] {
+            border-color: transparent;
+            box-shadow: none;
+        }
+
         .time-card[aria-pressed="true"] {
             border-color: #6366f1;
             box-shadow: 0 0 0 1px #6366f1;
         }
+
+        .time-card:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        .time-card:focus-visible {
+            outline: 2px solid #0891b2;
+            outline-offset: 3px;
+        }
+
 
         .time-card-label {
             display: block;
