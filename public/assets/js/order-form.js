@@ -484,10 +484,13 @@ function loadIdentityPreview() {
         );
       }
 
+      const notes = document.getElementById("notes").value.trim();
+
       const payload = {
         payment_method: "QRIS",
         delivery_mode: deliveryMode,
         delivery_address: address,
+        additional_notes: notes,
         items
       };
 

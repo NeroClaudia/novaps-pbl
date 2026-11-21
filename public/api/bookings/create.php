@@ -160,6 +160,14 @@ $maxActiveBookings = (int) (env('BOOKING_MAX_ACTIVE', 2) ?: 2);
 try {
     expire_unpaid_bookings($pdo);
 
+    $additionalNotes = $input['additional_notes'] ?? '';
+
+    if (!is_string($additionalNotes) || mb_strlen($additionalNotes) > 300) {
+        json_error('VALIDATION_ERROR', 'Catatan maksimal 300 karakter', 422);
+    }
+
+    $additionalNotes = trim($additionalNotes);
+
     $pdo->beginTransaction();
 
     $stmtUser = $pdo->prepare("SELECT user_id, role, full_name, phone, address, identity_doc_type, identity_doc_url, identity_doc_verified
@@ -292,13 +300,15 @@ try {
         booking_channel,
         address_snapshot,
         delivery_latitude,
-        delivery_longitude
+        delivery_longitude,
+        additional_notes
     )VALUES (
         :customer_id,
         'Online',
         :address_snapshot,
         :delivery_latitude,
-        :delivery_longitude
+        :delivery_longitude,
+        :additional_notes
     )
     RETURNING booking_id, booking_code"
     );
@@ -308,6 +318,7 @@ try {
         'address_snapshot' => $addressSnapshot,
         'delivery_latitude' => $saveCoordinates ? (string) $latitude : null,
         'delivery_longitude' => $saveCoordinates ? (string) $longitude : null,
+        'additional_notes' => $additionalNotes !== '' ? $additionalNotes : null
     ]);
 
     $bookingRow = $stmtBooking->fetch();

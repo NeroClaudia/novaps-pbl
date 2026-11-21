@@ -58,6 +58,7 @@ try {
             b.delivery_latitude,
             b.delivery_longitude,
             b.fulfillment_status,
+            b.additional_notes,
             to_char(
                 b.created_at,
                 'YYYY-MM-DD\"T\"HH24:MI:SSTZH:TZM'
@@ -205,6 +206,7 @@ try {
             'device_name' => $row['device_name'],
             'category' => $row['category'],
             'booth_code' => $row['booth_code'],
+            'additional_notes' => $row['additional_notes'],
 
             'start_time' => $row['start_time'],
             'end_time' => $row['end_time'],

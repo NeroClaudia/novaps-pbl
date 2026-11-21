@@ -21,7 +21,8 @@ CREATE TABLE booking (
     cancelled_at            TIMESTAMPTZ,
     address_snapshot        TEXT NOT NULL,
     delivery_latitude       NUMERIC(10, 7),
-    delivery_longitude      NUMERIC(10, 7)
+    delivery_longitude      NUMERIC(10, 7),
+    additional_notes        VARCHAR(300)
 );
 
 CREATE INDEX idx_booking_customer ON booking(customer_id);

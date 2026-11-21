@@ -403,8 +403,6 @@
       rupiah(booking.total_cost)
     );
 
-    renderDeliveryAction(booking);
-
     const heading = document.createElement("h3");
     heading.className = "mt-4 mb-2 font-semibold";
     heading.textContent = "Perangkat";
