@@ -165,7 +165,7 @@ $staffName = htmlspecialchars(
             >Time Remaining</a
           >
           <a
-            href="units.html"
+            href="/admin/units.php"
             class="block rounded-md px-4 py-2 text-base whitespace-nowrap text-slate-300 transition-all duration-150 hover:translate-x-0.5 hover:bg-white/10 hover:text-white active:scale-[.98] aria-[current=page]:bg-indigo-500 aria-[current=page]:font-semibold aria-[current=page]:text-white aria-[current=page]:hover:translate-x-0"
             >Unit</a
           >
