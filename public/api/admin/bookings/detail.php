@@ -59,6 +59,7 @@ try {
             b.delivery_longitude,
             b.fulfillment_status,
             b.additional_notes,
+            b.cancel_reason,
             to_char(
                 b.created_at,
                 'YYYY-MM-DD\"T\"HH24:MI:SSTZH:TZM'
@@ -268,6 +269,10 @@ try {
         && $booking['payment_status'] === 'Paid'
         && $allBooked;
 
+    $canReject = $booking['fulfillment_status'] === 'Pending'
+        &&  (($booking['payment_method'] === 'QRIS' && $booking['payment_status'] === 'AwaitingVerification') || 
+            ($booking['payment_method'] === 'Cash' && $booking['payment_status'] === 'Pending')) && $allBooked;
+
     // 6. Kirim detail booking ke dashboard admin.
     json_response([
         'success' => true,
@@ -283,6 +288,7 @@ try {
             'fulfillment_status' => $booking['fulfillment_status'],
             'shipped_at' => $booking['shipped_at'],
             'completed_at' => $booking['completed_at'],
+            'cancel_reason' => $booking['cancel_reason'],
 
             'customer' => [
                 'user_id' => (int) $booking['customer_id'],
@@ -320,7 +326,8 @@ try {
                 'payment_proof_uploaded' => $proofUploaded,
                 'payment_verified' => $paymentVerified,
                 'can_verify' => $canVerify,
-                'can_deliver' => $canDeliver
+                'can_deliver' => $canDeliver,
+                'can_reject' => $canReject
             ],
 
             'verified_by' => $booking['verified_by'],

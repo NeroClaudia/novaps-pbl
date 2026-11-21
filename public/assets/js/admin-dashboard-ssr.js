@@ -412,6 +412,14 @@
       rupiah(booking.total_cost)
     );
 
+    if (booking.cancel_reason) {
+      addDetailRow(
+        modalBody,
+        "Alasan Penolakan / Pembatalan",
+        booking.cancel_reason
+      );
+    }
+
     const heading = document.createElement("h3");
     heading.className = "mt-4 mb-2 font-semibold";
     heading.textContent = "Perangkat";
@@ -471,11 +479,80 @@
     });
 
     renderDeliveryAction(booking);
+    renderRejectAction(booking);
 
     // Pada tahap ini modal masih read-only.
     // Verifikasi dan deliver disambungkan setelah UI diuji.
     modal.setAttribute("data-open", "");
     modal.setAttribute("aria-hidden", "false");
+  }
+
+  function renderRejectAction(booking) {
+    const rejectBox = document.getElementById("rejectBox");
+    const rejectReason = document.getElementById("rejectReason");
+    const rejectError = document.getElementById("rejectError");
+    const confirmReject = document.getElementById("confirmReject");
+
+    if (!rejectBox || !rejectReason || !rejectError || !confirmReject) {
+      return;
+    }
+
+    rejectBox.hidden = true;
+    rejectReason.value = "";
+    rejectError.textContent = "";
+    confirmReject.textContent = "Confirm Reject";
+    confirmReject.onclick = null;
+
+    if (!booking.verification?.can_reject) return;
+
+    const rejectButton = document.createElement("button");
+
+    rejectButton.type = "button";
+    rejectButton.className = "btn bg-red-600 px-4 py-2 text-sm font-semibold text-white";
+    rejectButton.textContent = "Reject";
+
+    rejectButton.addEventListener("click", () => {
+      rejectBox.hidden = false;
+      rejectReason.focus();
+    });
+
+    confirmReject.onclick = async () => {
+      const reason = rejectReason.value.trim();
+
+      if (reason.length < 5 || reason.length > 200) {
+        rejectError.textContent = "Alasan penolakan harus 5 sampai 200 karakter";
+        return;
+      }
+
+      const confirmed = window.confirm(
+        `Tolak booking ${booking.booking_code}?\n\n` +
+        `Alasan ${reason}\n\n` +
+        "Tindakan ini akan membatalkan rental"
+      );
+
+      if (!confirmed) return;
+
+      confirmReject.disabled = true;
+      confirmReject.textContent = "Rejecting...";
+      rejectError.textContent = "";
+
+      try {
+        await postAdmin("booking/reject.php", {
+          booking_id: booking.booking_id,
+          reason
+        });
+
+        closeModal();
+        await loadDashboard();
+
+      } catch (error) {
+        rejectError.textContent = error.message;
+        confirmReject.disabled = true;
+        confirmReject.textContent = "Confirm Reject";
+      }
+    };
+
+    modalActions.appendChild(rejectButton);
   }
 
   function renderVerificationAction(booking, documents) {
@@ -606,6 +683,12 @@
 
   function closeModal() {
     destroyDeliveryMap();
+
+    const rejectBox = document.getElementById("rejectBox");
+
+    if (rejectBox) {
+      rejectBox.hidden = true;
+    }
 
     modal?.removeAttribute("data-open");
     modal?.setAttribute("aria-hidden", "true");
