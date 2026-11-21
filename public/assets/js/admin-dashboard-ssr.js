@@ -695,6 +695,23 @@
       renderSummary(summary.data);
       renderQueue(list.data);
 
+      //Buka detail dari halaman manage orders. Parameter hanya menentukan booking mana yang diminta. API tetap memeriksa hak admin
+      const url = new URL(window.location.href);
+      const requestBookingId = url.searchParams.get("booking_id");
+
+      if (requestBookingId && /^[1-9]\d*$/.test(requestBookingId)) {
+        //Hapus parameter agar refresh tidak selalu membuka modal
+        url.searchParams.delete("booking_id");
+        history.replaceState(null, "", url);
+
+        try {
+          await openBooking(requestBookingId);
+        } catch (error) {
+          console.error("Gagal membuka detail bookings:", error);
+          alert(error.message);
+        }
+      }
+
       // List API dibatasi 100 booking per halaman.
       // Jika mencapai batas, paginasi perlu ditambahkan.
       if (list.meta?.total > list.data.length) {

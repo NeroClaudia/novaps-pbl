@@ -70,7 +70,7 @@ $staffName = htmlspecialchars(
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="/assets/css/admin-dashboard.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-    <script src="/assets/js/admin-dashboard-ssr.js?v=3" defer></script>
+    <script src="/assets/js/admin-dashboard-ssr.js?v=4" defer></script>
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-800">
     <header
@@ -155,7 +155,7 @@ $staffName = htmlspecialchars(
             >Dashboard</a
           >
           <a
-            href="orders.html"
+            href="/admin/orders.php"
             class="block rounded-md px-4 py-2 text-base whitespace-nowrap text-slate-300 transition-all duration-150 hover:translate-x-0.5 hover:bg-white/10 hover:text-white active:scale-[.98] aria-[current=page]:bg-indigo-500 aria-[current=page]:font-semibold aria-[current=page]:text-white aria-[current=page]:hover:translate-x-0"
             >Orders</a
           >
@@ -185,7 +185,7 @@ $staffName = htmlspecialchars(
           class="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6"
         >
           <a
-            href="orders.html?status=not_paid"
+            href="/admin/orders.php?status=not_paid"
             data-count="not_paid"
             class="rounded-lg bg-white px-4 py-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:scale-[.98]"
           >
@@ -198,7 +198,7 @@ $staffName = htmlspecialchars(
             </p>
           </a>
           <a
-            href="orders.html?status=pending"
+            href="/admin/orders.php?status=pending"
             data-count="pending"
             class="rounded-lg bg-white px-4 py-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:scale-[.98]"
           >
@@ -211,7 +211,7 @@ $staffName = htmlspecialchars(
             </p>
           </a>
           <a
-            href="orders.html?status=shipped"
+            href="/admin/orders.php?status=shipped"
             data-count="shipped"
             class="rounded-lg bg-white px-4 py-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:scale-[.98]"
           >
@@ -224,7 +224,7 @@ $staffName = htmlspecialchars(
             </p>
           </a>
           <a
-            href="orders.html?status=complete"
+            href="/admin/orders.php?status=complete"
             data-count="completed"
             class="rounded-lg bg-white px-4 py-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:scale-[.98]"
           >
@@ -237,7 +237,7 @@ $staffName = htmlspecialchars(
             </p>
           </a>
           <a
-            href="orders.html?status=canceled"
+            href="/admin/orders.php?status=canceled"
             data-count="canceled"
             class="rounded-lg bg-white px-4 py-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:scale-[.98]"
           >
@@ -250,7 +250,7 @@ $staffName = htmlspecialchars(
             </p>
           </a>
           <a
-            href="orders.html?status=rejected"
+            href="/admin/orders.php?status=rejected"
             data-count="rejected"
             class="rounded-lg bg-white px-4 py-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:scale-[.98]"
           >
@@ -284,7 +284,7 @@ $staffName = htmlspecialchars(
             Nothing to verify right now.
           </p>
           <div class="mt-4 text-center">
-            <a href="orders.html" class="btn btn-indigo px-3 py-1 text-base"
+            <a href="/admin/orders.php" class="btn btn-indigo px-3 py-1 text-base"
               >View All Orders</a
             >
           </div>
