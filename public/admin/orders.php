@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/includes/bootstrap.php';
+require_once __DIR__ . '/../../app/partials/admin-layout.php';
 
 header('Cache-Control: private, no-store');
 
@@ -68,112 +69,17 @@ $staffName = htmlspecialchars(
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/assets/css/admin-orders.css" />
+    <link rel="stylesheet" href="/assets/css/admin-layout.css?v=1">
     <script src="/assets/js/admin-orders-ssr.js?v=1" defer></script>
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-800">
-    <header
-      class="flex h-[68px] items-center justify-between bg-slate-900 px-4 md:px-[50px]"
-    >
-      <a
-        href="/admin/dashboard.php"
-        aria-label="NovaPS"
-        class="group flex items-center gap-2.5 font-display text-2xl font-bold text-white transition-transform duration-150 active:scale-95"
-      >
-        <span
-          class="grid size-[30px] place-items-center rounded-[7px] bg-cyan-400 transition-transform duration-300 ease-[cubic-bezier(.3,1.6,.5,1)] group-hover:-rotate-[8deg] group-hover:scale-110"
-          ><svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#0f172a"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <rect x="2" y="6" width="20" height="12" rx="3" />
-            <path d="M6 12h4M8 10v4" />
-            <circle cx="15.5" cy="11" r=".6" />
-            <circle cx="17.5" cy="13" r=".6" /></svg
-        ></span>
-        Nova<span class="text-cyan-400">PS</span>
-      </a>
-      <div class="group relative">
-        <button
-          type="button"
-          id="adminBtn"
-          aria-haspopup="true"
-          aria-expanded="false"
-          class="btn btn-outline flex items-center gap-2 rounded-md px-4 py-1.5 text-lg font-normal"
-        >
-          <?= $staffName ?>
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="8" r="4" />
-            <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
-          </svg>
-        </button>
-        <div
-          class="invisible absolute right-0 top-[50px] z-30 min-w-[140px] -translate-y-1.5 rounded-lg bg-white p-1.5 opacity-0 shadow-xl transition-all duration-200 group-data-[open]:visible group-data-[open]:translate-y-0 group-data-[open]:opacity-100"
-        >
-          <a
-            href="/index.php"
-            class="block w-full rounded-md px-3 py-2 text-left text-[15px] font-medium text-slate-800 transition-colors hover:bg-slate-100"
-            >View website</a
-          >
-          <button
-            type="button"
-            id="adminLogout"
-            class="w-full cursor-pointer rounded-md px-3 py-2 text-left text-[15px] font-medium text-slate-800 transition-colors hover:bg-slate-100"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    </header>
-    <div class="md:grid md:grid-cols-[256px_1fr]">
-      <aside class="bg-slate-900 md:min-h-[calc(100vh-68px)]">
-        <nav
-          aria-label="Admin menu"
-          class="flex gap-1 overflow-x-auto p-3 md:flex-col md:p-6"
-        >
-          <a
-            href="/admin/dashboard.php"
-            class="block rounded-md px-4 py-2 text-base whitespace-nowrap text-slate-300 transition-all duration-150 hover:translate-x-0.5 hover:bg-white/10 hover:text-white active:scale-[.98] aria-[current=page]:bg-indigo-500 aria-[current=page]:font-semibold aria-[current=page]:text-white aria-[current=page]:hover:translate-x-0"
-            >Dashboard</a
-          >
-          <a
-            href="/admin/orders.php"
-            class="block rounded-md px-4 py-2 text-base whitespace-nowrap text-slate-300 transition-all duration-150 hover:translate-x-0.5 hover:bg-white/10 hover:text-white active:scale-[.98] aria-[current=page]:bg-indigo-500 aria-[current=page]:font-semibold aria-[current=page]:text-white aria-[current=page]:hover:translate-x-0"
-            aria-current="page"
-            >Orders</a
-          >
-          <a
-            href="time-remaining.html"
-            class="block rounded-md px-4 py-2 text-base whitespace-nowrap text-slate-300 transition-all duration-150 hover:translate-x-0.5 hover:bg-white/10 hover:text-white active:scale-[.98] aria-[current=page]:bg-indigo-500 aria-[current=page]:font-semibold aria-[current=page]:text-white aria-[current=page]:hover:translate-x-0"
-            >Time Remaining</a
-          >
-          <a
-            href="/admin/units.php"
-            class="block rounded-md px-4 py-2 text-base whitespace-nowrap text-slate-300 transition-all duration-150 hover:translate-x-0.5 hover:bg-white/10 hover:text-white active:scale-[.98] aria-[current=page]:bg-indigo-500 aria-[current=page]:font-semibold aria-[current=page]:text-white aria-[current=page]:hover:translate-x-0"
-            >Unit</a
-          >
-          <a
-            href="users.html"
-            class="block rounded-md px-4 py-2 text-base whitespace-nowrap text-slate-300 transition-all duration-150 hover:translate-x-0.5 hover:bg-white/10 hover:text-white active:scale-[.98] aria-[current=page]:bg-indigo-500 aria-[current=page]:font-semibold aria-[current=page]:text-white aria-[current=page]:hover:translate-x-0"
-            >Users</a
-          >
-        </nav>
-      </aside>
+
+  <?php render_admin_header((string) $staff['full_name']); ?>
+  
+    <div class="admin-shell">
+
+      <?php render_admin_sidebar('orders'); ?>
+      
       <main class="min-w-0 p-4 md:p-6">
         <h1 class="font-display text-[32px] font-bold text-slate-800">
           Manage Orders

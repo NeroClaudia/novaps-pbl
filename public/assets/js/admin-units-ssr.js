@@ -139,13 +139,19 @@
     }
   });
 
-  const accountMenu = $('account-menu'), accountButton = $('adminBtn');
+  const accountButton = $("adminBtn");
 
-  accountButton?.addEventListener('click', () => { 
-    accountMenu.hidden = !accountMenu.hidden; 
-    accountButton.setAttribute('aria-expanded', String(!accountMenu.hidden)); 
+  accountButton?.addEventListener("click", () => {
+    const wrapper = accountButton.parentElement;
+    const isOpen = wrapper.hasAttribute("data-open");
+
+    wrapper.toggleAttribute("data-open", !isOpen);
+    accountButton.setAttribute(
+      "aria-expanded",
+      String(!isOpen)
+    );
   });
-
+  
   $('adminLogout')?.addEventListener('click', async () => {
     try {
       const response = await fetch('/api/admin/logout.php', 

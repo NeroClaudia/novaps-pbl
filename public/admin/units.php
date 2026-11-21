@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/includes/bootstrap.php';
+require_once __DIR__ . '/../../app/partials/admin-layout.php';
 
 header('Cache-Control: private, no-store');
 
@@ -43,14 +44,15 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Manage Unit - NovaPS Admin</title>
-  <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/admin-units.css">
-  <meta name="admin-csrf" content="<?= $esc($_SESSION['admin_csrf']) ?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Manage Unit - NovaPS Admin</title>
+        <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="/assets/css/admin-units.css">
+        <link rel="stylesheet" href="/assets/css/admin-layout.css?v=1">
+    <meta name="admin-csrf" content="<?= $esc($_SESSION['admin_csrf']) ?>">
   <style>
     .units-toolbar {
       display: flex;
@@ -263,52 +265,17 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
       }
     }
   </style>
-  <script src="/assets/js/admin-units-ssr.js?v=1" defer></script>
+  <script src="/assets/js/admin-units-ssr.js?v=2" defer></script>
 </head>
 
 <body class="min-h-screen bg-slate-100 text-slate-800">
-  <header class="flex h-[68px] items-center justify-between bg-slate-900 px-4 md:px-[50px]">
-    <a href="/admin/dashboard.php" class="font-display text-2xl font-bold text-white">Nova<span class="text-cyan-400">PS</span></a>
-    <div class="group relative">
-      <button type="button" id="adminBtn" aria-expanded="false" class="btn btn-outline px-4 py-1.5 text-lg"><?= $esc((string)$staff['full_name']) ?></button>
-      <div id="account-menu" hidden style="position:absolute;right:0;top:45px;min-width:150px;z-index:30;background:white;border-radius:8px;padding:8px;box-shadow:0 5px 20px #0002">
-        <a href="/index.php" style="display:block;padding:8px">View website</a>
-        <button type="button" id="adminLogout" style="display:block;width:100%;text-align:left;padding:8px;cursor:pointer">Logout</button>
-      </div>
-    </div>
-  </header>
-  <div class="md:grid md:grid-cols-[256px_1fr]">
-    <aside class="bg-slate-900 md:min-h-[calc(100vh-68px)]">
-      <nav class="novaps-admin-nav" aria-label="Admin menu">
 
-        <a href="/admin/dashboard.php"
-          class="novaps-admin-link">
-          Dashboard
-        </a>
+  <?php render_admin_header((string) $staff['full_name']); ?>
 
-        <a href="/admin/orders.php"
-          class="novaps-admin-link">
-          Orders
-        </a>
+  <div class="admin-shell">
 
-        <span class="novaps-admin-link is-disabled"
-              aria-disabled="true">
-          Time Remaining
-        </span>
+    <?php render_admin_sidebar('units'); ?>
 
-        <a href="/admin/units.php"
-          class="novaps-admin-link"
-          aria-current="page">
-          Unit
-        </a>
-
-        <span class="novaps-admin-link is-disabled"
-              aria-disabled="true">
-          Users
-        </span>
-
-      </nav>
-    </aside>
     <main class="min-w-0 p-4 md:p-6">
       <div class="units-toolbar">
         <div>
