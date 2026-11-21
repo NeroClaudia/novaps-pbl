@@ -386,6 +386,15 @@
       "Alamat pengiriman",
       booking.address_snapshot
     );
+    
+    if (booking.additional_notes) {
+      addDetailRow(
+        modalBody,
+        "Additional Notes",
+        booking.additional_notes
+      );
+    }
+  
     renderDeliveryMap(booking);
     addDetailRow(
       modalBody,

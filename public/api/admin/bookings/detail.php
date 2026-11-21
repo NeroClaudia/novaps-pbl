@@ -206,7 +206,6 @@ try {
             'device_name' => $row['device_name'],
             'category' => $row['category'],
             'booth_code' => $row['booth_code'],
-            'additional_notes' => $row['additional_notes'],
 
             'start_time' => $row['start_time'],
             'end_time' => $row['end_time'],
@@ -278,6 +277,7 @@ try {
             'booking_channel' => $booking['booking_channel'],
             'created_at' => $booking['created_at'],
             'address_snapshot' => $booking['address_snapshot'],
+            'additional_notes' => $booking['additional_notes'],
             'delivery_latitude' => $booking['delivery_latitude'] !== null ? (float) $booking['delivery_latitude'] : null,
             'delivery_longitude' => $booking['delivery_longitude'] !== null ? (float) $booking['delivery_longitude'] : null,
             'fulfillment_status' => $booking['fulfillment_status'],
