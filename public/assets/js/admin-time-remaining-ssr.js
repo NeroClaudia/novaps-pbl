@@ -154,6 +154,8 @@
     for (const rental of visible) {
       const row = document.createElement("tr");
 
+      row.dataset.rentalId = String(rental.rental_id);
+
       makeCell(row, rental.full_name);
       makeCell(row, rental.booking_code);
       makeCell(row, rental.device_name);
@@ -182,8 +184,6 @@
       action.appendChild(button);
       tbody.appendChild(row);
     }
-
-    row.dataset.rentalId = String(rental.rental_id);
 
     $("tr-empty").hidden = visible.length > 0;
     renderCounters();

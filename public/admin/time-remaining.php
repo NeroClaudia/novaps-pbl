@@ -48,9 +48,12 @@ $esc = static fn(string $value): string =>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Time Remaining - NovaPS Admin</title>
+        <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
+        <link rel="preconnect"href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="/assets/css/admin-time-remaining.css">
         <link rel="stylesheet" href="/assets/css/admin-layout.css?v=1">
-        <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
     <meta name="admin-csrf" content="<?= $esc($_SESSION['admin_csrf']) ?>">
     <style>
         .time-header {
@@ -273,10 +276,70 @@ $esc = static fn(string $value): string =>
                 grid-template-columns: 105px 1fr;
             }
         }
-    </style>
 
-    <script src="/assets/js/admin-time-remaining-ssr.js?v=1"
-            defer></script>
+        body {
+            font-family: "Inter", sans-serif;
+            font-size: 16px;
+            color: #1e293b;
+        }
+
+        /* Heading menggunakan Poppins */
+        .time-header h1,
+        .time-header h2,
+        .time-card-value {
+            font-family: "Poppins", sans-serif;
+        }
+
+        /* Ukuran heading utama seperti Dashboard */
+        .time-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        /* Kartu statistik */
+        .time-card-label {
+            font-family: "Inter", sans-serif;
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .time-card-value {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        /* Input, select, dan tombol */
+        .time-input,
+        .time-btn,
+        .time-secondary {
+            font-family: "Inter", sans-serif;
+            font-size: 14px;
+        }
+
+        /* Tabel */
+        .time-table th,
+        .time-table td {
+            font-family: "Inter", sans-serif;
+            font-size: 14px;
+        }
+
+        /* Countdown */
+        .time-pill {
+            font-family: "Inter", sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Teks keterangan */
+        .time-note {
+            font-family: "Inter", sans-serif;
+            font-size: 14px;
+        }
+    </style>
+    <script src="/assets/js/admin-time-remaining-ssr.js?v=1" defer></script>
 </head>
 
 <body class="min-h-screen bg-slate-100 text-slate-800">
