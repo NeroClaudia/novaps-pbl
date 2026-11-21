@@ -49,7 +49,8 @@
       pending: data.pending_payment_verifications ?? 0,
       shipped: fulfillment.Shipped ?? 0,
       completed: fulfillment.Complete ?? 0,
-      canceled: fulfillment.Cancelled ?? 0
+      canceled: fulfillment.Cancelled ?? 0,
+      rejected: fulfillment.Rejected ?? 0
     };
 
     document.querySelectorAll("[data-count]").forEach(card => {

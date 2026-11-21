@@ -61,6 +61,15 @@ if (isset($_GET['payment_status'])) {
     $params['payment_status'] = $paymentStatus;
 }
 
+//Khusus filter cancelled, kecuali booking yang ditolak admin
+if (isset($_GET['exclude_rejected'])) {
+    if ($_GET['exclude_rejected'] !== true) {
+        json_error('VALIDATION_ERROR', 'exclude_rejected harus bernilai true', 422);
+    }
+
+    $where[] = "p.payment_status <> 'Rejected'";
+}
+
 // Filter fulfillment status.
 if (isset($_GET['fulfillment_status'])) {
     $fulfillmentStatus = $_GET['fulfillment_status'];

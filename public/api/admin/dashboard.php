@@ -37,17 +37,33 @@ try {
         'Pending' => 0,
         'Shipped' => 0,
         'Complete' => 0,
-        'Cancelled' => 0
+        'Cancelled' => 0,
+        'Rejected' => 0
     ];
 
     $fulfillmentQuery = $pdo->query(
-        "SELECT fulfillment_status, COUNT(*) AS total
-         FROM booking
-         GROUP BY fulfillment_status"
+        "SELECT
+        b.fulfillment_status,
+        p.payment_status,
+        COUNT(*) AS total
+     FROM booking b
+     JOIN payment p
+       ON p.booking_id = b.booking_id
+     GROUP BY b.fulfillment_status, p.payment_status"
     );
 
-    foreach ($fulfillmentQuery->fetchAll() as $row) {
-        $fulfillmentCounts[$row['fulfillment_status']] = (int) $row['total'];
+    foreach ($fulfillmentQuery->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $total = (int) $row['total'];
+
+        if ($row['payment_status'] === 'Rejected') {
+            $fulfillmentCounts['Rejected'] += $total;
+        } else {
+            $status = $row['fulfillment_status'];
+
+            if (array_key_exists($status, $fulfillmentCounts)) {
+                $fulfillmentCounts[$status] += $total;
+            }
+        }
     }
     // Total tiap item dijumlahkan satu kali.
     // Zona waktu mengikuti koneksi database: Asia/Jakarta.
