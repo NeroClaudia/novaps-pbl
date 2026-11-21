@@ -55,6 +55,8 @@ try {
             b.booking_code,
             b.booking_channel,
             b.address_snapshot,
+            b.delivery_latitude,
+            b.delivery_longitude,
             b.fulfillment_status,
             to_char(
                 b.created_at,
@@ -274,6 +276,8 @@ try {
             'booking_channel' => $booking['booking_channel'],
             'created_at' => $booking['created_at'],
             'address_snapshot' => $booking['address_snapshot'],
+            'delivery_latitude' => $booking['delivery_latitude'] !== null ? (float) $booking['delivery_latitude'] : null,
+            'delivery_longitude' => $booking['delivery_longitude'] !== null ? (float) $booking['delivery_longitude'] : null,
             'fulfillment_status' => $booking['fulfillment_status'],
             'shipped_at' => $booking['shipped_at'],
             'completed_at' => $booking['completed_at'],

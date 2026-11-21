@@ -85,8 +85,8 @@ try {
     foreach ($lockedDevices as $device) {
         if ($device['status'] !== 'Available') {
             $pdo->rollBack();
+            json_error('DEVICE_UNAVAILABLE', "Perangkat ID {$device['device_id']} tidak dapat diaktifkan", 409);
         }
-        json_error('DEVICE_UNAVAILABLE', "Perangkat ID {$device['device_id']} tidak dapat diaktifkan", 409);
     }
 
     $stmt = $pdo->prepare(

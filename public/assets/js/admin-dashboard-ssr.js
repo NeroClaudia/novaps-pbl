@@ -134,6 +134,177 @@
     parent.appendChild(row);
   }
 
+  let deliveryMap = null;
+
+  function destroyDeliveryMap() {
+    if (deliveryMap) {
+      deliveryMap.remove();
+      deliveryMap = null;
+    }
+  }
+
+  function renderDeliveryMap(booking) {
+    destroyDeliveryMap();
+
+    const latitude = booking.delivery_latitude;
+    const longitude = booking.delivery_longitude;
+
+    // Booking dengan alamat manual tidak memiliki pin.
+    if (latitude === null || longitude === null) {
+      addDetailRow(
+        modalBody,
+        "Titik lokasi",
+        "Tidak ada pin peta. Gunakan alamat pengiriman."
+      );
+      return;
+    }
+
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng) ||
+      lat < -90 || lat > 90 ||
+      lng < -180 || lng > 180
+    ) {
+      addDetailRow(
+        modalBody,
+        "Titik lokasi",
+        "Koordinat tidak valid."
+      );
+      return;
+    }
+
+    const section = document.createElement("section");
+    section.className = "mt-4";
+
+    const heading = document.createElement("h3");
+    heading.className = "mb-2 font-semibold";
+    heading.textContent = "Titik Pengiriman Customer";
+
+    const mapElement = document.createElement("div");
+    mapElement.style.height = "260px";
+    mapElement.style.width = "100%";
+    mapElement.style.borderRadius = "8px";
+    mapElement.style.zIndex = "0";
+
+    const coordinates = document.createElement("p");
+    coordinates.className = "mt-2 text-xs text-slate-500";
+    coordinates.textContent =
+      `Latitude: ${lat.toFixed(7)}, Longitude: ${lng.toFixed(7)}`;
+
+    const mapLink = document.createElement("a");
+    mapLink.className =
+      "mt-2 inline-block text-sm text-blue-600 underline";
+
+    mapLink.href =
+      `https://www.openstreetmap.org/` +
+      `?mlat=${encodeURIComponent(lat)}` +
+      `&mlon=${encodeURIComponent(lng)}` +
+      `#map=17/${lat}/${lng}`;
+
+    mapLink.target = "_blank";
+    mapLink.rel = "noopener noreferrer";
+    mapLink.textContent = "Buka lokasi di OpenStreetMap";
+
+    section.append(heading, mapElement, coordinates, mapLink);
+    modalBody.appendChild(section);
+
+    if (typeof L === "undefined") {
+      const message = document.createElement("p");
+      message.textContent = "Peta gagal dimuat.";
+      section.appendChild(message);
+      return;
+    }
+
+    deliveryMap = L.map(mapElement, {
+      scrollWheelZoom: false
+    }).setView([lat, lng], 17);
+
+    L.tileLayer(
+      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">' +
+          'OpenStreetMap contributors</a>'
+      }
+    ).addTo(deliveryMap);
+
+    L.marker([lat, lng])
+      .addTo(deliveryMap)
+      .bindPopup("Tujuan pengiriman NovaPS");
+
+    // Modal harus terlihat sebelum Leaflet menghitung ukuran.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        deliveryMap?.invalidateSize();
+      });
+    });
+  }
+
+  async function postAdmin(path, payload) {
+    const response = await fetch(`${API}/${path}`, {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      location.replace("/admin/login.php");
+      throw new Error("Sesi admin tidak valid");
+    }
+
+    const result = await response.json();
+
+    if (!response.ok || result.success !== true) {
+      throw new Error(result.message || "Tindakan admin gagal");
+    }
+
+    return result.data;
+  }
+
+  function renderDeliveryAction(booking) {
+    if (!booking.verification?.can_deliver) return;
+
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "btn btn-indigo px-4 py-2 text-sm font-semibold";
+    button.textContent = "Konfirmasi Perangkat Diterima";
+
+    button.addEventListener("click", async () => {
+      const confirmed = window.confirm(`Pastikan perangkat booking ${booking.booking_code} ` + "sudah diterima customer. Lanjutkan?");
+
+      if (!confirmed) return;
+
+      button.disabled = true;
+      button.textContent = "Memproses...";
+
+      try {
+        await postAdmin("booking/deliver.php", {
+          booking_id: booking.booking_id,
+          delivery_confirmed: true
+        });
+
+        closeModal();
+        await loadDashboard();
+
+      } catch (error) {
+        alert(error.message);
+        button.disabled = false;
+        button.textContent = "Konfirmasi Perangkat Diterima";
+      }
+    });
+
+    modalActions.appendChild(button);
+  }
+
   async function openBooking(bookingId) {
     const result = await getJSON(
       `bookings/detail.php?booking_id=${encodeURIComponent(bookingId)}`
@@ -159,6 +330,7 @@
       "Alamat pengiriman",
       booking.address_snapshot
     );
+    renderDeliveryMap(booking);
     addDetailRow(
       modalBody,
       "Pembayaran",
@@ -174,6 +346,8 @@
       "Total",
       rupiah(booking.total_cost)
     );
+
+    renderDeliveryAction(booking);
 
     const heading = document.createElement("h3");
     heading.className = "mt-4 mb-2 font-semibold";
@@ -196,6 +370,8 @@
   }
 
   function closeModal() {
+    destroyDeliveryMap();
+
     modal?.removeAttribute("data-open");
     modal?.setAttribute("aria-hidden", "true");
   }

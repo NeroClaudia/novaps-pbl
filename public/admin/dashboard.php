@@ -67,8 +67,10 @@ $staffName = htmlspecialchars(
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="/assets/css/admin-dashboard.css" />
-    <script src="/assets/js/admin-dashboard-ssr.js?v=1" defer></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <script src="/assets/js/admin-dashboard-ssr.js?v=2" defer></script>
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-800">
     <header
