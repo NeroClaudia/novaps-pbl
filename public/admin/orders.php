@@ -186,6 +186,7 @@ $staffName = htmlspecialchars(
               placeholder="Search customer name, phone or booking code..."
               aria-label="Search orders"
               class="field-input h-10 flex-1"
+              maxlength="50"
             />
             <select
               id="status-filter"

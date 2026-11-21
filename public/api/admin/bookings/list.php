@@ -244,6 +244,25 @@ try {
 
                     COUNT(*) AS items_count,
                     SUM(r.total_cost) AS total_cost,
+                    (
+                        SELECT COALESCE(
+                            json_agg(
+                                json_build_object(
+                                    'device_id', ri.device_id,
+                                    'device_name', di.device_name,
+                                    'category', di.category,
+                                    'duration_days', ri.duration_hours / 24,
+                                    'rental_status', ri.rental_status
+                                )
+                                ORDER BY ri.rental_id
+                            ),
+                            '[]'::json
+                        )
+                        FROM rental ri
+                        JOIN device di
+                            ON di.device_id = ri.device_id
+                        WHERE ri.booking_id = b.booking_id
+                    ) AS items_summary,
 
                     COUNT(*) FILTER (
                         WHERE r.rental_status = 'Booked'
@@ -321,6 +340,12 @@ try {
     $data = [];
 
     foreach ($rows as $row) {
+
+        $itemsSummary = json_decode((string) ($row['items_summary'] ?? '[]'),true);
+        if (!is_array($itemsSummary)) {
+            throw new RuntimeException('Format ringkasan perangkat tidak valid');
+        }
+
         $data[] = [
             'booking_id' => (int) $row['booking_id'],
             'booking_code' => $row['booking_code'],
@@ -350,6 +375,7 @@ try {
             ),
 
             'items_count' => (int) $row['items_count'],
+            'items_summary' => $itemsSummary,
             'total_cost' => (float) $row['total_cost'],
 
             'status_count' => [

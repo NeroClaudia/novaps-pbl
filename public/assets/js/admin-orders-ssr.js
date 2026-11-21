@@ -93,6 +93,28 @@
     return cell;
   }
 
+  function makeStackCell(values) {
+    const cell = makeCell("");
+    const container = document.createElement("div");
+
+    container.className = "grid gap-1";
+
+    for (const value of values) {
+      const line = document.createElement("span");
+      line.textContent = String(value);
+      container.appendChild(line);
+    }
+
+    if (values.length === 0) {
+      const line = document.createElement("span");
+      line.textContent = "—";
+      container.appendChild(line);
+    }
+
+    cell.appendChild(container);
+    return cell;
+  }
+
   function renderHeader() {
     head.replaceChildren();
 
@@ -101,8 +123,9 @@
     for (const label of [
       "Customer Name",
       "Order ID",
-      "Payment",
+      "Unit Type",
       "Total Unit",
+      "Duration",
       "Total",
       "Date",
       "Status",
@@ -124,10 +147,28 @@
     for (const order of orders) {
       const row = document.createElement("tr");
 
+      const items = Array.isArray(order.items_summary)
+        ? order.items_summary
+        : [];
+
+      const unitNames = items.map(item =>
+        item.device_name || item.category || "Unknown unit"
+      );
+
+      const durations = items.map(item => {
+        const days = Number(item.duration_days);
+        return Number.isFinite(days)
+          ? `${days} hari`
+          : "—";
+      });
+
       row.appendChild(makeCell(order.full_name));
       row.appendChild(makeCell(order.booking_code));
-      row.appendChild(makeCell(order.payment_status));
+
+      row.appendChild(makeStackCell(unitNames));
       row.appendChild(makeCell(order.items_count));
+      row.appendChild(makeStackCell(durations));
+
       row.appendChild(makeCell(money(order.total_cost)));
       row.appendChild(makeCell(formatDate(order.created_at)));
       row.appendChild(makeCell(statusText(order)));
