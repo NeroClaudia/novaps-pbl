@@ -10,6 +10,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // 2. Wajib login dengan role admin atau owner
 require_login(['admin', 'owner']);
 
+$fetchSite = $_SERVER['HTTP_SEC_FETCH_SITE'] ?? '';
+
+if ($fetchSite !== '' && $fetchSite !== 'same-origin') {
+    json_error('FORBIDDEN', 'Permintaan lintas origin ditolak', 403);
+}
+
+$expectedToken = $_SESSION['admin_csrf'] ?? '';
+$suppliedToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+
+if (!is_string($expectedToken) || strlen($expectedToken) !== 64 || !is_string($suppliedToken) || !hash_equals($expectedToken, $suppliedToken)) {
+    json_error('FORBIDDEN', 'CSRF token tidak valid', 403);
+}
+
 // 3. Baca JSON body
 $input = read_json_body();
 

@@ -66,7 +66,7 @@ function render_admin_sidebar(string $active): void
     $menus = [
         'dashboard' => ['Dashboard', '/admin/dashboard.php'],
         'orders' => ['Orders', '/admin/orders.php'],
-        'time' => ['Time Remaining', null],
+        'time' => ['Time Remaining', '/admin/time-remaining.php'],
         'units' => ['Unit', '/admin/units.php'],
         'users' => ['Users', null],
     ];
