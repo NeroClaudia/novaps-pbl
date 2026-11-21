@@ -157,7 +157,7 @@ foreach ($devices as $device) {
             </legend>
 
             <div class="grid gap-2">
-              <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3">
+              <label class="flex cursor-pointer items-center gap-3 rounded-md border border-slate-200 p-3">
                 <input
                   type="radio"
                   name="delivery_mode"
@@ -167,7 +167,7 @@ foreach ($devices as $device) {
                 <span>Gunakan alamat teks</span>
               </label>
 
-              <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3">
+              <label class="flex cursor-pointer items-center gap-3 rounded-md border border-slate-200 p-3">
                 <input
                   type="radio"
                   name="delivery_mode"
