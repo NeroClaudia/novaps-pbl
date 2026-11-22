@@ -35,6 +35,10 @@ $input = read_json_body();
 $extensionId = $input['extension_id'] ?? null;
 $action = $input['action'] ?? null;
 
+if ($action === 'approve' && ($input['payment_confirmed'] ?? null) !== true) {
+    json_error('PAYMENT_CONFIRMATION_REQUIRED', 'Admin wajib mengonfirmasi pembayaran', 422);
+}
+
 if (!is_int($extensionId) || $extensionId < 1) {
     json_error('VALIDATION_ERROR', 'extension_id tidak valid', 422);
 }

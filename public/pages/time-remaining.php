@@ -20,6 +20,38 @@ try {
         (int) $auth['user_id']
     );
 
+    $extensionStmt = $pdo->prepare(
+        "SELECT
+        e.extension_id,
+        e.rental_id,
+        e.extra_days,
+        e.status,
+        e.created_at
+     FROM rental_extension e
+     JOIN rental r ON r.rental_id = e.rental_id
+     JOIN booking b ON b.booking_id = r.booking_id
+     WHERE b.customer_id = :customer_id
+       AND (
+           e.status = 'AwaitingVerification'
+           OR (
+               e.status = 'PendingPayment'
+               AND e.created_at + INTERVAL '5 minutes' > NOW()
+           )
+       )
+     ORDER BY e.extension_id DESC"
+    );
+
+    $extensionStmt->execute(['customer_id' => (int) $auth['user_id']]);
+
+    $activeExtension = [];
+
+    foreach ($extensionStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $rentalId = (int) $row['rental_id'];
+
+        //Hanya simpan pengajuan extend yang aktif terbaru untuk rental ini
+        $activeExtensions[$rentalId] ??= $row;
+    }
+
     $hasAnyOrders = !empty(
         get_customer_bookings($pdo, (int) $auth['user_id'])
     );
@@ -99,22 +131,17 @@ $tabs = [
         [hidden] {
             display: none !important;
         }
+
+        #extend-modal[hidden],
+        #extend-request-form[hidden],
+        #extend-payment-form[hidden] {
+            display: none !important;
+        }
     </style>
-
-    <script
-        src="/assets/js/shared/session.js"
-        data-require-login="/pages/login.php"
-    ></script>
-
-    <script
-        src="/assets/js/shared/navbar.js"
-        defer
-    ></script>
-
-    <script
-        src="/assets/js/time-remaining.js?v=2"
-        defer
-    ></script>
+    <script src="/assets/js/shared/session.js" data-require-login="/pages/login.php"></script>
+    <script src="/assets/js/shared/navbar.js" defer></script>
+    <script src="/assets/js/time-remaining.js?v=2" defer></script>
+    <script src="/assets/js/customer-extend.js?v=1" defer></script>
 </head>
 
 <body
@@ -270,6 +297,49 @@ $tabs = [
                 </div>
 
                 <div class="mt-3 flex flex-wrap justify-end gap-2">
+
+                    <?php 
+                        $extension = $activeExtensions[(int) $rental['rental_id']] ?? null;
+                        
+                        $canExtend = $status === 'Rented'
+                            && !$overdue
+                            && $rental['duration_days'] < 7;
+                    ?>
+
+                    <?php if ($extension !== null): ?>
+                        <?php if ($extension['status'] === 'PendingPayment'): ?>
+                            <button 
+                                    type="button"
+                                    class="btn btn-indigo px-3 py-1 text-sm font-medium" 
+                                    data-extend-open 
+                                    data-extend-id="<?= (int) $extension['extension_id'] ?>"
+                                    data-extra-days="<?= (int) $extension['extra_days'] ?>"
+                                    data-created-at="<?= rental_escape((new DateTimeImmutable($extension['created_at']))->format(DATE_ATOM)) ?>"
+                                    data-rental-id="<?= (int) $rental['rental_id'] ?>"
+                                    data-device="<?= rental_escape($rental['device_name']) ?>"
+                                    data-price="<?= rental_escape($rental['price_per_day']) ?>"
+                                    data-max-days="<?= 7 - (int) $rental['duration_days'] ?>"
+                                >Complete Extend Payment
+                            </button>
+                        <?php else: ?>
+                            <span class="text-sm font-semibold text-amber-700">
+                                Extend Awaiting Verification
+                            </span>
+                        <?php endif; ?>
+
+                    <?php elseif ($canExtend): ?>
+                        <button 
+                            type="button"
+                            class="btn btn-indigo px-3 py-1 text-sm font-medium"
+                            data-extend-open
+                            data-rental-id="<?= (int) $rental['rental_id'] ?>"
+                            data-device="<?= rental_escape($rental['device_name']) ?>"
+                            data-price="<?= rental_escape($rental['price_per_day']) ?>"
+                            data-max-days="<?= 7 - (int) $rental['duration_days'] ?>"
+                        >Extend Rental
+                        </button>
+                    <?php endif; ?>
+
                     <a
                         href="<?= rental_escape($detailUrl) ?>"
                         class="btn px-3 py-1 text-sm font-medium border-slate-800 bg-white text-slate-800 hover:bg-slate-800 hover:text-white"
@@ -324,5 +394,95 @@ $tabs = [
     </div>
 
 </main>
+<div id="extend-modal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="extend-title"
+     hidden
+     class="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 p-4">
+
+    <div class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+
+        <div class="mb-5 flex items-center justify-between">
+            <h2 id="extend-title"
+                class="font-display text-xl font-bold">
+                Extend Rental
+            </h2>
+
+            <button id="extend-close"
+                    type="button"
+                    class="rounded-md px-3 py-2 hover:bg-slate-100">
+                ✕
+            </button>
+        </div>
+
+        <p id="extend-device"
+           class="mb-4 font-semibold"></p>
+
+        <form id="extend-request-form">
+            <label for="extend-days" class="block text-sm">
+                Extra Duration
+            </label>
+
+            <select id="extend-days"
+                    class="mt-1 w-full rounded-md border border-slate-300 p-3">
+            </select>
+
+            <p id="extend-price"
+               class="mt-4 font-display text-xl font-bold"></p>
+
+            <p class="mt-2 text-xs text-slate-500">
+                Maximum rental duration is 7 days in total.
+            </p>
+
+            <button id="extend-request-submit"
+                    type="submit"
+                    class="btn btn-indigo mt-5 w-full py-3">
+                Continue to Payment
+            </button>
+        </form>
+
+        <form id="extend-payment-form"
+              hidden
+              enctype="multipart/form-data">
+
+            <p class="mb-3 text-sm">
+                Complete payment using the existing NovaPS QRIS.
+            </p>
+
+            <img src="/assets/img/qris.png"
+                 alt="NovaPS QRIS payment"
+                 class="mx-auto max-h-60 object-contain">
+
+            <p id="extend-payment-amount"
+               class="mt-4 text-center font-display text-xl font-bold"></p>
+
+            <p id="extend-payment-timer"
+               class="mt-2 text-center font-semibold text-red-600"
+               aria-live="off"></p>
+
+            <label for="extend-proof"
+                   class="mt-4 block text-sm">
+                Upload Payment Proof
+            </label>
+
+            <input id="extend-proof"
+                   type="file"
+                   accept="image/jpeg,image/png"
+                   required
+                   class="mt-2 w-full rounded-md border border-slate-300 p-2">
+
+            <button id="extend-upload-submit"
+                    type="submit"
+                    class="btn btn-indigo mt-5 w-full py-3">
+                Submit Payment Proof
+            </button>
+        </form>
+
+        <p id="extend-error"
+           role="alert"
+           class="mt-3 text-sm text-red-600"></p>
+    </div>
+</div>
 </body>
 </html>

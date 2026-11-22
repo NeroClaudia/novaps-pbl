@@ -435,8 +435,28 @@ $esc = static fn(string $value): string =>
             transform: none;
             box-shadow: none;
         }
+
+        #extension-review[hidden] {
+            display: none !important;
+        }
+
+        #review-extensions {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #extension-count {
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: #fff;
+            color: #4f46e5;
+            font-size: 12px;
+            font-weight: 700;
+        }
     </style>
     <script src="/assets/js/admin-time-remaining-ssr.js?v=1" defer></script>
+    <script src="/assets/js/admin-extensions.js?v=1" defer></script>
 </head>
 
 <body class="min-h-screen bg-slate-100 text-slate-800">
@@ -457,6 +477,10 @@ $esc = static fn(string $value): string =>
                     type="button"
                     class="time-btn">
                 Refresh Data
+            </button>
+            <button id="review-extensions" type="button" class="time-btn">
+                Extension Requests
+                <span id="extension-count">0</span>
             </button>
         </div>
 
@@ -614,6 +638,75 @@ $esc = static fn(string $value): string =>
         </div>
     </div>
 </div>
+<div id="extension-modal"
+     class="time-modal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="extension-modal-title"
+     hidden>
 
+    <div class="time-dialog" style="width:min(100%,680px)">
+        <div class="time-header">
+            <h2 id="extension-modal-title"
+                class="font-display text-xl font-bold">
+                Extension Requests
+            </h2>
+
+            <button id="extension-close"
+                    type="button"
+                    class="time-secondary">
+                ✕
+            </button>
+        </div>
+
+        <p id="extension-message"
+           class="time-note"
+           role="status"></p>
+
+        <div id="extension-list"
+             style="display:grid;gap:12px;margin-top:16px">
+        </div>
+
+        <section id="extension-review" hidden>
+            <h3 class="font-display text-lg font-bold"
+                style="margin-top:18px">
+                Review Extension
+            </h3>
+
+            <dl id="extension-detail"
+                class="time-detail"></dl>
+
+            <img id="extension-proof"
+                 alt="Extension payment proof"
+                 style="max-height:340px;max-width:100%;
+                        display:block;margin:12px auto">
+
+            <label style="display:flex;align-items:center;gap:8px">
+                <input id="extension-confirm-payment"
+                       type="checkbox">
+                I have verified the payment.
+            </label>
+
+            <p id="extension-error"
+               role="alert"
+               style="color:#b91c1c;margin-top:8px">
+            </p>
+
+            <div class="time-modal-actions">
+                <button id="extension-reject"
+                        type="button"
+                        class="time-secondary">
+                    Reject
+                </button>
+
+                <button id="extension-approve"
+                        type="button"
+                        class="time-btn">
+                    Approve Extend
+                </button>
+            </div>
+        </section>
+    </div>
+</div>
 </body>
 </html>

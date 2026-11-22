@@ -336,6 +336,7 @@ function get_customer_rentals(PDO $pdo, int $customerId): array
             r.rented_at,
             r.overdue_at,
             r.returned_at,
+            r.price_per_day,
             d.device_name,
             d.category,
             b.booking_code,
@@ -379,6 +380,7 @@ function get_customer_rentals(PDO $pdo, int $customerId): array
                 (int) $row['duration_hours'],
                 24
             ),
+            'price_per_day' => (float) $row['price_per_day'],
             'total_cost' => (float) $row['total_cost'],
             'rental_status' => (string) $row['rental_status'],
             'end_time' => $endTime->format(DATE_ATOM),

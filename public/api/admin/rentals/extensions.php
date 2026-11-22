@@ -79,7 +79,7 @@ try {
             'device_name' => $row['device_name'],
             'category' => $row['category'],
             'rental_status' => $row['rental_status'],
-            'extension_status' => $row['extension_status'],
+            'extension_status' => $row['status'],
             'current_days' => $currentDays,
             'extra_days' => $extraDays,
             'total_days' => $currentDays + $extraDays,
