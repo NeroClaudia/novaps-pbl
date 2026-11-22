@@ -9,6 +9,7 @@
   const API = "/api/admin/bookings/list.php";
   const PAGE_SIZE = 10;
 
+  const orderDetail = window.NovaOrderDetail;
   const search = document.getElementById("search");
   const filter = document.getElementById("status-filter");
   const head = document.getElementById("orders-head");
@@ -141,110 +142,6 @@
     head.appendChild(row);
   }
 
-      const orderModal = document.getElementById("orderModal");
-    const orderBody = document.getElementById("orderBody");
-    const orderActions = document.getElementById("orderActions");
-
-    function addOrderDetail(label, value) {
-      const row = document.createElement("p");
-      row.className = "mb-2 text-sm text-slate-700";
-
-      const heading = document.createElement("strong");
-      heading.textContent = `${label}: `;
-
-      row.append(
-        heading,
-        document.createTextNode(String(value ?? "—"))
-      );
-
-      orderBody.appendChild(row);
-    }
-
-    async function openOrderDetail(bookingId) {
-      const response = await fetch(
-        `/api/admin/bookings/detail.php?booking_id=${encodeURIComponent(bookingId)}`,
-        {
-          credentials: "same-origin",
-          cache: "no-store"
-        }
-      );
-
-      if (response.status === 401 || response.status === 403) {
-        location.replace("/admin/login.php");
-        return;
-      }
-
-      const result = await response.json();
-
-      if (!response.ok || result.success !== true) {
-        throw new Error(
-          result.message || "Gagal mengambil detail pesanan."
-        );
-      }
-
-      const booking = result.data;
-
-      orderBody.replaceChildren();
-      orderActions.replaceChildren();
-
-      addOrderDetail("Booking", booking.booking_code);
-      addOrderDetail("Customer", booking.customer?.full_name);
-      addOrderDetail("Phone", booking.customer?.phone);
-      addOrderDetail("Address", booking.address_snapshot);
-      addOrderDetail("Payment Method", booking.payment?.method);
-      addOrderDetail("Payment Status", booking.payment?.status);
-      addOrderDetail("Delivery Status", booking.fulfillment_status);
-      addOrderDetail("Total", money(booking.total_cost));
-
-      if (booking.additional_notes) {
-        addOrderDetail("Notes", booking.additional_notes);
-      }
-
-      if (booking.cancel_reason) {
-        addOrderDetail("Cancel Reason", booking.cancel_reason);
-      }
-
-      const title = document.createElement("h3");
-      title.className = "mt-4 mb-2 font-semibold";
-      title.textContent = "Rental Items";
-      orderBody.appendChild(title);
-
-      for (const item of booking.items || []) {
-        addOrderDetail(
-          item.device_name,
-          `${item.duration_days} hari · ${item.rental_status} · ${money(item.total_cost)}`
-        );
-      }
-
-      document.getElementById("rejectBox").hidden = true;
-
-      orderModal.setAttribute("data-open", "");
-      orderModal.setAttribute("aria-hidden", "false");
-    }
-
-    function closeOrderDetail() {
-      orderModal.removeAttribute("data-open");
-      orderModal.setAttribute("aria-hidden", "true");
-    }
-
-    orderModal.querySelector("[data-close]")
-      ?.addEventListener("click", closeOrderDetail);
-
-    orderModal.addEventListener("click", event => {
-      if (event.target === orderModal) {
-        closeOrderDetail();
-      }
-    });
-
-    document.addEventListener("keydown", event => {
-      if (
-        event.key === "Escape" &&
-        orderModal.hasAttribute("data-open")
-      ) {
-        closeOrderDetail();
-      }
-    });
-
   function renderRows(orders) {
     body.replaceChildren();
 
@@ -289,7 +186,7 @@
         button.disabled = true;
 
         try {
-          await openOrderDetail(order.booking_id);
+          await orderDetail.open(order.booking_id);
         } catch (error) {
           alert(error.message);
         } finally {
@@ -478,6 +375,7 @@
       }
     }
   );
+  orderDetail.setOnChanged(loadOrders);
 
   renderHeader();
   loadOrders();

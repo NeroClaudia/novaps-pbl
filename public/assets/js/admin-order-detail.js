@@ -637,7 +637,7 @@ window.NovaOrderDetail = (() => {
     if (event.target === modal) {
         closeModal();
     }
-  })
+  });
 
   return {
     open: openBooking,
