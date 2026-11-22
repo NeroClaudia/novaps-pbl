@@ -276,8 +276,6 @@ $tabs = [
 
         .extend-qris {
             display: block;
-            max-width: 240px;
-            max-height: 240px;
             margin: 16px auto 0;
             object-fit: contain;
         }
@@ -339,11 +337,14 @@ $tabs = [
         }
 
         .extend-payment-summary .extend-qris {
-            max-width: 190px;
-            max-height: 220px;
-            width: auto;
+            display: block;
+            width: 100%;
+            max-width: 320px;
+            max-height: none;
             height: auto;
-            margin: 14px auto;
+            margin: 18px auto;
+            object-fit: contain;
+            image-rendering: auto;
         }
 
         .extend-payment-summary .extend-payment-amount {
@@ -505,7 +506,8 @@ $tabs = [
             }
 
             .extend-payment-summary .extend-qris {
-                max-height: 190px;
+                max-width: 100%;
+                max-height: none;
             }
 
             .extend-preview-image {

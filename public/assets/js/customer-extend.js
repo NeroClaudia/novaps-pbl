@@ -193,7 +193,7 @@
     if (busy) return;
 
     clearProofPreview();
-    
+
     modal.hidden = true;
     clearInterval(timerId);
     timerId = null;
@@ -206,9 +206,9 @@
 
   $("extend-close").addEventListener("click", closeModal);
 
-  $("extend-proof").addEventListener("change", updateProofPreview());
+  $("extend-proof").addEventListener("change", updateProofPreview);
 
-  $("extend-remove-proof").addEventListener("click", clearProofPreview());
+  $("extend-remove-proof").addEventListener("click", clearProofPreview);
 
   modal.addEventListener("click", event => {
     if (event.target === modal) closeModal();
