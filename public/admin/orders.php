@@ -70,7 +70,7 @@ $staffName = htmlspecialchars(
     />
     <link rel="stylesheet" href="/assets/css/admin-orders.css" />
     <link rel="stylesheet" href="/assets/css/admin-layout.css?v=1">
-    <script src="/assets/js/admin-orders-ssr.js?v=1" defer></script>
+    <script src="/assets/js/admin-orders-ssr.js?v=2" defer></script>
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-800">
 
