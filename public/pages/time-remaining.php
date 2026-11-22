@@ -137,6 +137,157 @@ $tabs = [
         #extend-payment-form[hidden] {
             display: none !important;
         }
+
+        #extend-modal[hidden],
+        #extend-request-form[hidden],
+        #extend-payment-form[hidden] {
+            display: none !important;
+        }
+
+        .extend-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .extend-modal-card {
+            width: 100%;
+            max-width: 560px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+        }
+
+        .extend-modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .extend-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .extend-modal-close {
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #334155;
+            border-radius: 10px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background-color 150ms ease,
+                        border-color 150ms ease,
+                        transform 150ms ease;
+        }
+
+        .extend-modal-close:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+            transform: translateY(-1px);
+        }
+
+        .extend-modal-close:active {
+            transform: scale(0.98);
+        }
+
+        .extend-field {
+            margin-top: 14px;
+        }
+
+        .extend-field label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 8px;
+        }
+
+        .extend-field select,
+        .extend-field input[type="file"] {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 14px;
+            background: #ffffff;
+        }
+
+        .extend-device-name {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .extend-price {
+            margin-top: 18px;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .extend-note {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .extend-action {
+            margin-top: 20px;
+        }
+
+        .extend-action .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .extend-qris {
+            display: block;
+            max-width: 240px;
+            max-height: 240px;
+            margin: 16px auto 0;
+            object-fit: contain;
+        }
+
+        .extend-payment-amount {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .extend-payment-timer {
+            margin-top: 8px;
+            text-align: center;
+            font-weight: 600;
+            color: #dc2626;
+        }
+
+        .extend-error {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #dc2626;
+        }
+
+        @media (max-width: 640px) {
+            .extend-modal-card {
+                max-width: 100%;
+                padding: 18px;
+                border-radius: 14px;
+            }
+        }
     </style>
     <script src="/assets/js/shared/session.js" data-require-login="/pages/login.php"></script>
     <script src="/assets/js/shared/navbar.js" defer></script>
@@ -399,89 +550,86 @@ $tabs = [
      aria-modal="true"
      aria-labelledby="extend-title"
      hidden
-     class="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 p-4">
+     class="extend-modal-overlay">
 
-    <div class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+    <div class="extend-modal-card">
 
-        <div class="mb-5 flex items-center justify-between">
-            <h2 id="extend-title"
-                class="font-display text-xl font-bold">
+        <div class="extend-modal-header">
+            <h2 id="extend-title" class="extend-modal-title">
                 Extend Rental
             </h2>
 
             <button id="extend-close"
                     type="button"
-                    class="rounded-md px-3 py-2 hover:bg-slate-100">
+                    class="extend-modal-close">
                 ✕
             </button>
         </div>
 
-        <p id="extend-device"
-           class="mb-4 font-semibold"></p>
+        <p id="extend-device" class="extend-device-name"></p>
 
         <form id="extend-request-form">
-            <label for="extend-days" class="block text-sm">
-                Extra Duration
-            </label>
+            <div class="extend-field">
+                <label for="extend-days">Extra Duration</label>
 
-            <select id="extend-days"
-                    class="mt-1 w-full rounded-md border border-slate-300 p-3">
-            </select>
+                <select id="extend-days"></select>
+            </div>
 
-            <p id="extend-price"
-               class="mt-4 font-display text-xl font-bold"></p>
+            <p id="extend-price" class="extend-price"></p>
 
-            <p class="mt-2 text-xs text-slate-500">
+            <p class="extend-note">
                 Maximum rental duration is 7 days in total.
             </p>
 
-            <button id="extend-request-submit"
-                    type="submit"
-                    class="btn btn-indigo mt-5 w-full py-3">
-                Continue to Payment
-            </button>
+            <div class="extend-action">
+                <button id="extend-request-submit"
+                        type="submit"
+                        class="btn btn-indigo py-3">
+                    Continue to Payment
+                </button>
+            </div>
         </form>
 
         <form id="extend-payment-form"
               hidden
               enctype="multipart/form-data">
 
-            <p class="mb-3 text-sm">
+            <p class="text-sm">
                 Complete payment using the existing NovaPS QRIS.
             </p>
 
             <img src="/assets/img/qris.png"
                  alt="NovaPS QRIS payment"
-                 class="mx-auto max-h-60 object-contain">
+                 class="extend-qris">
 
             <p id="extend-payment-amount"
-               class="mt-4 text-center font-display text-xl font-bold"></p>
+               class="extend-payment-amount"></p>
 
             <p id="extend-payment-timer"
-               class="mt-2 text-center font-semibold text-red-600"
+               class="extend-payment-timer"
                aria-live="off"></p>
 
-            <label for="extend-proof"
-                   class="mt-4 block text-sm">
-                Upload Payment Proof
-            </label>
+            <div class="extend-field">
+                <label for="extend-proof">Upload Payment Proof</label>
 
-            <input id="extend-proof"
-                   type="file"
-                   accept="image/jpeg,image/png"
-                   required
-                   class="mt-2 w-full rounded-md border border-slate-300 p-2">
+                <input id="extend-proof"
+                       type="file"
+                       accept="image/jpeg,image/png"
+                       required>
+            </div>
 
-            <button id="extend-upload-submit"
-                    type="submit"
-                    class="btn btn-indigo mt-5 w-full py-3">
-                Submit Payment Proof
-            </button>
+            <div class="extend-action">
+                <button id="extend-upload-submit"
+                        type="submit"
+                        class="btn btn-indigo py-3">
+                    Submit Payment Proof
+                </button>
+            </div>
         </form>
 
         <p id="extend-error"
            role="alert"
-           class="mt-3 text-sm text-red-600"></p>
+           class="extend-error"></p>
     </div>
 </div>
 </body>
