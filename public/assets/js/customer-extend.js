@@ -15,6 +15,7 @@
   let pricePerDay = 0;
   let busy = false;
   let timerId = null;
+  let previewUrl = null;
 
   const money = amount =>
     new Intl.NumberFormat("id-ID", {
@@ -86,13 +87,71 @@
     updateTimer();
   }
 
+    function clearProofPreview() {
+    const image = $("extend-preview-image");
+
+    if (previewUrl !== null) {
+        URL.revokeObjectURL(previewUrl);
+        previewUrl = null;
+    }
+
+    image.removeAttribute("src");
+
+    $("extend-proof").value = "";
+    $("extend-file-name").textContent = "";
+    $("extend-preview-wrapper").hidden = true;
+    }
+
+    function updateProofPreview() {
+    const file = $("extend-proof").files[0];
+
+    // Bersihkan preview lama tanpa menghapus pilihan baru.
+    if (previewUrl !== null) {
+        URL.revokeObjectURL(previewUrl);
+        previewUrl = null;
+    }
+
+    $("extend-preview-image").removeAttribute("src");
+    $("extend-preview-wrapper").hidden = true;
+    $("extend-file-name").textContent = "";
+
+    if (!file) return;
+
+    const allowedTypes = [
+        "image/jpeg",
+        "image/png"
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+        clearProofPreview();
+        showError("File harus berupa JPG atau PNG.");
+        return;
+    }
+
+    if (file.size === 0 || file.size > 2 * 1024 * 1024) {
+        clearProofPreview();
+        showError("Ukuran gambar maksimal 2 MB.");
+        return;
+    }
+
+    showError("");
+
+    previewUrl = URL.createObjectURL(file);
+
+    $("extend-preview-image").src = previewUrl;
+    $("extend-file-name").textContent =
+        `${file.name} · ${(file.size / 1024).toFixed(1)} KB`;
+
+    $("extend-preview-wrapper").hidden = false;
+    }
+
   function openModal(button) {
     rentalId = Number(button.dataset.rentalId);
     pricePerDay = Number(button.dataset.price);
 
     $("extend-device").textContent = button.dataset.device;
     $("extend-error").textContent = "";
-    $("extend-proof").value = "";
+    clearProofPreview();
 
     requestForm.hidden = false;
     paymentForm.hidden = true;
@@ -133,6 +192,8 @@
   function closeModal() {
     if (busy) return;
 
+    clearProofPreview();
+    
     modal.hidden = true;
     clearInterval(timerId);
     timerId = null;
@@ -144,6 +205,10 @@
     });
 
   $("extend-close").addEventListener("click", closeModal);
+
+  $("extend-proof").addEventListener("change", updateProofPreview());
+
+  $("extend-remove-proof").addEventListener("click", clearProofPreview());
 
   modal.addEventListener("click", event => {
     if (event.target === modal) closeModal();

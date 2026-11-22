@@ -162,6 +162,7 @@ $tabs = [
             border-radius: 16px;
             padding: 24px;
             box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+            overflow: visible;
         }
 
         .extend-modal-title {
@@ -204,6 +205,7 @@ $tabs = [
 
         .extend-field {
             margin-top: 14px;
+            position: relative;
         }
 
         .extend-field label {
@@ -214,14 +216,34 @@ $tabs = [
             margin-bottom: 8px;
         }
 
-        .extend-field select,
-        .extend-field input[type="file"] {
+        .extend-field select {
+            display: block;
             width: 100%;
+            min-height: 46px;
+            padding: 10px 14px;
+
+            background-color: #ffffff;
+            color: #1e293b;
+
             border: 1px solid #cbd5e1;
             border-radius: 10px;
-            padding: 12px 14px;
+
             font-size: 14px;
-            background: #ffffff;
+            line-height: 1.5;
+
+            appearance: auto;
+            cursor: pointer;
+        }
+
+        .extend-field select:focus {
+            outline: 2px solid #6366f1;
+            outline-offset: 2px;
+            border-color: #6366f1;
+        }
+
+        .extend-field select option {
+            background-color: #ffffff;
+            color: #1e293b;
         }
 
         .extend-device-name {
@@ -288,11 +310,221 @@ $tabs = [
                 border-radius: 14px;
             }
         }
+
+        /* Extend Payment Modal */
+        .extend-modal-overlay {
+            overflow-y: auto;
+        }
+
+        .extend-modal-card {
+            box-sizing: border-box;
+            max-height: calc(100dvh - 32px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        .extend-payment-summary {
+            margin-top: 12px;
+            padding: 18px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .extend-payment-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .extend-payment-summary .extend-qris {
+            max-width: 190px;
+            max-height: 220px;
+            width: auto;
+            height: auto;
+            margin: 14px auto;
+        }
+
+        .extend-payment-summary .extend-payment-amount {
+            margin-top: 12px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .extend-payment-summary .extend-payment-timer {
+            margin-top: 6px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Custom file upload */
+        .extend-file-input {
+            position: absolute;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            overflow: hidden;
+            opacity: 0;
+            clip-path: inset(50%);
+        }
+
+        .extend-upload-area {
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            min-height: 120px;
+            padding: 18px;
+            margin-top: 8px;
+
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            background: #f8fafc;
+
+            text-align: center;
+            cursor: pointer;
+
+            transition:
+                border-color 150ms ease,
+                background-color 150ms ease;
+        }
+
+        .extend-upload-area:hover {
+            border-color: #6366f1;
+            background: #eef2ff;
+        }
+
+        .extend-field:has(.extend-file-input:focus-visible)
+        .extend-upload-area {
+            outline: 2px solid #6366f1;
+            outline-offset: 3px;
+        }
+
+        .extend-upload-icon {
+            font-size: 26px;
+            line-height: 1;
+            color: #6366f1;
+            margin-bottom: 10px;
+        }
+
+        .extend-upload-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .extend-upload-hint {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Image preview */
+        .extend-preview-wrapper {
+            margin-top: 16px;
+            padding: 14px;
+
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .extend-preview-wrapper[hidden] {
+            display: none !important;
+        }
+
+        .extend-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .extend-remove-proof {
+            border: 0;
+            background: transparent;
+            color: #dc2626;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .extend-remove-proof:hover {
+            text-decoration: underline;
+        }
+
+        .extend-preview-image {
+            display: block;
+            width: auto;
+            max-width: 100%;
+            max-height: 240px;
+            margin: 0 auto;
+
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        .extend-file-name {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #64748b;
+
+            text-align: center;
+            overflow-wrap: anywhere;
+        }
+
+        .extend-action .btn {
+            min-height: 46px;
+            border-radius: 9px;
+            transition:
+                background-color 150ms ease,
+                transform 150ms ease,
+                box-shadow 150ms ease;
+        }
+
+        .extend-action .btn:not(:disabled):hover {
+            background-color: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(99,102,241,.22);
+        }
+
+        .extend-action .btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 640px) {
+            .extend-payment-summary {
+                padding: 14px;
+            }
+
+            .extend-payment-summary .extend-qris {
+                max-height: 190px;
+            }
+
+            .extend-preview-image {
+                max-height: 200px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .extend-upload-area,
+            .extend-action .btn {
+                transition: none;
+            }
+        }
+
     </style>
     <script src="/assets/js/shared/session.js" data-require-login="/pages/login.php"></script>
     <script src="/assets/js/shared/navbar.js" defer></script>
     <script src="/assets/js/time-remaining.js?v=2" defer></script>
-    <script src="/assets/js/customer-extend.js?v=1" defer></script>
+    <script src="/assets/js/customer-extend.js?v=2" defer></script>
 </head>
 
 <body
@@ -591,37 +823,87 @@ $tabs = [
         </form>
 
         <form id="extend-payment-form"
-              hidden
-              enctype="multipart/form-data">
+            hidden
+            enctype="multipart/form-data">
 
-            <p class="text-sm">
-                Complete payment using the existing NovaPS QRIS.
-            </p>
+            <div class="extend-payment-summary">
+                <p class="extend-payment-label">
+                    Scan QRIS to complete payment
+                </p>
 
-            <img src="/assets/img/qris.png"
-                 alt="NovaPS QRIS payment"
-                 class="extend-qris">
+                <img
+                    src="/assets/img/qris.png"
+                    alt="NovaPS QRIS payment"
+                    class="extend-qris"
+                >
 
-            <p id="extend-payment-amount"
-               class="extend-payment-amount"></p>
+                <p id="extend-payment-amount"
+                class="extend-payment-amount"></p>
 
-            <p id="extend-payment-timer"
-               class="extend-payment-timer"
-               aria-live="off"></p>
+                <p id="extend-payment-timer"
+                class="extend-payment-timer"
+                aria-live="off"></p>
+            </div>
 
             <div class="extend-field">
-                <label for="extend-proof">Upload Payment Proof</label>
+                <label for="extend-proof">
+                    Payment Proof
+                </label>
 
-                <input id="extend-proof"
-                       type="file"
-                       accept="image/jpeg,image/png"
-                       required>
+                <label for="extend-proof"
+                    class="extend-upload-area">
+                    <span class="extend-upload-icon" aria-hidden="true">
+                        ↑
+                    </span>
+
+                    <span class="extend-upload-title">
+                        Choose Payment Screenshot
+                    </span>
+
+                    <span class="extend-upload-hint">
+                        JPG or PNG, maximum 2 MB
+                    </span>
+                </label>
+
+                <input
+                    id="extend-proof"
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    required
+                    class="extend-file-input"
+                >
+            </div>
+
+            <div id="extend-preview-wrapper"
+                class="extend-preview-wrapper"
+                hidden>
+
+                <div class="extend-preview-header">
+                    <span>Image Preview</span>
+
+                    <button
+                        id="extend-remove-proof"
+                        type="button"
+                        class="extend-remove-proof">
+                        Remove
+                    </button>
+                </div>
+
+                <img
+                    id="extend-preview-image"
+                    alt="Selected payment proof preview"
+                    class="extend-preview-image"
+                >
+
+                <p id="extend-file-name"
+                class="extend-file-name"></p>
             </div>
 
             <div class="extend-action">
-                <button id="extend-upload-submit"
-                        type="submit"
-                        class="btn btn-indigo py-3">
+                <button
+                    id="extend-upload-submit"
+                    type="submit"
+                    class="btn btn-indigo py-3">
                     Submit Payment Proof
                 </button>
             </div>
