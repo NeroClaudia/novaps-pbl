@@ -68,7 +68,7 @@ function render_admin_sidebar(string $active): void
         'orders' => ['Orders', '/admin/orders.php'],
         'time' => ['Time Remaining', '/admin/time-remaining.php'],
         'units' => ['Unit', '/admin/units.php'],
-        'users' => ['Users', null],
+        'users' => ['Users', '/admin/users.php'],
     ];
     ?>
     <aside class="admin-sidebar">
