@@ -20,36 +20,65 @@ try {
         (int) $auth['user_id']
     );
 
-    $extensionStmt = $pdo->prepare(
-        "SELECT
-        e.extension_id,
-        e.rental_id,
-        e.extra_days,
-        e.status,
-        e.created_at
-     FROM rental_extension e
-     JOIN rental r ON r.rental_id = e.rental_id
-     JOIN booking b ON b.booking_id = r.booking_id
-     WHERE b.customer_id = :customer_id
-       AND (
-           e.status = 'AwaitingVerification'
-           OR (
-               e.status = 'PendingPayment'
-               AND e.created_at + INTERVAL '5 minutes' > NOW()
-           )
-       )
-     ORDER BY e.extension_id DESC"
+    $expireExtensions = $pdo->prepare(
+        "UPDATE rental_extension e
+        SET status = 'Expired'
+        FROM rental r
+        JOIN booking b
+        ON b.booking_id = r.booking_id
+        WHERE e.rental_id = r.rental_id
+        AND b.customer_id = :customer_id
+        AND e.status = 'PendingPayment'
+        AND e.created_at + INTERVAL '5 minutes'
+            <= clock_timestamp()"
     );
 
-    $extensionStmt->execute(['customer_id' => (int) $auth['user_id']]);
+    $expireExtensions->execute([
+        'customer_id' => (int) $auth['user_id']
+    ]);
+
+    // Ambil seluruh riwayat, termasuk pengajuan lama.
+    $extensionStmt = $pdo->prepare(
+        "SELECT
+            e.extension_id,
+            e.rental_id,
+            e.extra_days,
+            e.status,
+            e.created_at,
+            e.reviewed_at,
+            (e.payment_proof_url IS NOT NULL) AS has_proof
+        FROM rental_extension e
+        JOIN rental r
+        ON r.rental_id = e.rental_id
+        JOIN booking b
+        ON b.booking_id = r.booking_id
+        WHERE b.customer_id = :customer_id
+        ORDER BY e.created_at DESC, e.extension_id DESC"
+    );
+
+    $extensionStmt->execute([
+        'customer_id' => (int) $auth['user_id']
+    ]);
 
     $activeExtensions = [];
+    $extensionHistory = [];
 
     foreach ($extensionStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $rentalId = (int) $row['rental_id'];
 
-        //Hanya simpan pengajuan extend yang aktif terbaru untuk rental ini
-        $activeExtensions[$rentalId] ??= $row;
+        // Normalisasi nilai boolean dari PostgreSQL.
+        $row['has_proof'] = in_array(
+            $row['has_proof'],
+            [true, 1, '1', 't', 'true'],
+            true
+        );
+
+        $extensionHistory[$rentalId][] = $row;
+
+        // Tetap pertahankan alur Extend yang sudah berjalan.
+        if (!isset($activeExtensions[$rentalId]) && in_array($row['status'], ['PendingPayment', 'AwaitingVerification'], true)) {
+            $activeExtensions[$rentalId] = $row;
+        }
     }
 
     $hasAnyOrders = !empty(
@@ -522,6 +551,190 @@ $tabs = [
             }
         }
 
+        .extension-history {
+            margin-top: 18px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 14px;
+        }
+
+        .extension-history-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            list-style: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .extension-history-toggle::-webkit-details-marker {
+            display: none;
+        }
+
+        .extension-history-count {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #4f46e5;
+            font-size: 12px;
+        }
+
+        .extension-history-chevron {
+            font-size: 20px;
+            transition: transform 150ms ease;
+        }
+
+        .extension-history[open] .extension-history-chevron {
+            transform: rotate(180deg);
+        }
+
+        .extension-history-list {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .extension-history-item {
+            min-width: 0;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .extension-history-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .extension-history-days {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .extension-history-date {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .extension-history-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .extension-history-status.pending {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .extension-history-status.review {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .extension-history-status.approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .extension-history-status.rejected,
+        .extension-history-status.expired {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .extension-history-message {
+            margin-top: 12px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #475569;
+        }
+
+        .extension-history-no-proof {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .extension-proof-details {
+            margin-top: 14px;
+        }
+
+        .extension-proof-toggle {
+            display: inline-block;
+            cursor: pointer;
+            color: #4f46e5;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .extension-proof-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .extension-proof-content {
+            margin-top: 12px;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #ffffff;
+            text-align: center;
+        }
+
+        .extension-proof-image {
+            display: block;
+            width: auto;
+            max-width: 100%;
+            max-height: 360px;
+            margin: 0 auto;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        .extension-proof-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #4f46e5;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        .extension-history-toggle:focus-visible,
+        .extension-proof-toggle:focus-visible,
+        .extension-proof-link:focus-visible {
+            outline: 2px solid #6366f1;
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 640px) {
+            .extension-history-item {
+                padding: 12px;
+            }
+
+            .extension-history-status {
+                font-size: 11px;
+            }
+
+            .extension-proof-image {
+                max-height: 260px;
+            }
+        }
+
     </style>
     <script src="/assets/js/shared/session.js" data-require-login="/pages/login.php"></script>
     <script src="/assets/js/shared/navbar.js" defer></script>
@@ -743,6 +956,149 @@ $tabs = [
                         </a>
                     <?php endif; ?>
                 </div>
+
+                    <?php
+                    $history = $extensionHistory[
+                        (int) $rental['rental_id']
+                    ] ?? [];
+
+                    $extensionLabels = [
+                        'PendingPayment' => 'Waiting for Payment',
+                        'AwaitingVerification' => 'Awaiting Verification',
+                        'Approved' => 'Approved',
+                        'Rejected' => 'Rejected',
+                        'Expired' => 'Expired'
+                    ];
+
+                    $extensionClasses = [
+                        'PendingPayment' => 'pending',
+                        'AwaitingVerification' => 'review',
+                        'Approved' => 'approved',
+                        'Rejected' => 'rejected',
+                        'Expired' => 'expired'
+                    ];
+                    ?>
+
+                    <?php if ($history !== []): ?>
+                        <details class="extension-history">
+                            <summary class="extension-history-toggle">
+                                <span>
+                                    Extend History
+                                    <span class="extension-history-count">
+                                        <?= count($history) ?>
+                                    </span>
+                                </span>
+                                <span class="extension-history-chevron"
+                                    aria-hidden="true">⌄</span>
+                            </summary>
+
+                            <div class="extension-history-list">
+                                <?php foreach ($history as $item): ?>
+                                    <?php
+                                    $extensionId = (int) $item['extension_id'];
+                                    $extensionStatus = (string) $item['status'];
+
+                                    $statusLabel =
+                                        $extensionLabels[$extensionStatus]
+                                        ?? $extensionStatus;
+
+                                    $statusClass =
+                                        $extensionClasses[$extensionStatus]
+                                        ?? 'pending';
+                                    ?>
+
+                                    <article class="extension-history-item">
+                                        <div class="extension-history-top">
+                                            <div>
+                                                <p class="extension-history-days">
+                                                    +<?= (int) $item['extra_days'] ?>
+                                                    day(s)
+                                                </p>
+
+                                                <p class="extension-history-date">
+                                                    Requested:
+                                                    <?= rental_escape(
+                                                        rental_date($item['created_at'])
+                                                    ) ?>
+                                                </p>
+                                            </div>
+
+                                            <span class="extension-history-status <?= rental_escape($statusClass) ?>">
+                                                <?= rental_escape($statusLabel) ?>
+                                            </span>
+                                        </div>
+
+                                        <?php if ($item['reviewed_at'] !== null): ?>
+                                            <p class="extension-history-date">
+                                                Reviewed:
+                                                <?= rental_escape(
+                                                    rental_date($item['reviewed_at'])
+                                                ) ?>
+                                            </p>
+                                        <?php endif; ?>
+
+                                        <?php if ($extensionStatus === 'Approved'): ?>
+                                            <p class="extension-history-message">
+                                                Rental extension approved.
+                                                Your rental duration has been updated.
+                                            </p>
+                                        <?php elseif ($extensionStatus === 'Rejected'): ?>
+                                            <p class="extension-history-message">
+                                                This extension request was rejected
+                                                by admin.
+                                            </p>
+                                        <?php elseif ($extensionStatus === 'Expired'): ?>
+                                            <p class="extension-history-message">
+                                                Payment deadline expired.
+                                                No extra rental duration was added.
+                                            </p>
+                                        <?php elseif ($extensionStatus === 'PendingPayment'): ?>
+                                            <p class="extension-history-message">
+                                                Complete payment before the
+                                                five-minute deadline.
+                                            </p>
+                                        <?php else: ?>
+                                            <p class="extension-history-message">
+                                                Your payment proof is waiting
+                                                for admin verification.
+                                            </p>
+                                        <?php endif; ?>
+
+                                        <?php if ($item['has_proof']): ?>
+                                            <details class="extension-proof-details">
+                                                <summary class="extension-proof-toggle">
+                                                    View Payment Proof
+                                                </summary>
+
+                                                <div class="extension-proof-content">
+                                                    <img
+                                                        src="/api/rentals/extension-proof.php?extension_id=<?= $extensionId ?>"
+                                                        alt="Payment proof for extension #<?= $extensionId ?>"
+                                                        class="extension-proof-image"
+                                                        loading="lazy"
+                                                        referrerpolicy="no-referrer"
+                                                    >
+
+                                                    <a
+                                                        href="/api/rentals/extension-proof.php?extension_id=<?= $extensionId ?>"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        class="extension-proof-link"
+                                                    >
+                                                        Open full image
+                                                    </a>
+                                                </div>
+                                            </details>
+                                        <?php else: ?>
+                                            <p class="extension-history-no-proof">
+                                                No payment proof uploaded.
+                                            </p>
+                                        <?php endif; ?>
+                                    </article>
+                                <?php endforeach; ?>
+                            </div>
+                        </details>
+                    <?php endif; ?>
             </li>
 
         <?php endforeach; ?>
