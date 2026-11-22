@@ -43,7 +43,7 @@ try {
 
     $extensionStmt->execute(['customer_id' => (int) $auth['user_id']]);
 
-    $activeExtension = [];
+    $activeExtensions = [];
 
     foreach ($extensionStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $rentalId = (int) $row['rental_id'];
@@ -312,7 +312,7 @@ $tabs = [
                                     type="button"
                                     class="btn btn-indigo px-3 py-1 text-sm font-medium" 
                                     data-extend-open 
-                                    data-extend-id="<?= (int) $extension['extension_id'] ?>"
+                                    data-extension-id="<?= (int) $extension['extension_id'] ?>"
                                     data-extra-days="<?= (int) $extension['extra_days'] ?>"
                                     data-created-at="<?= rental_escape((new DateTimeImmutable($extension['created_at']))->format(DATE_ATOM)) ?>"
                                     data-rental-id="<?= (int) $rental['rental_id'] ?>"
