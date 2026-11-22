@@ -224,7 +224,7 @@
         history.replaceState(null, "", url);
 
         try {
-          await openBooking(requestBookingId);
+          await orderDetail.open(requestBookingId);
         } catch (error) {
           console.error("Gagal membuka detail bookings:", error);
           alert(error.message);
@@ -332,15 +332,6 @@
     adminButton.setAttribute("aria-expanded", String(!open));
   });
 
-  modal?.querySelector("[data-close]")?.addEventListener(
-    "click",
-    closeModal
-  );
-
-  modal?.addEventListener("click", event => {
-    if (event.target === modal) closeModal();
-  });
-
   // Logout dari PHP Session.
   el("adminLogout")?.addEventListener("click", async () => {
     try {
@@ -360,6 +351,6 @@
     }
   });
   orderDetail.setOnChanged(loadDashboard);
-  
+
   loadDashboard();
 })();
