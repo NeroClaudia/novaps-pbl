@@ -1,0 +1,397 @@
+.time-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0 24px;
+}
+
+.time-card {
+  background: white;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.time-card[aria-pressed="false"] {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.time-card[aria-pressed="true"] {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px #6366f1;
+}
+
+.time-card:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.time-card:focus-visible {
+  outline: 2px solid #0891b2;
+  outline-offset: 3px;
+}
+
+.time-card-label {
+  display: block;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.time-card-value {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.time-panel {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.time-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.time-input {
+  border: 1px solid #cbd5e1;
+  background: white;
+  border-radius: 6px;
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.time-search {
+  flex: 1;
+}
+
+.time-table-wrap {
+  overflow-x: auto;
+}
+
+.time-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.time-table th,
+.time-table td {
+  padding: 13px 10px;
+  border-bottom: 1px solid #cbd5e1;
+  font-size: 14px;
+}
+
+.time-table th {
+  color: #475569;
+  font-weight: 600;
+}
+
+.time-pill {
+  display: inline-block;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.time-ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.time-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.time-danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.time-btn {
+  border: 0;
+  border-radius: 6px;
+  padding: 9px 14px;
+  background: #6366f1;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.time-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.time-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(2, 6, 23, 0.65);
+}
+
+.time-modal[hidden] {
+  display: none !important;
+}
+
+.time-dialog {
+  width: min(100%, 520px);
+  max-height: 90vh;
+  overflow: auto;
+  border-radius: 12px;
+  background: white;
+  padding: 24px;
+}
+
+.time-detail {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 10px;
+  margin: 18px 0;
+  font-size: 14px;
+}
+
+.time-detail dt {
+  color: #64748b;
+}
+
+.time-detail dd {
+  overflow-wrap: anywhere;
+}
+
+.time-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.time-secondary {
+  border: 1px solid #cbd5e1;
+  background: white;
+  border-radius: 6px;
+  padding: 9px 14px;
+  cursor: pointer;
+}
+
+.time-note {
+  color: #64748b;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .time-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .time-toolbar {
+    flex-direction: column;
+  }
+
+  .time-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .time-detail {
+    grid-template-columns: 105px 1fr;
+  }
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  color: #1e293b;
+}
+
+/* Heading menggunakan Poppins */
+.time-header h1,
+.time-header h2,
+.time-card-value {
+  font-family: "Poppins", sans-serif;
+}
+
+/* Ukuran heading utama seperti Dashboard */
+.time-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* Kartu statistik */
+.time-card-label {
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.time-card-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* Input, select, dan tombol */
+.time-input,
+.time-btn,
+.time-secondary {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+}
+
+/* Tabel */
+.time-table th,
+.time-table td {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+}
+
+/* Countdown */
+.time-pill {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Teks keterangan */
+.time-note {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+}
+
+.time-card,
+.time-btn,
+.time-secondary {
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+/* Kartu statistik */
+.time-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+
+  @media (prefers-reduced-motion: reduce) {
+    .time-card,
+    .time-btn,
+    .time-secondary,
+    .units-primary,
+    .units-secondary,
+    .users-btn {
+      transition: none;
+    }
+  }
+}
+
+/* Jangan hilangkan warna aktif ketika hover */
+.time-card[aria-pressed="true"]:hover {
+  box-shadow:
+    0 0 0 1px #6366f1,
+    0 6px 16px rgba(99, 102, 241, 0.15);
+
+  @media (prefers-reduced-motion: reduce) {
+    .time-card,
+    .time-btn,
+    .time-secondary,
+    .units-primary,
+    .units-secondary,
+    .users-btn {
+      transition: none;
+    }
+  }
+}
+
+/* Tombol utama: Refresh, Detail, Confirm Return */
+.time-btn:not(:disabled):hover {
+  background-color: #4f46e5;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(99, 102, 241, 0.25);
+
+  @media (prefers-reduced-motion: reduce) {
+    .time-card,
+    .time-btn,
+    .time-secondary,
+    .units-primary,
+    .units-secondary,
+    .users-btn {
+      transition: none;
+    }
+  }
+}
+
+/* Tombol sekunder: Close, Cancel */
+.time-secondary:not(:disabled):hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+
+  @media (prefers-reduced-motion: reduce) {
+    .time-card,
+    .time-btn,
+    .time-secondary,
+    .units-primary,
+    .units-secondary,
+    .users-btn {
+      transition: none;
+    }
+  }
+}
+
+/* Efek ketika tombol diklik */
+.time-card:active,
+.time-btn:not(:disabled):active,
+.time-secondary:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+/* Disabled tidak memiliki efek hover */
+.time-btn:disabled,
+.time-secondary:disabled {
+  transform: none;
+  box-shadow: none;
+}
+
+#extension-review[hidden] {
+  display: none !important;
+}
+
+#review-extensions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#extension-count {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #fff;
+  color: #4f46e5;
+  font-size: 12px;
+  font-weight: 700;
+}

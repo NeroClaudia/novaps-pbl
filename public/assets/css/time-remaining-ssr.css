@@ -8,12 +8,6 @@
   display: none !important;
 }
 
-#extend-modal[hidden],
-#extend-request-form[hidden],
-#extend-payment-form[hidden] {
-  display: none !important;
-}
-
 .extend-modal-overlay {
   position: fixed;
   inset: 0;
