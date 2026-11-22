@@ -72,8 +72,8 @@ $staffName = htmlspecialchars(
     <link rel="stylesheet" href="/assets/css/admin-dashboard.css" />
     <link rel="stylesheet" href="/assets/css/admin-layout.css?v=1">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-    <script src="/assets/js/admin-order-detail.js?v=2"></script>
-    <script src="/assets/js/admin-dashboard-ssr.js?v=9" defer></script>
+    <script src="/assets/js/admin-order-detail.js?v=3" defer></script>
+    <script src="/assets/js/admin-dashboard-ssr.js?v=10" defer></script>
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-800">
   <?php render_admin_header((string) $staff['full_name']); ?>

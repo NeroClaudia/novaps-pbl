@@ -72,8 +72,8 @@ $staffName = htmlspecialchars(
     <link rel="stylesheet" href="/assets/css/admin-layout.css?v=1">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-    <script src="/assets/js/admin-order-detail.js?v=2"></script>
-    <script src="/assets/js/admin-orders-ssr.js?v=4" defer></script>
+    <script src="/assets/js/admin-order-detail.js?v=3" defer></script>
+    <script src="/assets/js/admin-orders-ssr.js?v=5" defer></script>
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-800">
 
