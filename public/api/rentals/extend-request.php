@@ -187,7 +187,7 @@ try {
             'rental_id' => $rentalId,
             'extra_days' => $extraDays,
             'total_cost' => $total,
-            'payment_status' => 'PendingPayment',
+            'extension_status' => 'PendingPayment',
             'payment_expires_at' => (new DateTimeImmutable($extension['created_at']))->modify('+5 minutes')->format(DATE_ATOM)
         ]
     ], 201);
