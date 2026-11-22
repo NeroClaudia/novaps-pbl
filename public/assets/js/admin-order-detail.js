@@ -47,169 +47,9 @@ window.NovaOrderDetail = (() => {
     return result;
   }
 
-  const modal = document.getElementById("orderModal");
+  const modal = el("orderModal");
   const modalBody = el("orderBody");
   const modalActions = el("orderActions");
-  const orderDetail = window.NovaOrderDetail;
-
-  function renderQueue(bookings) {
-    const head = el("queue-head");
-    const body = el("queue-body");
-
-    head.replaceChildren();
-    body.replaceChildren();
-
-    const columns = [
-      "Customer Name",
-      "Booking Code",
-      "Total Unit",
-      "Total",
-      "Date",
-      "Status",
-      ""
-    ];
-
-    const headerRow = document.createElement("tr");
-
-    for (const label of columns) {
-      const th = document.createElement("th");
-      th.className =
-        "border-b border-slate-300 px-2 py-3 text-left text-sm";
-      th.textContent = label;
-      headerRow.appendChild(th);
-    }
-
-    head.appendChild(headerRow);
-
-    const queue = bookings
-      .filter(booking =>
-        booking.fulfillment_status === "Shipped" ||
-        (
-          booking.fulfillment_status === "Pending" &&
-          (
-            booking.payment_status === "AwaitingVerification" ||
-            (
-              booking.payment_method === "Cash" &&
-              booking.payment_status === "Pending"
-            )
-          )
-        )
-      )
-      .sort((a, b) =>
-        new Date(a.created_at) - new Date(b.created_at)
-      );
-
-    for (const booking of queue) {
-      const tr = document.createElement("tr");
-
-      tr.appendChild(td(booking.full_name));
-      tr.appendChild(td(booking.booking_code));
-      tr.appendChild(td(booking.items_count));
-      tr.appendChild(td(rupiah(booking.total_cost)));
-      tr.appendChild(td(dateText(booking.created_at)));
-      tr.appendChild(td(bookingStatus(booking)));
-
-      const action = td("");
-      const button = document.createElement("button");
-
-      button.type = "button";
-      button.className =
-        "btn btn-indigo px-3 py-1 text-sm";
-      button.textContent = "Detail";
-
-      button.addEventListener("click", async () => {
-        try {
-          await orderDetail.open(booking.booking_id);
-        } catch (error) {
-          alert(error.message);
-        }
-      });
-
-      action.appendChild(button);
-      tr.appendChild(action);
-      body.appendChild(tr);
-    }
-
-    el("queue-empty").hidden = queue.length > 0;
-  }
-
-  function loadDashboard() {
-    if (activeRefresh) {
-      refreshAgain = true;
-      return activeRefresh;
-    }
-
-    activeRefresh = (async () => {
-      if (refreshButton) refreshButton.disabled = true;
-
-      try {
-        do {
-          refreshAgain = false;
-          setRefreshStatus("Memperbarui...");
-
-          await fetchDashboardData();
-        } while (refreshAgain);
-
-        setRefreshStatus(
-          "Diperbarui " +
-          new Date().toLocaleTimeString("id-ID", {
-            timeZone: "Asia/Jakarta",
-            hour: "2-digit",
-            minute: "2-digit"
-          })
-        );
-      } finally {
-        if (refreshButton) refreshButton.disabled = false;
-        activeRefresh = null;
-      }
-    })();
-
-    return activeRefresh;
-  }
-
-    async function fetchDashboardData() {
-    try {
-      const [summary, list] = await Promise.all([
-        getJSON("dashboard.php"),
-        getJSON("bookings/list.php?per_page=100")
-      ]);
-
-      renderSummary(summary.data);
-      renderQueue(list.data);
-
-      //Buka detail dari halaman manage orders. Parameter hanya menentukan booking mana yang diminta. API tetap memeriksa hak admin
-      const url = new URL(window.location.href);
-      const requestBookingId = url.searchParams.get("booking_id");
-
-      if (requestBookingId && /^[1-9]\d*$/.test(requestBookingId)) {
-        //Hapus parameter agar refresh tidak selalu membuka modal
-        url.searchParams.delete("booking_id");
-        history.replaceState(null, "", url);
-
-        try {
-          await orderDetail.open(requestBookingId);
-        } catch (error) {
-          console.error("Gagal membuka detail bookings:", error);
-          alert(error.message);
-        }
-      }
-
-      // List API dibatasi 100 booking per halaman.
-      // Jika mencapai batas, paginasi perlu ditambahkan.
-      if (list.meta?.total > list.data.length) {
-        console.warn(
-          "Antrean dashboard hanya memuat 100 booking terbaru."
-        );
-      }
-    } catch (error) {
-      console.error("Dashboard load failed:", error);
-      const empty = el("queue-empty");
-      if (empty) {
-        empty.hidden = false;
-        empty.textContent = "Gagal memuat data dashboard.";
-      }
-    }
-  }
 
   function addDetailRow(parent, label, value) {
     const row = document.createElement("p");
@@ -790,6 +630,14 @@ window.NovaOrderDetail = (() => {
       closeModal();
     }
   });
+
+  modal?.querySelector("[data-close]")?.addEventListener("click", closeModal);
+
+  modal?.addEventListener("click", event => {
+    if (event.target === modal) {
+        closeModal();
+    }
+  })
 
   return {
     open: openBooking,
