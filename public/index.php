@@ -530,7 +530,7 @@ foreach(['PS4', 'PS5'] as $category) {
             </button>
             <a
                     id="unpaidPay"
-                    href="/pages/payment.html"
+                    href="/pages/payment.php"
                     class="btn btn-indigo flex-1 px-0 py-[11px] text-base"
             >Pay Now</a
             >
