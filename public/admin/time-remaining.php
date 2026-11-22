@@ -338,6 +338,103 @@ $esc = static fn(string $value): string =>
             font-family: "Inter", sans-serif;
             font-size: 14px;
         }
+
+        .time-card,
+        .time-btn,
+        .time-secondary {
+            transition:
+                transform 150ms ease,
+                box-shadow 150ms ease,
+                background-color 150ms ease,
+                border-color 150ms ease,
+                color 150ms ease;
+        }
+
+        /* Kartu statistik */
+        .time-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(15, 23, 42, .12);
+
+            @media (prefers-reduced-motion: reduce) {
+                .time-card,
+                .time-btn,
+                .time-secondary,
+                .units-primary,
+                .units-secondary,
+                .users-btn {
+                    transition: none;
+                }
+            }
+        }
+
+        /* Jangan hilangkan warna aktif ketika hover */
+        .time-card[aria-pressed="true"]:hover {
+            box-shadow:
+                0 0 0 1px #6366f1,
+                0 6px 16px rgba(99, 102, 241, .15);
+
+            @media (prefers-reduced-motion: reduce) {
+                .time-card,
+                .time-btn,
+                .time-secondary,
+                .units-primary,
+                .units-secondary,
+                .users-btn {
+                    transition: none;
+                }
+            }
+        }
+
+        /* Tombol utama: Refresh, Detail, Confirm Return */
+        .time-btn:not(:disabled):hover {
+            background-color: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(99, 102, 241, .25);
+
+            @media (prefers-reduced-motion: reduce) {
+                .time-card,
+                .time-btn,
+                .time-secondary,
+                .units-primary,
+                .units-secondary,
+                .users-btn {
+                    transition: none;
+                }
+            }
+        }
+
+        /* Tombol sekunder: Close, Cancel */
+        .time-secondary:not(:disabled):hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, .08);
+
+            @media (prefers-reduced-motion: reduce) {
+                .time-card,
+                .time-btn,
+                .time-secondary,
+                .units-primary,
+                .units-secondary,
+                .users-btn {
+                    transition: none;
+                }
+            }
+        }
+
+        /* Efek ketika tombol diklik */
+        .time-card:active,
+        .time-btn:not(:disabled):active,
+        .time-secondary:not(:disabled):active {
+            transform: scale(.98);
+        }
+
+        /* Disabled tidak memiliki efek hover */
+        .time-btn:disabled,
+        .time-secondary:disabled {
+            transform: none;
+            box-shadow: none;
+        }
     </style>
     <script src="/assets/js/admin-time-remaining-ssr.js?v=1" defer></script>
 </head>

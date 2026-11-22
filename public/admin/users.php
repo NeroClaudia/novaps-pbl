@@ -215,16 +215,76 @@ if (!$staff || $staff['role'] !== $auth['role']) {
             color: #64748b;
             font-size: 14px;
         }
+
+        .users-btn {
+            transition:
+                transform 150ms ease,
+                background-color 150ms ease,
+                border-color 150ms ease,
+                box-shadow 150ms ease,
+                color 150ms ease;
+        }
+
+        /* Refresh, Detail, Open Manage Orders */
+        .users-btn:not(:disabled):not(.users-btn-secondary):hover {
+            background-color: #4f46e5;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(99, 102, 241, .25);
+
+            @media (prefers-reduced-motion: reduce) {
+                .time-card,
+                .time-btn,
+                .time-secondary,
+                .units-primary,
+                .units-secondary,
+                .users-btn {
+                    transition: none;
+                }
+            }
+        }
+
+        /* Previous, Next, Cancel, Close */
+        .users-btn-secondary:not(:disabled):hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+            color: #1e293b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, .08);
+
+            @media (prefers-reduced-motion: reduce) {
+                .time-card,
+                .time-btn,
+                .time-secondary,
+                .units-primary,
+                .units-secondary,
+                .users-btn {
+                    transition: none;
+                }
+            }
+        }
+
+        /* Efek klik */
+        .users-btn:not(:disabled):active {
+            transform: scale(.98);
+        }
+
+        /* Disabled */
+        .users-btn:disabled {
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
     </style>
-
-    <script src="/assets/js/admin-users-ssr.js?v=1"
-            defer></script>
+    <script src="/assets/js/admin-users-ssr.js?v=1" defer></script>
 </head>
-
 <body class="min-h-screen bg-slate-100 text-slate-800">
+
     <?php render_admin_header((string) $staff['full_name']); ?>
 
     <div class="admin-shell">
+
         <?php render_admin_sidebar('users'); ?>
 
         <main>

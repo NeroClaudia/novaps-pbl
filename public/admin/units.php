@@ -73,7 +73,18 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
     }
 
     .units-primary:hover {
-      background: #4f46e5
+      background: #4f46e5;
+
+      @media (prefers-reduced-motion: reduce) {
+            .time-card,
+            .time-btn,
+            .time-secondary,
+            .units-primary,
+            .units-secondary,
+            .users-btn {
+                transition: none;
+            }
+        }
     }
 
     .units-primary:disabled {
@@ -232,6 +243,17 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
       background-color: rgba(255, 255, 255, 0.1);
       color: #ffffff;
       transform: translateX(2px);
+
+      @media (prefers-reduced-motion: reduce) {
+            .time-card,
+            .time-btn,
+            .time-secondary,
+            .units-primary,
+            .units-secondary,
+            .users-btn {
+                transition: none;
+            }
+        }
     }
 
     /* Menu aktif */
@@ -245,6 +267,17 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
       background-color: #6366f1;
       color: #ffffff;
       transform: none;
+
+      @media (prefers-reduced-motion: reduce) {
+            .time-card,
+            .time-btn,
+            .time-secondary,
+            .units-primary,
+            .units-secondary,
+            .users-btn {
+                transition: none;
+            }
+        }
     }
 
     /* Menu yang belum tersedia */
@@ -263,6 +296,67 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
       .novaps-admin-link {
         width: 100%;
       }
+    }
+
+    .units-primary,
+    .units-secondary {
+        transition:
+            transform 150ms ease,
+            background-color 150ms ease,
+            border-color 150ms ease,
+            box-shadow 150ms ease,
+            color 150ms ease;
+    }
+
+    /* Add Device dan Save Device */
+    .units-primary:not(:disabled):hover {
+        background-color: #4f46e5;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 12px rgba(99, 102, 241, .25);
+
+        @media (prefers-reduced-motion: reduce) {
+            .time-card,
+            .time-btn,
+            .time-secondary,
+            .units-primary,
+            .units-secondary,
+            .users-btn {
+                transition: none;
+            }
+        }
+    }
+
+    /* Refresh, Edit, Cancel, Close */
+    .units-secondary:not(:disabled):hover {
+        background-color: #f1f5f9;
+        border-color: #94a3b8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(15, 23, 42, .08);
+
+        @media (prefers-reduced-motion: reduce) {
+            .time-card,
+            .time-btn,
+            .time-secondary,
+            .units-primary,
+            .units-secondary,
+            .users-btn {
+                transition: none;
+            }
+        }
+    }
+
+    /* Klik tombol */
+    .units-primary:not(:disabled):active,
+    .units-secondary:not(:disabled):active {
+        transform: scale(.98);
+    }
+
+    /* Disabled */
+    .units-primary:disabled,
+    .units-secondary:disabled {
+        transform: none;
+        box-shadow: none;
+        cursor: not-allowed;
     }
   </style>
   <script src="/assets/js/admin-units-ssr.js?v=2" defer></script>
