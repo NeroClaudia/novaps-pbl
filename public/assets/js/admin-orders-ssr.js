@@ -141,143 +141,7 @@
     head.appendChild(row);
   }
 
-  function renderRows(orders) {
-    body.replaceChildren();
-
-    for (const order of orders) {
-      const row = document.createElement("tr");
-
-      const items = Array.isArray(order.items_summary)
-        ? order.items_summary
-        : [];
-
-      const unitNames = items.map(item =>
-        item.device_name || item.category || "Unknown unit"
-      );
-
-      const durations = items.map(item => {
-        const days = Number(item.duration_days);
-        return Number.isFinite(days)
-          ? `${days} hari`
-          : "—";
-      });
-
-      row.appendChild(makeCell(order.full_name));
-      row.appendChild(makeCell(order.booking_code));
-
-      row.appendChild(makeStackCell(unitNames));
-      row.appendChild(makeCell(order.items_count));
-      row.appendChild(makeStackCell(durations));
-
-      row.appendChild(makeCell(money(order.total_cost)));
-      row.appendChild(makeCell(formatDate(order.created_at)));
-      row.appendChild(makeCell(statusText(order)));
-
-      const actions = makeCell("");
-
-      const button = document.createElement("button");
-
-      button.type = "button";
-      button.className = "btn btn-indigo px-3 py-1 text-sm";
-      button.textContent = "Detail";
-
-      button.addEventListener("click", async () => {
-        button.disabled = true;
-
-        try {
-          await openOrderDetail(order.booking_id);
-        } catch (error) {
-          alert(error.message);
-        } finally {
-          button.disabled = false;
-        }
-      });
-
-      actions.appendChild(button);
-      row.appendChild(actions);
-    }
-
-    empty.hidden = orders.length > 0;
-    empty.textContent = "No orders found.";
-  }
-
-  function queryString() {
-    const params = new URLSearchParams({
-      page: String(page),
-      per_page: String(PAGE_SIZE)
-    });
-
-    const term = search.value.trim();
-
-    if (term) {
-      params.set("search", term);
-    }
-
-    const selected = filters[filter.value];
-
-    if (selected) {
-      params.set(selected[0], selected[1]);
-    }
-
-    if (filter.value === "canceled") {
-      params.set("exclude_rejected", "true");
-    }
-
-    return params.toString();
-  }
-
-  async function loadOrders() {
-    const version = ++requestVersion;
-
-    empty.hidden = false;
-    empty.textContent = "Loading orders...";
-
-    previous.disabled = true;
-    next.disabled = true;
-
-    try {
-      const response = await fetch(
-        `${API}?${queryString()}`,
-        {
-          credentials: "same-origin",
-          cache: "no-store"
-        }
-      );
-
-      if (response.status === 401 || response.status === 403) {
-        location.replace("/admin/login.php");
-        return;
-      }
-
-      const result = await response.json();
-
-      if (!response.ok || result.success !== true) {
-        throw new Error(
-          result.message || "Gagal memuat pesanan."
-        );
-      }
-
-      // Abaikan respons request sebelumnya.
-      if (version !== requestVersion) return;
-
-      const orders = Array.isArray(result.data)
-        ? result.data
-        : [];
-
-      const total = Number(result.meta?.total) || 0;
-      const totalPages = Math.max(
-        1,
-        Math.ceil(total / PAGE_SIZE)
-      );
-
-      // Jika data berkurang setelah perubahan status.
-      if (page > totalPages) {
-        page = totalPages;
-        await loadOrders();
-        return;
-      }
-
-    const orderModal = document.getElementById("orderModal");
+      const orderModal = document.getElementById("orderModal");
     const orderBody = document.getElementById("orderBody");
     const orderActions = document.getElementById("orderActions");
 
@@ -380,6 +244,143 @@
         closeOrderDetail();
       }
     });
+
+  function renderRows(orders) {
+    body.replaceChildren();
+
+    for (const order of orders) {
+      const row = document.createElement("tr");
+
+      const items = Array.isArray(order.items_summary)
+        ? order.items_summary
+        : [];
+
+      const unitNames = items.map(item =>
+        item.device_name || item.category || "Unknown unit"
+      );
+
+      const durations = items.map(item => {
+        const days = Number(item.duration_days);
+        return Number.isFinite(days)
+          ? `${days} hari`
+          : "—";
+      });
+
+      row.appendChild(makeCell(order.full_name));
+      row.appendChild(makeCell(order.booking_code));
+
+      row.appendChild(makeStackCell(unitNames));
+      row.appendChild(makeCell(order.items_count));
+      row.appendChild(makeStackCell(durations));
+
+      row.appendChild(makeCell(money(order.total_cost)));
+      row.appendChild(makeCell(formatDate(order.created_at)));
+      row.appendChild(makeCell(statusText(order)));
+
+      const actions = makeCell("");
+
+      const button = document.createElement("button");
+
+      button.type = "button";
+      button.className = "btn btn-indigo px-3 py-1 text-sm";
+      button.textContent = "Detail";
+
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+
+        try {
+          await openOrderDetail(order.booking_id);
+        } catch (error) {
+          alert(error.message);
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      actions.appendChild(button);
+      row.appendChild(actions);
+      body.appendChild(row);
+    }
+
+    empty.hidden = orders.length > 0;
+    empty.textContent = "No orders found.";
+  }
+
+  function queryString() {
+    const params = new URLSearchParams({
+      page: String(page),
+      per_page: String(PAGE_SIZE)
+    });
+
+    const term = search.value.trim();
+
+    if (term) {
+      params.set("search", term);
+    }
+
+    const selected = filters[filter.value];
+
+    if (selected) {
+      params.set(selected[0], selected[1]);
+    }
+
+    if (filter.value === "canceled") {
+      params.set("exclude_rejected", "true");
+    }
+
+    return params.toString();
+  }
+
+  async function loadOrders() {
+    const version = ++requestVersion;
+
+    empty.hidden = false;
+    empty.textContent = "Loading orders...";
+
+    previous.disabled = true;
+    next.disabled = true;
+
+    try {
+      const response = await fetch(
+        `${API}?${queryString()}`,
+        {
+          credentials: "same-origin",
+          cache: "no-store"
+        }
+      );
+
+      if (response.status === 401 || response.status === 403) {
+        location.replace("/admin/login.php");
+        return;
+      }
+
+      const result = await response.json();
+
+      if (!response.ok || result.success !== true) {
+        throw new Error(
+          result.message || "Gagal memuat pesanan."
+        );
+      }
+
+      // Abaikan respons request sebelumnya.
+      if (version !== requestVersion) return;
+
+      const orders = Array.isArray(result.data)
+        ? result.data
+        : [];
+
+      const total = Number(result.meta?.total) || 0;
+      const totalPages = Math.max(
+        1,
+        Math.ceil(total / PAGE_SIZE)
+      );
+
+      // Jika data berkurang setelah perubahan status.
+      if (page > totalPages) {
+        page = totalPages;
+        await loadOrders();
+        return;
+      }
 
       renderRows(orders);
 
