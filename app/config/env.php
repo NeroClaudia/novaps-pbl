@@ -29,5 +29,7 @@ function loadEnv(string $path): void
 
 function env(string $key, $default = null)
 {
-    return $_ENV[$key] ?? $default;
+    $value = $_ENV[$key] ?? getenv($key);
+
+    return $value === false ? $default : $value;
 }
