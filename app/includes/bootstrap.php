@@ -3,15 +3,15 @@
 require_once __DIR__ . '/../config/env.php';
 loadEnv(dirname(__DIR__, 2) . '/.env');
 
-$appDebug = filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN);
+$appDebug = filter_var(env('APP_DEBUG', false), FILTER_VALIDATE_BOOLEAN);
 ini_set('display_errors', $appDebug ? '1' : '0');
 ini_set('display_startup_errors', $appDebug ? '1' : '0');
 
 define('BASE_PATH', dirname(__DIR__, 2));
-$uploadPath = trim($_ENV['UPLOAD_PATH'] ?? 'storage/uploads', '/');
+$uploadPath = trim(env('UPLOAD_PATH', 'storage/uploads'), '/');
 define('UPLOAD_DIR', BASE_PATH . '/' . $uploadPath);
 
-$allowedOriginStr = $_ENV['CORS_ALLOWED_ORIGINS'] ?? '';
+$allowedOriginStr = env('CORS_ALLOWED_ORIGINS', '');
 
 $allowedOrigins = array_map('trim', explode(',', $allowedOriginStr));
 $httpOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-$sessionLifeTime = (int) ($_ENV['SESSION_LIFETIME'] ?? 28800);
-$appEnv = $_ENV['APP_ENV'] ?? 'local';
+$sessionLifeTime = (int) env('SESSION_LIFETIME', 28800);
+$appEnv = env('APP_ENV', 'local');
 $isSecure = ($appEnv !== 'local');
 
 session_set_cookie_params([
