@@ -21,6 +21,7 @@ CREATE TABLE rental
     returned_at TIMESTAMPTZ,
     condition_at_return VARCHAR(100),
     late_fee_paid_at TIMESTAMPTZ,
+    late_fee_payment_method VARCHAR(20) CHECK (late_fee_payment_method IN ('Cash', 'QRIS'))
     
     CONSTRAINT uq_booking_device UNIQUE (booking_id, device_id),
     CONSTRAINT chk_end_after_start CHECK (end_time > start_time),
