@@ -19,8 +19,12 @@ try {
     $unpaidBooking = get_unpaid_booking($pdo, (int) $auth['user_id']);
 
     if ($unpaidBooking !== null) {
-      header('Location: /pages/payment.php?order=' . rawurldecode($unpaidBooking['booking_code']));
-      exit;
+        $bookingCode = rawurlencode($unpaidBooking['booking_code']);
+
+        $destination = $unpaidBooking['payment_method'] === 'Cash' ? '/pages/order-detail.php' : '/pages/payment.php';
+
+        header('Location: ' . $destination . '?order=' . $bookingCode);
+        exit;
     }
 
     $profile = get_customer_profile($pdo, (int) $auth['user_id']);
@@ -84,7 +88,7 @@ foreach ($devices as $device) {
     <script src="/assets/js/shared/rental-alerts.js" defer></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
     <script src="/assets/js/delivery-map.js?v=1" defer></script>
-    <script src="/assets/js/order-form.js?v=12" defer></script>
+    <script src="/assets/js/order-form.js?v=13" defer></script>
   </head>
   <body
     class="min-h-screen bg-slate-50 text-slate-800"
@@ -359,6 +363,52 @@ foreach ($devices as $device) {
             ></textarea>
           </div>
         </section>
+
+      <section class="mt-6 rounded-lg border border-slate-200 bg-white p-6">
+        <h2 class="mb-3 font-display text-base font-bold text-black">
+          Payment Method
+        </h2>
+
+        <fieldset>
+          <legend class="mb-3 text-sm text-slate-500">
+            Pilih metode pembayaran untuk pesanan ini.
+          </legend>
+
+          <div class="grid gap-3">
+            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-300 p-4 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
+              <input
+                type="radio"
+                name="payment_method"
+                value="QRIS"
+                checked
+                required
+              />
+              <span>
+                <strong class="block">QRIS</strong>
+                <span class="text-sm text-slate-500">
+                  Bayar melalui QRIS dan unggah bukti pembayaran.
+                </span>
+              </span>
+            </label>
+
+            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-300 p-4 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
+              <input
+                type="radio"
+                name="payment_method"
+                value="Cash"
+                required
+              />
+              <span>
+                <strong class="block">Cash</strong>
+                <span class="text-sm text-slate-500">
+                  Bayar tunai kepada staff. Pesanan menunggu
+                  pembayaran dan verifikasi admin.
+                </span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+      </section>
 
         <section
           id="summary"

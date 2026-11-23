@@ -43,7 +43,7 @@ function order_status_money(float $amount): string
 function order_status_label(array $booking): string
 {
     return match ($booking['payment_status']) {
-        'Pending' => 'Not Paid',
+        'Pending' => $booking['payment_method'] === 'Cash' ? 'Waiting Cash Verification' : 'Not Paid',
         'AwaitingVerification' => 'Waiting Verification',
         'Paid' => match (true) {
             in_array('Overdue', $booking['rental_statuses'], true)

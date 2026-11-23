@@ -486,8 +486,14 @@ function loadIdentityPreview() {
 
       const notes = document.getElementById("notes").value.trim();
 
+      const paymentMethod = form.querySelector('input[name="payment_method"]:checked')?.value;
+
+      if (!["QRIS", "Cash"].includes(paymentMethod)) {
+        throw new Error("Pilih metode pembayaran terlebih dahulu");
+      }
+
       const payload = {
-        payment_method: "QRIS",
+        payment_method: paymentMethod,
         delivery_mode: deliveryMode,
         delivery_address: address,
         additional_notes: notes,
@@ -505,10 +511,17 @@ function loadIdentityPreview() {
         payload
       );
 
-      checkout.textContent = "Redirecting to payment...";
+      const bookingCode = encodeURIComponent(booking.booking_code);
+
+      checkout.textContent = "Redirecting...";
       checkout.disabled = true;
 
-      window.location.replace("/pages/payment.php?order=" + encodeURIComponent(booking.booking_code));
+      if (paymentMethod === "QRIS") {
+        window.location.replace(`/pages/payment.php?order=${bookingCode}`);
+      } else {
+        window.location.replace(`/pages/order-detail.php?order=${bookingCode}`);
+      }
+
 
     } catch (error) {
       console.error("CHECKOUT ERROR:", error);
