@@ -280,6 +280,8 @@ function get_customer_bookings(PDO $pdo, int $customerId): array
                 true
             ) => 'canceled',
 
+            $paymentStatus === 'Pending' && $booking['payment_method'] === 'Cash' => 'pending',
+
             $paymentStatus === 'Pending' => 'not-paid',
 
             $paymentStatus === 'AwaitingVerification' => 'pending',

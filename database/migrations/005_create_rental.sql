@@ -20,6 +20,7 @@ CREATE TABLE rental
     overdue_at TIMESTAMPTZ,
     returned_at TIMESTAMPTZ,
     condition_at_return VARCHAR(100),
+    late_fee_paid_at TIMESTAMPTZ,
     
     CONSTRAINT uq_booking_device UNIQUE (booking_id, device_id),
     CONSTRAINT chk_end_after_start CHECK (end_time > start_time),
