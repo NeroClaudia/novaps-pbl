@@ -1,0 +1,363 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/../../app/includes/bootstrap.php';
+require_once __DIR__ . '/../../app/partials/admin-layout.php';
+
+header('Cache-Control: private, no-store');
+
+$auth = $_SESSION['auth'] ?? null;
+
+if (!is_array($auth) || !isset($auth['user_id'])) {
+    header('Location: /admin/login.php');
+    exit;
+}
+
+$userId = filter_var(
+    $auth['user_id'],
+    FILTER_VALIDATE_INT,
+    ['options' => ['min_range' => 1]]
+);
+
+if ($userId === false || $userId === null) {
+    unset($_SESSION['auth']);
+    header('Location: /admin/login.php');
+    exit;
+}
+
+if (!in_array($auth['role'] ?? null, ['admin', 'owner'], true)) {
+    http_response_code(403);
+    exit('403 Forbidden - Akses admin ditolak.');
+}
+
+// Validasi ulang terhadap database.
+// Session lama dari sebelum TRUNCATE tidak otomatis dipercaya.
+$stmt = $pdo->prepare(
+    "SELECT user_id, full_name, role
+     FROM users
+     WHERE user_id = :id
+       AND role IN ('admin', 'owner')"
+);
+
+$stmt->execute(['id' => $userId]);
+$staff = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$staff || $staff['role'] !== $auth['role']) {
+    unset($_SESSION['auth']);
+    header('Location: /admin/login.php');
+    exit;
+}
+
+$staffName = htmlspecialchars(
+    (string) $staff['full_name'],
+    ENT_QUOTES,
+    'UTF-8'
+);
+?>
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard - NovaPS Admin</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="/assets/css/admin-dashboard.css" />
+    <link rel="stylesheet" href="/assets/css/admin-layout.css?v=1">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <script src="/assets/js/admin-order-detail.js?v=3" defer></script>
+    <script src="/assets/js/admin-dashboard-ssr.js?v=10" defer></script>
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-800">
+  <?php render_admin_header((string) $staff['full_name']); ?>
+    <div class="admin-shell">
+
+      <?php render_admin_sidebar('dashboard'); ?>
+
+      <main class="min-w-0 p-4 md:p-6">
+
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h1 class="font-display text-[32px] font-bold text-slate-800">
+          Dashboard
+        </h1>
+
+        <div class="flex items-center gap-3">
+          <span id="dashboard-refresh-status"
+                class="text-sm text-slate-500"
+                aria-live="polite">
+            Menunggu data...
+          </span>
+
+          <button
+            type="button"
+            id="refresh-dashboard"
+            class="btn btn-indigo px-4 py-2 text-sm font-semibold">
+            Refresh Data
+          </button>
+        </div>
+      </div>
+
+        <section
+          aria-label="Order status totals"
+          class="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6"
+        >
+          <a
+            href="/admin/orders.php?status=not_paid"
+            data-count="not_paid"
+            class="rounded-lg bg-white px-4 py-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:scale-[.98]"
+          >
+            <p class="text-base text-slate-500">Not Paid</p>
+            <p
+              data-value
+              class="font-display text-[32px] leading-tight font-bold text-slate-800"
+            >
+              0
+            </p>
+          </a>
+          <a
+            href="/admin/orders.php?status=pending"
+            data-count="pending"
+            class="rounded-lg bg-white px-4 py-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:scale-[.98]"
+          >
+            <p class="text-base text-slate-500">Need Verification</p>
+            <p
+              data-value
+              class="font-display text-[32px] leading-tight font-bold text-slate-800"
+            >
+              0
+            </p>
+          </a>
+          <a
+            href="/admin/orders.php?status=shipped"
+            data-count="shipped"
+            class="rounded-lg bg-white px-4 py-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:scale-[.98]"
+          >
+            <p class="text-base text-slate-500">Shipping</p>
+            <p
+              data-value
+              class="font-display text-[32px] leading-tight font-bold text-slate-800"
+            >
+              0
+            </p>
+          </a>
+          <a
+            href="/admin/orders.php?status=complete"
+            data-count="completed"
+            class="rounded-lg bg-white px-4 py-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:scale-[.98]"
+          >
+            <p class="text-base text-slate-500">Completed</p>
+            <p
+              data-value
+              class="font-display text-[32px] leading-tight font-bold text-slate-800"
+            >
+              0
+            </p>
+          </a>
+          <a
+            href="/admin/orders.php?status=canceled"
+            data-count="canceled"
+            class="rounded-lg bg-white px-4 py-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:scale-[.98]"
+          >
+            <p class="text-base text-slate-500">Canceled</p>
+            <p
+              data-value
+              class="font-display text-[32px] leading-tight font-bold text-slate-800"
+            >
+              0
+            </p>
+          </a>
+          <a
+            href="/admin/orders.php?status=rejected"
+            data-count="rejected"
+            class="rounded-lg bg-white px-4 py-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:scale-[.98]"
+          >
+            <p class="text-base text-slate-500">Rejected</p>
+            <p
+              data-value
+              class="font-display text-[32px] leading-tight font-bold text-slate-800"
+            >
+              0
+            </p>
+          </a>
+        </section>
+
+        <section class="mt-6 rounded-lg bg-white p-6">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 class="font-display text-xl font-bold text-black">
+              Need Verification
+            </h2>
+            <p class="text-sm text-slate-500">
+              Pending payments to accept, and shipped orders to confirm once the
+              unit is in the customer’s hands.
+            </p>
+          </div>
+          <div class="mt-4 overflow-x-auto">
+            <table class="w-full min-w-[760px] text-left">
+              <thead id="queue-head"></thead>
+              <tbody id="queue-body"></tbody>
+            </table>
+          </div>
+          <p id="queue-empty" hidden class="py-8 text-center text-slate-500">
+            Nothing to verify right now.
+          </p>
+          <div class="mt-4 text-center">
+            <a href="/admin/orders.php" class="btn btn-indigo px-3 py-1 text-base"
+              >View All Orders</a
+            >
+          </div>
+        </section>
+
+        <section
+          aria-label="Sales"
+          class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        >
+          <div class="rounded-lg bg-white p-4">
+            <p class="text-sm text-slate-500">Total units rented</p>
+            <p
+              data-metric="units-total"
+              class="mt-1 font-display text-2xl font-bold text-slate-800"
+            >
+              0
+            </p>
+            <p class="mt-0.5 text-xs text-slate-400">Completed orders</p>
+          </div>
+          <div class="rounded-lg bg-white p-4">
+            <p class="text-sm text-slate-500">Units this month</p>
+            <p
+              data-metric="units-month"
+              class="mt-1 font-display text-2xl font-bold text-slate-800"
+            >
+              0
+            </p>
+            <p class="mt-0.5 text-xs text-slate-400">Completed orders</p>
+          </div>
+          <div class="rounded-lg bg-white p-4">
+            <p class="text-sm text-slate-500">Total income</p>
+            <p
+              data-metric="revenue-total"
+              class="mt-1 font-display text-2xl font-bold text-slate-800"
+            >
+              0
+            </p>
+            <p class="mt-0.5 text-xs text-slate-400">Completed orders</p>
+          </div>
+          <div class="rounded-lg bg-white p-4">
+            <p class="text-sm text-slate-500">Income this month</p>
+            <p
+              data-metric="revenue-month"
+              class="mt-1 font-display text-2xl font-bold text-slate-800"
+            >
+              0
+            </p>
+            <p class="mt-0.5 text-xs text-slate-400">Completed orders</p>
+          </div>
+        </section>
+
+        <section class="mt-6 rounded-lg bg-white p-6">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 class="font-display text-xl font-bold text-black">
+              Monthly performance
+            </h2>
+            <p class="mt-3 text-sm text-slate-500">Laporan bulanan akan diambil dari data pembayaran PostgreSQL</p>
+            <p class="text-sm text-slate-500">
+              In progress (paid, not completed yet):
+              <strong id="in-progress" class="text-slate-800">Rp 0</strong>
+            </p>
+          </div>
+          <div class="mt-4 overflow-x-auto">
+            <table class="w-full min-w-[620px] text-left">
+              <thead id="month-head"></thead>
+              <tbody id="month-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+    <div
+      id="orderModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="orderModalTitle"
+      aria-hidden="true"
+      class="group invisible fixed inset-0 z-50 grid place-items-center bg-slate-950/60 p-4 opacity-0 transition-all duration-200 data-[open]:visible data-[open]:opacity-100"
+    >
+      <div
+        class="max-h-[92vh] w-full max-w-[580px] translate-y-4 scale-95 overflow-y-auto rounded-xl bg-white p-6 transition-transform duration-300 ease-[cubic-bezier(.2,.9,.3,1.2)] group-data-[open]:translate-y-0 group-data-[open]:scale-100"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <h2
+            id="orderModalTitle"
+            class="font-display text-xl font-bold text-black"
+          >
+            Order Detail
+          </h2>
+          <button
+            type="button"
+            data-close
+            aria-label="Close"
+            class="grid size-8 shrink-0 cursor-pointer place-items-center rounded-md text-slate-500 transition-all duration-150 hover:scale-110 hover:bg-slate-100 hover:text-slate-900 active:scale-90"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </div>
+        <div id="orderBody" class="mt-3"></div>
+        <div id="rejectBox" hidden class="mt-4 rounded-md bg-red-50 p-3">
+          <label
+            for="rejectReason"
+            class="mb-0.5 block text-sm font-medium text-red-800"
+            >Why is this order rejected?</label
+          >
+          <textarea
+            id="rejectReason"
+            rows="2"
+            maxlength="200"
+            placeholder="The customer will see this reason"
+            class="field-input h-auto resize-none py-2"
+          ></textarea>
+          <p
+            id="rejectError"
+            role="alert"
+            class="mt-0.5 text-[11px] text-red-600 empty:hidden"
+          ></p>
+          <button
+            type="button"
+            id="confirmReject"
+            class="btn mt-2 bg-red-600 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Confirm reject
+          </button>
+        </div>
+        <div
+          id="orderActions"
+          class="mt-5 flex flex-wrap justify-end gap-3"
+        ></div>
+      </div>
+    </div>
+    <div
+      id="toast"
+      role="status"
+      aria-live="polite"
+      class="pointer-events-none fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 translate-y-4 rounded-lg bg-slate-900 px-4 py-2.5 text-sm text-white opacity-0 shadow-lg transition-all duration-300 data-[open]:translate-y-0 data-[open]:opacity-100"
+    ></div>
+  </body>
+</html>
+

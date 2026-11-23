@@ -1,15 +1,24 @@
+
+# Environment
 .env
 .env.*
 !.env.example
-Backend/uploads/*
-!Backend/uploads/.gitkeep
 
+# Uploads
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+!/storage/uploads/.htaccess
+
+# IDE dan sistem operasi
+.idea/
 .DS_Store
+
+# Logs
 *.log
 
-.idea
+# Dependencies
+node_modules/
 
-!Backend/uploads/.htaccess
-/Backend/Testing-API-Playstation-Project/
-/Backend/tests/*.http
-/Backend/tests/
+# File testing lokal
+*.http
+SSR_TESTING/
