@@ -102,7 +102,8 @@
         const remaining = getRemaining(card);
 
         if (state === "overdue") {
-            clock.textContent = "Overdue";
+            const overdueSeconds = Math.max(0, Math.ceil(nowSeconds() - Number(card.dataset.end)));
+            clock.textContent = `-${formatTime(overdueSeconds)}`;
             clock.style.backgroundColor = "#dc2626";
             return;
         }

@@ -315,7 +315,15 @@ $tabs = [
                                 class="inline-block rounded-md px-2.5 py-0.5 text-[15px] text-white tabular-nums"
                                 style="background-color: <?= $initialColor ?>;"
                             >
-                                <?= $overdue ? 'Overdue' : 'Calculating...' ?>
+                                <?php if ($overdue): ?>
+                                    -<?= sprintf('%02d:%02d:%02d',
+                                            intdiv(max(0, $serverTimestamp - $rental['end_timestamp']), 3600),
+                                            intdiv(max(0, $serverTimestamp - $rental['end_timestamp']) % 3600, 60),
+                                            max(0, $serverTimestamp - $rental['end_timestamp']) % 60 
+                                    )?>
+                                <?php else: ?>
+                                    Calculating...
+                                <?php endif; ?>
                             </span>
                         <?php endif; ?>
                     </div>

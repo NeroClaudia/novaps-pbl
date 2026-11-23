@@ -62,13 +62,17 @@ function order_status_label(array $booking): string
     };
 }
 
-function order_status_color(string $status): string
+function order_status_color(array $booking): string
 {
-    return match ($status) {
-        'Pending' => '#d97706',
-        'AwaitingVerification' => '#6366f1',
-        'Paid' => '#16a34a',
-        'Expired', 'Cancelled', 'Rejected' => '#dc2626',
+    $label = order_status_label($booking);
+
+    return match ($label) {
+        'Overdue' => '#dc2626',
+        'Rented', 'Returned', 'Payment Verified' => '#16a34a',
+        'Waiting Cash Verification' => '#d97706',
+        'Not Paid' => '#d97706',
+        'Waiting Verification' => '#6366f1',
+        'Canceled', 'Rejected' => '#dc2626',
         default => '#64748b'
     };
 }
@@ -258,7 +262,7 @@ $tabs = [
                             <?php endif; ?>
 
                             <span
-                                style="color: <?= order_status_color($status) ?>;"
+                                style="color: <?= order_status_color($booking) ?>;"
                                 class="font-medium"
                             >
                                 <?= order_status_escape(
