@@ -265,6 +265,25 @@ $tabs = [
                             Total <?= rental_money($rental['total_cost']) ?>
                         </p>
 
+                        <?php if ($rental['late_fee'] > 0): ?>
+                            <div class="mt-2">
+                                <p class="text-sm font-semibold text-red-600">
+                                    Late Fee: <?= rental_money($rental['late_fee']) ?>
+                                </p>
+
+                                <?php if ($rental['late_fee_paid_at'] !== null): ?>
+                                    <p class="text-xs text-green-600">
+                                        Late fee paid
+                                    </p>
+
+                                <?php else: ?>
+                                    <p class="text-xs text-red-500">
+                                        Late fee unpaid
+                                    </p>
+                                <?php endif; ?>
+                                
+                            </div>
+                        <?php endif; ?>
                         <p class="text-[12px] text-slate-400">
                             Booking:
                             <?= rental_escape($rental['booking_code']) ?>

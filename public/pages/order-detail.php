@@ -361,14 +361,27 @@ function detail_money(float $amount): string
                     </div>
                 <?php endif; ?>
 
-                <?php if ($rentalStatus === 'Overdue'): ?>
-                    <p
-                        class="mt-1 text-right text-sm"
-                        style="color: #dc2626;"
-                    >
-                        Return deadline exceeded. No late fee.
-                    </p>
-                <?php endif; ?>
+            <?php if ($item['late_fee'] > 0): ?>
+                <div class="flex justify-between gap-4 py-1 text-sm">
+                    <span class="font-semibold text-red-600">
+                        Late Fee
+                    </span>
+
+                    <span class="font-semibold text-red-600">
+                        <?= detail_money($item['late_fee']) ?>
+                    </span>
+                </div>
+
+                <div class="flex justify-between gap-4 py-1 text-sm">
+                    <span>Late Fee Status</span>
+
+                    <span>
+                        <?= $item['late_fee_paid_at'] !== null
+                            ? 'Paid'
+                            : 'Unpaid' ?>
+                    </span>
+                </div>
+            <?php endif; ?>
 
             <?php endforeach; ?>
 

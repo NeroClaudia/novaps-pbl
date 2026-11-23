@@ -101,7 +101,8 @@ function get_customer_booking(PDO $pdo, int $customerId, string $bookingCode): ?
             r.end_time,
             r.rented_at,
             r.overdue_at,
-            r.returned_at
+            r.returned_at,
+            r.late_fee_paid_at
         FROM booking b
         JOIN users u
             ON u.user_id = b.customer_id
@@ -146,7 +147,11 @@ function get_customer_booking(PDO $pdo, int $customerId, string $bookingCode): ?
             'end_time' => $row['end_time'],
             'rented_at' => $row['rented_at'],
             'overdue_at' => $row['overdue_at'],
-            'returned_at' => $row['returned_at']
+            'returned_at' => $row['returned_at'],
+            'late_fee' => in_array($row['rental_status'], ['Rented', 'Overdue', 'Returned'], true) 
+                    ? calculate_late_fee($row['end_time'], $row['returned_at']) 
+                    : 0,
+            'late_fee_paid_at' => $row['late_fee_paid_at']
         ];
 
         $grandTotal += $itemCost;
@@ -338,6 +343,7 @@ function get_customer_rentals(PDO $pdo, int $customerId): array
             r.rented_at,
             r.overdue_at,
             r.returned_at,
+            r.late_fee_paid_at,
             r.price_per_day,
             d.device_name,
             d.category,
@@ -388,6 +394,8 @@ function get_customer_rentals(PDO $pdo, int $customerId): array
             'end_time' => $endTime->format(DATE_ATOM),
             'end_timestamp' => $endTime->getTimestamp(),
             'returned_at' => $returnedAt?->format(DATE_ATOM),
+            'late_fee' => calculate_late_fee($row['end_time'], $row['returned_at']),
+            'late_fee_paid_at' => $row['late_fee_paid_at'],
             'returned_late' => $returnedAt !== null
                 && $returnedAt->getTimestamp() >
                    $endTime->getTimestamp()

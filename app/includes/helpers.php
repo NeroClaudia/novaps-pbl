@@ -188,3 +188,17 @@ function expire_unpaid_bookings(PDO $pdo): void
     );
 }
 
+function calculate_late_fee(string $endTime, ?string $returnedAt = null, ?DateTimeImmutable $now = null): int
+{
+    $deadline = new DateTimeImmutable($endTime);
+
+    $actualTime = $returnedAt !== null
+        ? new DateTimeImmutable($returnedAt)
+        : ($now ?? new DateTimeImmutable('now'));
+
+    $lateSeconds = max(0, $actualTime->getTimestamp() - $deadline->getTimestamp());
+
+    $lateHours = intdiv($lateSeconds + 3599, 3600);
+
+    return $lateHours * 10000;
+}
