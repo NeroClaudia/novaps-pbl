@@ -45,6 +45,13 @@
     return Date.parse(rental.end_time) - currentTime();
   }
 
+  function estimatedLateFee(rental) {
+    const overdueMs = Math.max(0, -timeLeft(rental));
+    const lateHours = Math.ceil(overdueMs / HOUR);
+
+    return lateHours * 10000;
+  }
+
   function formatDuration(ms) {
     const totalSeconds = Math.floor(Math.abs(ms) / 1000);
     const days = Math.floor(totalSeconds / 86400);
@@ -302,6 +309,14 @@
     addDetail("Status", rental.rental_status);
     addDetail("Total", money(rental.total_cost));
 
+    const lateFee = estimatedLateFee(rental);
+
+    addDetail("Estimated Late Fee", money(lateFee));
+
+    if (lateFee > 0) {
+      addDetail("Late Fee Payment", "Unpaid — Cash payment required");
+    }
+
     $("return-condition").value = "";
     $("return-error").textContent = "";
     $("return-submit").disabled = false;
@@ -329,10 +344,17 @@
       return;
     }
 
-    if (!confirm(
-      `Konfirmasi perangkat ${rental.device_name} ` +
-      `untuk booking ${rental.booking_code} sudah dikembalikan?`
-    )) {
+    const lateFee = estimatedLateFee(rental);
+
+    const confirmationMessage =
+      `Konfirmasi pengembalian ${rental.device_name}?\n\n` +
+      `Booking: ${rental.booking_code}\n` +
+      `Estimasi denda: ${money(lateFee)}\n\n` +
+      (lateFee > 0
+        ? "Denda belum otomatis dianggap lunas."
+        : "Tidak ada denda keterlambatan.");
+
+    if (!confirm(confirmationMessage)) {
       return;
     }
 

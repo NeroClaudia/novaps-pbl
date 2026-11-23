@@ -60,7 +60,8 @@ try {
                 'YYYY-MM-DD\"T\"HH24:MI:SSTZH:TZM'
             ) AS rented_at,
 
-            r.total_cost
+            r.total_cost,
+            r.end_time AS late_fee_end_time
 
          FROM rental r
          JOIN booking b
@@ -102,7 +103,8 @@ try {
             'start_time' => $row['start_time'],
             'end_time' => $row['end_time'],
             'rented_at' => $row['rented_at'],
-            'total_cost' => (float) $row['total_cost']
+            'total_cost' => (float) $row['total_cost'],
+            'late_fee' => calculate_late_fee($row['late_fee_end_time'])
         ];
     }
 

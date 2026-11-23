@@ -128,6 +128,29 @@ try {
         throw new RuntimeException('Status pengembalian gagal diperbarui');
     }
 
+    $lateFeeEnd = $pdo->prepare(
+        "SELECT end_time
+        FROM rental
+        WHERE rental_id = :rental_id"
+    );
+
+    $lateFeeEnd->execute([
+        'rental_id' => $rentalId
+    ]);
+
+    $endTime = $lateFeeEnd->fetchColumn();
+
+    if ($endTime === false) {
+        throw new RuntimeException(
+            'Deadline rental tidak ditemukan'
+        );
+    }
+
+    $lateFee = calculate_late_fee(
+        $endTime,
+        $returnedAt
+    );
+
     // d. Periksa apakah seluruh konsol pada booking ini sudah dikembalikan
     $stmtCount = $pdo->prepare(
         "SELECT COUNT(*)
@@ -150,6 +173,10 @@ try {
             'device_id' => (int)$rental['device_id'],
             'rental_status' => 'Returned',
             'returned_at' => $returnedAt,
+            'late_fee' => $lateFee,
+            'late_fee_status' => $lateFee > 0
+                ? 'Unpaid'
+                : 'NotApplicable',
             'booking_all_returned' => $bookingAllReturned,
         ],
     ]);

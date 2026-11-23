@@ -58,6 +58,7 @@ $esc = static fn(string $value): string =>
     <meta name="admin-csrf" content="<?= $esc($_SESSION['admin_csrf']) ?>">
     <script src="/assets/js/admin-time-remaining-ssr.js?v=1" defer></script>
     <script src="/assets/js/admin-extensions.js?v=1" defer></script>
+    <script src="/assets/js/admin-late-fees.js?v=1" defer></script>
 </head>
 
 <body class="min-h-screen bg-slate-100 text-slate-800">
@@ -178,9 +179,51 @@ $esc = static fn(string $value): string =>
             </p>
 
             <p class="time-note" style="margin-top:16px">
-                Overdue rentals are flagged without a late fee.
+                Late fees are charged at Rp10.000 per hour, rounded up.
             </p>
         </section>
+
+        <section class="mt-6 rounded-lg bg-white p-6 shadow-sm">
+            <h2 class="mb-2 text-xl font-semibold">
+                Unpaid Late Fees
+            </h2>
+
+            <p class="mb-4 text-sm text-slate-500">
+                Pembayaran denda Cash untuk perangkat
+                yang sudah dikembalikan.
+            </p>
+
+            <button
+                type="button"
+                id="refresh-late-fees"
+                class="time-btn mb-4"
+            >
+                Refresh Late Fees
+            </button>
+
+            <div class="time-table-wrap">
+                <table class="time-table">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Booking</th>
+                            <th>Device</th>
+                            <th>Late Fee</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="late-fee-body"></tbody>
+                </table>
+            </div>
+
+            <p
+                id="late-fee-message"
+                class="time-note"
+                role="status"
+                aria-live="polite"
+            ></p>
+        </section>
+
     </main>
 </div>
 
