@@ -29,6 +29,13 @@ if (
 $input = read_json_body();
 $rentalId = $input['rental_id'] ?? null;
 
+
+$paymentMethod = $input['payment_method'] ?? null;
+
+if (!is_string($paymentMethod) || !in_array($paymentMethod, ['Cash', 'QRIS'], true)) {
+    json_error('VALIDATION_ERROR', 'Metode pembayaran harus Cash atau QRIS', 422);
+}
+
 if (!is_int($rentalId) || $rentalId < 1) {
     json_error('VALIDATION_ERROR', 'rental_id tidak valid', 422);
 }
@@ -78,13 +85,21 @@ try {
 
     $update = $pdo->prepare(
         "UPDATE rental
-         SET late_fee_paid_at = clock_timestamp()
-         WHERE rental_id = :rental_id
-           AND late_fee_paid_at IS NULL
-         RETURNING late_fee_paid_at"
+            SET
+                late_fee_paid_at = clock_timestamp(),
+                late_fee_payment_method = :payment_method
+            WHERE rental_id = :rental_id
+                AND rental_status = 'Returned'
+                AND late_fee_paid_at IS NULL
+                AND late_fee_payment_method IS NULL
+            RETURNING late_fee_paid_at"
     );
 
-    $update->execute(['rental_id' => $rentalId]);
+    $update->execute([
+        'rental_id' => $rentalId,
+        'payment_method' => $paymentMethod
+    ]);
+
     $paidAt = $update->fetchColumn();
 
     if ($paidAt === false) {
@@ -99,7 +114,7 @@ try {
         'data' => [
             'rental_id' => $rentalId,
             'late_fee' => $lateFee,
-            'payment_method' => 'Cash',
+            'payment_method' => $paymentMethod,
             'late_fee_status' => 'Paid',
             'late_fee_paid_at' => $paidAt
         ]

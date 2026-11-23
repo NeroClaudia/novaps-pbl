@@ -1,28 +1,41 @@
 (() => {
   "use strict";
 
-  const body = document.getElementById("late-fee-body");
-  const message = document.getElementById("late-fee-message");
-  const refreshButton = document.getElementById("refresh-late-fees");
+  const $ = id => document.getElementById(id);
 
-  if (!body || !message || !refreshButton) return;
+  const body = $("late-fee-body");
+  const message = $("late-fee-message");
+  const refreshButton = $("refresh-late-fees");
+  const modal = $("late-fee-modal");
+  const detail = $("late-fee-detail");
+  const qris = $("late-fee-qris");
+  const instructions = $("late-fee-instructions");
+  const errorText = $("late-fee-error");
+  const submitButton = $("late-fee-submit");
+
+  if (!body || !message || !refreshButton || !modal) return;
 
   const csrf = document.querySelector(
     'meta[name="admin-csrf"]'
   )?.content || "";
 
-  const money = amount =>
-    new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0
-    }).format(amount);
+  const money = amount => new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0
+  }).format(amount);
+
+  let selectedRental = null;
+  let submitting = false;
+  let loading = false;
 
   async function readResponse(response) {
     const result = await response.json();
 
     if (!response.ok || result.success !== true) {
-      throw new Error(result.message || "Request gagal");
+      throw new Error(
+        result.message || result.error?.message || "Request gagal"
+      );
     }
 
     return result.data;
@@ -35,18 +48,80 @@
     return cell;
   }
 
-  async function markAsPaid(rental) {
+  function addDetail(label, value) {
+    const dt = document.createElement("dt");
+    const dd = document.createElement("dd");
+
+    dt.textContent = label;
+    dd.textContent = value;
+    detail.append(dt, dd);
+  }
+
+  function getPaymentMethod() {
+    return document.querySelector(
+      'input[name="late-fee-method"]:checked'
+    )?.value || "Cash";
+  }
+
+  function updateMethodView() {
+    const method = getPaymentMethod();
+
+    qris.hidden = method !== "QRIS";
+
+    instructions.textContent = method === "QRIS"
+      ? "Check the recipient's transaction history and confirm " +
+        "the exact amount before marking this fee as paid."
+      : "Confirm only after receiving the exact cash amount.";
+  }
+
+  function openModal(rental) {
+    selectedRental = rental;
+    detail.replaceChildren();
+
+    addDetail("Customer", rental.full_name);
+    addDetail("Booking", rental.booking_code);
+    addDetail("Device", rental.device_name);
+    addDetail("Late Fee", money(rental.late_fee));
+
+    document.querySelector(
+      'input[name="late-fee-method"][value="Cash"]'
+    ).checked = true;
+
+    errorText.textContent = "";
+    submitButton.disabled = false;
+    updateMethodView();
+
+    modal.hidden = false;
+  }
+
+  function closeModal() {
+    if (submitting) return;
+
+    modal.hidden = true;
+    selectedRental = null;
+    errorText.textContent = "";
+  }
+
+  async function confirmPayment() {
+    if (!selectedRental || submitting) return;
+
+    const rental = selectedRental;
+    const method = getPaymentMethod();
+
     const confirmed = window.confirm(
-      `Konfirmasi pembayaran denda Cash?\n\n` +
+      `Confirm ${method} late fee payment?\n\n` +
       `Booking: ${rental.booking_code}\n` +
       `Device: ${rental.device_name}\n` +
-      `Nominal: ${money(rental.late_fee)}\n\n` +
-      `Lanjutkan hanya jika uang sudah diterima.`
+      `Amount: ${money(rental.late_fee)}\n\n` +
+      "Only continue if payment has been received and verified."
     );
 
     if (!confirmed) return;
 
-    message.textContent = "Mencatat pembayaran...";
+    submitting = true;
+    submitButton.disabled = true;
+    submitButton.textContent = "Processing...";
+    errorText.textContent = "";
 
     try {
       const response = await fetch(
@@ -60,27 +135,51 @@
             "X-CSRF-Token": csrf
           },
           body: JSON.stringify({
-            rental_id: rental.rental_id
+            rental_id: rental.rental_id,
+            payment_method: method
           })
         }
       );
 
+      if (response.status === 401 || response.status === 403) {
+        throw new Error(
+          "Session expired or access denied. Please log in again."
+        );
+      }
+
       await readResponse(response);
+
+      modal.hidden = true;
+      selectedRental = null;
+
+      submitting = false;
+      await loadLateFees();
+      
+      message.textContent =
+        `Late fee successfully paid via ${method}.`;
+
+      // Refresh separately after the payment is committed.
       await loadLateFees();
 
       message.textContent =
-        "Pembayaran denda berhasil dicatat.";
+        `Late fee successfully paid via ${method}.`;
 
     } catch (error) {
-      await loadLateFees();
-      message.textContent = error.message;
+      errorText.textContent = error.message;
+    } finally {
+      submitting = false;
+      submitButton.disabled = false;
+      submitButton.textContent = "Confirm Payment";
     }
   }
 
   async function loadLateFees() {
+    if (loading || submitting) return;
+
+    loading = true;
     refreshButton.disabled = true;
-    message.textContent = "Loading late fees...";
     body.replaceChildren();
+    message.textContent = "Loading late fees...";
 
     try {
       const response = await fetch(
@@ -101,43 +200,59 @@
         makeCell(row, rental.device_name);
         makeCell(row, money(rental.late_fee));
 
-        const actionCell = document.createElement("td");
+        const action = document.createElement("td");
         const button = document.createElement("button");
 
         button.type = "button";
         button.className = "time-btn";
-        button.textContent = "Mark as Paid";
+        button.textContent = "Receive Payment";
 
-        button.addEventListener("click", async () => {
-          button.disabled = true;
-          try {
-            await markAsPaid(rental);
-          } finally {
-            button.disabled = false;
-          }
+        button.addEventListener("click", () => {
+          openModal(rental);
         });
 
-        actionCell.appendChild(button);
-        row.appendChild(actionCell);
+        action.appendChild(button);
+        row.appendChild(action);
         body.appendChild(row);
       }
 
       message.textContent = rentals.length
-        ? `${rentals.length} tagihan denda belum lunas.`
-        : "Tidak ada denda yang belum dilunasi.";
+        ? `${rentals.length} unpaid late fee(s).`
+        : "No unpaid late fees.";
 
     } catch (error) {
       message.textContent = error.message;
     } finally {
+      loading = false;
       refreshButton.disabled = false;
     }
   }
 
+  document.querySelectorAll(
+    'input[name="late-fee-method"]'
+  ).forEach(radio => {
+    radio.addEventListener("change", updateMethodView);
+  });
+
+  $("late-fee-close").addEventListener("click", closeModal);
+  $("late-fee-cancel").addEventListener("click", closeModal);
+  submitButton.addEventListener("click", confirmPayment);
   refreshButton.addEventListener("click", loadLateFees);
 
-  // Sinkronisasi ketika admin kembali ke halaman.
+  modal.addEventListener("click", event => {
+    if (event.target === modal) closeModal();
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !modal.hidden) {
+      closeModal();
+    }
+  });
+
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) loadLateFees();
+    if (!document.hidden && modal.hidden) {
+      loadLateFees();
+    }
   });
 
   loadLateFees();

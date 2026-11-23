@@ -189,8 +189,8 @@ $esc = static fn(string $value): string =>
             </h2>
 
             <p class="mb-4 text-sm text-slate-500">
-                Pembayaran denda Cash untuk perangkat
-                yang sudah dikembalikan.
+                Receive late fee payments by Cash or QRIS
+                after the console has been returned.
             </p>
 
             <button
@@ -282,6 +282,103 @@ $esc = static fn(string $value): string =>
         </div>
     </div>
 </div>
+
+<div
+    id="late-fee-modal"
+    class="time-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="late-fee-modal-title"
+    hidden
+>
+    <div class="time-dialog">
+        <div class="time-header">
+            <h2 id="late-fee-modal-title">
+                Receive Late Fee Payment
+            </h2>
+
+            <button
+                id="late-fee-close"
+                class="time-secondary"
+                type="button"
+                aria-label="Close"
+            >✕</button>
+        </div>
+
+        <dl id="late-fee-detail" class="time-detail"></dl>
+
+        <fieldset class="mt-4">
+            <legend class="mb-2 font-semibold">
+                Payment Method
+            </legend>
+
+            <label class="mr-5">
+                <input
+                    type="radio"
+                    name="late-fee-method"
+                    value="Cash"
+                    checked
+                >
+                Cash
+            </label>
+
+            <label>
+                <input
+                    type="radio"
+                    name="late-fee-method"
+                    value="QRIS"
+                >
+                QRIS
+            </label>
+        </fieldset>
+
+        <div
+            id="late-fee-qris"
+            class="mt-4 text-center"
+            hidden
+        >
+            <img
+                src="/assets/img/qris.png"
+                alt="NovaPS QRIS"
+                class="mx-auto max-w-60"
+            >
+
+            <p class="mt-2 text-sm">
+                Verify payment in the recipient
+                account before confirmation.
+            </p>
+        </div>
+
+        <p id="late-fee-instructions" class="time-note mt-4">
+            Confirm only after receiving the payment.
+        </p>
+
+        <p
+            id="late-fee-error"
+            class="time-note"
+            role="alert"
+        ></p>
+
+        <div class="mt-5 flex justify-end gap-3">
+            <button
+                id="late-fee-cancel"
+                class="time-secondary"
+                type="button"
+            >
+                Cancel
+            </button>
+
+            <button
+                id="late-fee-submit"
+                class="time-btn"
+                type="button"
+            >
+                Confirm Payment
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="extension-modal"
      class="time-modal"
      role="dialog"
