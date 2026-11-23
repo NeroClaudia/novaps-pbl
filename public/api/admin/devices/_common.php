@@ -64,7 +64,7 @@ function admin_device_fields(array $input): array
     if ($name === '' || mb_strlen($name) > 50 || $serial === '' || mb_strlen($serial) > 50 ||
         !in_array($category, ['PS4', 'PS5'], true) || !in_array($status, ['Available', 'Maintenance'], true)
     ) {
-        json_error('VALIDATION_ERROR', 'Nama, kategori, serial, booth, atau status tidak valid', 422);
+        json_error('VALIDATION_ERROR', 'Nama, kategori, serial, atau status tidak valid', 422);
     }
 
     // Price is an integer rupiah amount, bounded to NUMERIC(10,2).
