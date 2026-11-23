@@ -182,6 +182,12 @@ try {
         json_error('FORBIDDEN', 'Akun tidak diizinkan melakukan pemesanan', 403);
     }
 
+    if (customer_has_overdue_rental($pdo, $customerId)) {
+        $pdo->rollBack();
+        json_error('CUSTOMER_HAS_OVERDUE_RENTAL', 'You have an overdue rental. ' . 'Please return your PlayStation before ' . 'placing a new order.',
+        409);
+    }
+
     // Pastikan profil data lengkap
     if (trim((string) $user['full_name']) === '' || trim((string) $user['phone']) === '') {
         $pdo->rollBack();

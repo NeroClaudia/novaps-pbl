@@ -8,6 +8,12 @@ require_once __DIR__ . '/../../app/functions/bookings.php';
 
 $auth = require_customer_page();
 
+if (customer_has_overdue_rental($pdo, (int) $auth['user_id'])) {
+  $_SESSION['order_blocked_flash'] = true;
+  header('Location: /index.php', true, 303);
+  exit;
+}
+
 header('Cache-Control: private, no-store');
 
 $currentPage = 'order-form';

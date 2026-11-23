@@ -202,3 +202,30 @@ function calculate_late_fee(string $endTime, ?string $returnedAt = null, ?DateTi
 
     return $lateHours * 10000;
 }
+
+function customer_has_overdue_rental(PDO $pdo, int $customerId): bool
+{
+    $stmt = $pdo->prepare(
+        "SELECT EXISTS (
+            SELECT 1
+            FROM rental r
+            JOIN booking b
+                ON b.booking_id = r.booking_id
+            WHERE b.customer_id = :customer_id
+              AND (
+                  r.rental_status = 'Overdue'
+                  OR (
+                      r.rental_status = 'Rented'
+                      AND r.end_time < statement_timestamp()
+                  )
+              )
+        )"
+    );
+
+    $stmt->execute(['customer_id' => $customerId]);
+
+    return in_array(
+        $stmt->fetchColumn(), [true, 1, '1', 't', 'true'],
+        true
+    );
+}

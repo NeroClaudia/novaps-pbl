@@ -1,12 +1,21 @@
 <?php 
      $currentPage = $currentPage ?? 'home';
      $showOrderButton = $showOrderButton ?? true;
+     $isCustomerLoggedIn = ($_SESSION['auth']['role'] ?? null) === 'customer'  && (int) ($_SESSION['auth']['user_id'] ?? 0) > 0;
 
-     $isCustomerLoggedIn = ($_SESSION['auth']['role'] ?? null) === 'customer' 
-                           && (int) ($_SESSION['auth']['user_id'] ?? 0) > 0;
+     $hasOverdueRental = false;
+
+     if ($isCustomerLoggedIn) {
+        $hasOverdueRental = customer_has_overdue_rental($pdo, (int) $_SESSION['auth']['user_id']);
+     }
+
+     $orderBlockedMessage = 'You have an overdue rental. Please return your ' . 'PlayStation to NovaPS before placing a new order.';
 ?>
 
 <!-- Navbar -->
+<?php   $oderBlockedFlash = ($_SESSION['order_blocked_flash'] ?? false) == true; 
+        unset($_SESSION['order_blocked_flash']);
+?>
 <header class="h-[68px] bg-slate-900">
     <div class="wrap flex h-full items-center justify-between">
         <a
@@ -183,3 +192,133 @@
         <?php endif; ?>
     </div>
 </header>
+
+<?php if ($hasOverdueRental): ?>
+    <div
+        id="overdue-warning"
+        role="alert"
+        style="
+            background:#b91c1c;
+            color:#fff;
+            padding:14px 20px;
+        "
+    >
+        <div
+            class="wrap"
+            style="
+                display:flex;
+                align-items:flex-start;
+                gap:12px;
+            "
+        >
+            <span aria-hidden="true">⚠</span>
+
+            <div>
+                <strong>
+                    You have an overdue rental!
+                </strong>
+
+                <p style="margin:4px 0 8px">
+                    Please return your PlayStation
+                    directly to NovaPS.
+                    New orders are temporarily restricted.
+                </p>
+
+                <a
+                    href="/pages/time-remaining.php"
+                    style="
+                        color:#fff;
+                        font-weight:600;
+                        text-decoration:underline;
+                    "
+                >
+                    View Time Remaining
+                </a>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<script>
+(() => {
+    const blocked = <?= $hasOverdueRental ? 'true' : 'false' ?>;
+    const showFlash = <?= $orderBlockedFlash ? 'true' : 'false' ?>;
+
+    const message = <?= json_encode(
+        $orderBlockedMessage,
+        JSON_HEX_TAG | JSON_HEX_AMP |
+        JSON_HEX_APOS | JSON_HEX_QUOT
+    ) ?>;
+
+    let toastTimeout;
+
+    function showOverdueToast() {
+        let toast = document.getElementById(
+            "overdue-order-toast"
+        );
+
+        if (!toast) {
+            toast = document.createElement("div");
+            toast.id = "overdue-order-toast";
+            toast.setAttribute("role", "alert");
+
+            Object.assign(toast.style, {
+                position: "fixed",
+                top: "90px",
+                right: "20px",
+                zIndex: "9999",
+                maxWidth: "380px",
+                padding: "16px 20px",
+                borderRadius: "10px",
+                background: "#b91c1c",
+                color: "#fff",
+                boxShadow: "0 10px 28px rgba(0,0,0,.22)",
+                fontSize: "14px",
+                lineHeight: "1.5"
+            });
+
+            document.body.appendChild(toast);
+        }
+
+        toast.textContent = message;
+        toast.hidden = false;
+
+        clearTimeout(toastTimeout);
+
+        toastTimeout = setTimeout(() => {
+            toast.hidden = true;
+        }, 4500);
+    }
+
+    if (blocked) {
+        document.addEventListener("click", event => {
+            const link = event.target.closest("a[href]");
+            if (!link) return;
+
+            const url = new URL(link.href, location.href);
+
+            if (
+                url.origin === location.origin &&
+                url.pathname === "/pages/order-form.php"
+            ) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                showOverdueToast();
+            }
+        }, true);
+    }
+
+    if (showFlash) {
+        if (document.readyState === "loading") {
+            document.addEventListener(
+                "DOMContentLoaded",
+                showOverdueToast,
+                { once: true }
+            );
+        } else {
+            showOverdueToast();
+        }
+    }
+})();
+</script>
+
