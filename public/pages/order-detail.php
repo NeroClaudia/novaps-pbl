@@ -117,7 +117,7 @@ $view = match (true) {
         'title' => 'Rental Overdue',
         'subtitle' => 'One or more rental units have passed their return deadline.',
         'reason' => '',
-        'note' => 'Please return the overdue units. No late fee is charged.',
+        'note' => 'Please return overdue units. A late fee of Rp10.000 per hour applies.',
         'tone' => 'text-red-500',
         'glyph' => 'clock'
     ],

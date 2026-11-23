@@ -72,8 +72,8 @@
         "Pembayaran denda berhasil dicatat.";
 
     } catch (error) {
-      message.textContent = error.message;
       await loadLateFees();
+      message.textContent = error.message;
     }
   }
 
