@@ -147,7 +147,6 @@ try {
             r.device_id,
             d.device_name,
             d.category,
-            d.booth_code,
 
             to_char(
                 r.start_time,
@@ -206,7 +205,6 @@ try {
             'device_id' => (int) $row['device_id'],
             'device_name' => $row['device_name'],
             'category' => $row['category'],
-            'booth_code' => $row['booth_code'],
 
             'start_time' => $row['start_time'],
             'end_time' => $row['end_time'],

@@ -12,8 +12,8 @@ admin_device_require_csrf();
 $data = admin_device_fields(read_json_body());
 
 try {
-    $stmt = $pdo->prepare("INSERT INTO device (device_name, category, serial_number, booth_code, price_per_day, status)
-       VALUES (:device_name,:category,:serial_number,:booth_code,:price_per_day,:status) RETURNING device_id");
+    $stmt = $pdo->prepare("INSERT INTO device (device_name, category, serial_number, price_per_day, status)
+       VALUES (:device_name,:category,:serial_number,:price_per_day,:status) RETURNING device_id");
 
     $stmt->execute($data);
 

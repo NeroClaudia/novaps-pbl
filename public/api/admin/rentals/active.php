@@ -44,7 +44,6 @@ try {
             u.email,
             d.device_name,
             d.category,
-            d.booth_code,
             to_char(
                 r.start_time,
                 'YYYY-MM-DD\"T\"HH24:MI:SSTZH:TZM'
@@ -95,7 +94,6 @@ try {
             'email' => $row['email'],
             'device_name' => $row['device_name'],
             'category' => $row['category'],
-            'booth_code' => $row['booth_code'],
             'rental_status' => $row['rental_status'],
             'duration_days' => intdiv(
                 (int) $row['duration_hours'], 24

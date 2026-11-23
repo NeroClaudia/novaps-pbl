@@ -105,8 +105,7 @@
       rental.email,
       rental.booking_code,
       rental.device_name,
-      rental.category,
-      rental.booth_code
+      rental.category
     ].some(value =>
       String(value || "").toLowerCase().includes(keyword)
     );

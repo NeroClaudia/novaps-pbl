@@ -47,23 +47,21 @@ function admin_device_fields(array $input): array
 
     $serial = $input['serial_number'] ?? null;
 
-    $booth = $input['booth_code'] ?? null;
-
     $price = $input['price_per_day'] ?? null;
 
     $status = $input['status'] ?? null;
 
-    if (!is_string($name) || !is_string($serial) || !is_string($category) || !is_string($status) ||
-        ($booth !== null && !is_string($booth))
-    ) json_error('VALIDATION_ERROR', 'Tipe data perangkat tidak valid', 422);
+    if (!is_string($name) || !is_string($serial) || !is_string($category) || !is_string($status)) {
+
+        json_error('VALIDATION_ERROR', 'Tipe data perangkat tidak valid', 422);
+
+    }
 
     $name = trim($name);
 
     $serial = trim($serial);
 
-    $booth = is_string($booth) ? trim($booth) : '';
-
-    if ($name === '' || mb_strlen($name) > 50 || $serial === '' || mb_strlen($serial) > 50 || mb_strlen($booth) > 20 ||
+    if ($name === '' || mb_strlen($name) > 50 || $serial === '' || mb_strlen($serial) > 50 ||
         !in_array($category, ['PS4', 'PS5'], true) || !in_array($status, ['Available', 'Maintenance'], true)
     ) {
         json_error('VALIDATION_ERROR', 'Nama, kategori, serial, booth, atau status tidak valid', 422);
@@ -75,7 +73,6 @@ function admin_device_fields(array $input): array
         'device_name' => $name,
         'category' => $category,
         'serial_number' => $serial,
-        'booth_code' => $booth === '' ? null : $booth,
         'price_per_day' => $price,
         'status' => $status
     ];

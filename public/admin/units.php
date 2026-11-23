@@ -410,7 +410,6 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
                 <th>Device</th>
                 <th>Category</th>
                 <th>Serial Number</th>
-                <th>Booth</th>
                 <th>Price/day</th>
                 <th>Status</th>
                 <th>Booking</th>
@@ -444,10 +443,6 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
         <div>
           <label for="f-serial">Serial Number</label>
           <input id="f-serial" class="units-field" required maxlength="50" placeholder="PS5-004">
-        </div>
-        <div>
-          <label for="f-booth">Booth Code (optional)</label>
-          <input id="f-booth" class="units-field" maxlength="20" placeholder="B04">
         </div>
         <div>
           <label for="f-price">Price per day (Rp)</label>

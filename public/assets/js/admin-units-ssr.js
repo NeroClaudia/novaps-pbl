@@ -50,7 +50,6 @@
       textCell(row, device.device_name); 
       textCell(row, device.category);
       textCell(row, device.serial_number); 
-      textCell(row, device.booth_code || '—'); 
       textCell(row, rupiah(device.price_per_day));
       textCell(row, device.status); 
       textCell(row, device.is_rented ? 'Reserved / Rented' : '—');
@@ -79,7 +78,7 @@
     previousFocus = document.activeElement; editingId = device?.device_id ?? null; form.reset(); $('unit-error').textContent = '';
 
     field('name').value = device?.device_name ?? ''; field('category').value = device?.category ?? 'PS5';
-    field('serial').value = device?.serial_number ?? ''; field('booth').value = device?.booth_code ?? '';
+    field('serial').value = device?.serial_number ?? '';
     field('price').value = device?.price_per_day ?? (device?.category === 'PS4' ? 50000 : 100000);
     field('status').value = device?.status ?? 'Available';
 
@@ -115,7 +114,7 @@
 
     const data = {
       device_name: field('name').value.trim(), category: field('category').value,
-      serial_number: field('serial').value.trim(), booth_code: field('booth').value.trim() || null,
+      serial_number: field('serial').value.trim(),
       price_per_day: price, status: field('status').value
     };
 

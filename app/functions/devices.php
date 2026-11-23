@@ -11,7 +11,6 @@ function get_devices(PDO $pdo): array
             d.device_id,
             d.device_name,
             d.category,
-            d.booth_code,
             d.status,
             d.price_per_day,
             (active_rental.device_id IS NOT NULL) AS is_rented,
@@ -69,7 +68,6 @@ function get_devices(PDO $pdo): array
             'device_id' => (int) $device['device_id'],
             'device_name' => $device['device_name'],
             'category' => $device['category'],
-            'booth_code' => $device['booth_code'],
             'status' => $device['status'],
             'price_per_day' => (float) $device['price_per_day'],
             'is_rented' => in_array(
@@ -103,7 +101,6 @@ function get_available_devices(PDO $pdo, DateTimeImmutable $startTime, DateTimeI
             d.device_id,
             d.device_name,
             d.category,
-            d.booth_code,
             d.price_per_day
          FROM device d
          WHERE d.status = 'Available'
@@ -167,7 +164,6 @@ function get_available_devices(PDO $pdo, DateTimeImmutable $startTime, DateTimeI
             'device_id' => (int) $device['device_id'],
             'device_name' => $device['device_name'],
             'category' => $device['category'],
-            'booth_code' => $device['booth_code'],
             'price_per_day' => (float) $device['price_per_day'], 
         ];
     }
@@ -182,7 +178,6 @@ function get_device_pricing(PDO $pdo, int $deviceId): ?array
             device_id,
             device_name,
             category,
-            booth_code,
             status,
             price_per_day
          FROM device
@@ -201,7 +196,6 @@ function get_device_pricing(PDO $pdo, int $deviceId): ?array
         'device_id' => (int) $device['device_id'],
         'device_name' => $device['device_name'],
         'category' => $device['category'],
-        'booth_code' => $device['booth_code'],
         'status' => $device['status'],
         'price_per_day' => (float) $device['price_per_day'],
     ];

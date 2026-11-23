@@ -40,7 +40,7 @@ try {
     $data['device_id'] = $id;
 
     $stmt = $pdo->prepare("UPDATE device SET device_name=:device_name,category=:category,serial_number=:serial_number,
-        booth_code=:booth_code,price_per_day=:price_per_day,status=:status WHERE device_id=:device_id");
+        price_per_day=:price_per_day,status=:status WHERE device_id=:device_id");
 
     $stmt->execute($data);
 
