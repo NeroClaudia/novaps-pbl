@@ -25,7 +25,10 @@ CREATE TABLE rental
     
     CONSTRAINT uq_booking_device UNIQUE (booking_id, device_id),
     CONSTRAINT chk_end_after_start CHECK (end_time > start_time),
-    CONSTRAINT chk_duration_matches_end CHECK (end_time = start_time + duration_hours * INTERVAL '1 hour')
+    CONSTRAINT chk_duration_matches_end CHECK (end_time = start_time + duration_hours * INTERVAL '1 hour'),
+    CONSTRAINT chk_late_fee_payment_consistency CHECK (
+        (late_fee_paid_at IS NULL) = (late_fee_payment_method IS NULL)
+    )
 );
 
 CREATE INDEX idx_rental_booking ON rental (booking_id);

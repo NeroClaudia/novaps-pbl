@@ -81,7 +81,6 @@ foreach(['PS4', 'PS5'] as $category) {
     ></script>
     <script src="/assets/js/shared/navbar.js?v=2" defer></script>
     <script src="/assets/js/shared/orders.js" defer></script>
-    <script src="/assets/js/shared/rental-alerts.js" defer></script>
     <script src="/assets/js/index.js?v=4" defer></script>
 </head>
 <body class="bg-white text-slate-800">

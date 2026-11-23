@@ -1,15 +1,34 @@
 <?php 
-     $currentPage = $currentPage ?? 'home';
-     $showOrderButton = $showOrderButton ?? true;
-     $isCustomerLoggedIn = ($_SESSION['auth']['role'] ?? null) === 'customer'  && (int) ($_SESSION['auth']['user_id'] ?? 0) > 0;
+        $currentPage = $currentPage ?? 'home';
+        $showOrderButton = $showOrderButton ?? true;
+        $isCustomerLoggedIn = ($_SESSION['auth']['role'] ?? null) === 'customer'  && (int) ($_SESSION['auth']['user_id'] ?? 0) > 0;
 
-     $hasOverdueRental = false;
 
-     if ($isCustomerLoggedIn) {
-        $hasOverdueRental = customer_has_overdue_rental($pdo, (int) $_SESSION['auth']['user_id']);
-     }
+        $orderBlockReason = null;
 
-     $orderBlockedMessage = 'You have an overdue rental. Please return your ' . 'PlayStation to NovaPS before placing a new order.';
+        if ($isCustomerLoggedIn) {
+        $orderBlockReason = customer_order_block_reason(
+                $pdo,
+                (int) $_SESSION['auth']['user_id']
+        );
+        }
+
+        $hasOverdueRental = $orderBlockReason !== null;
+
+        $orderBlockedMessage = match ($orderBlockReason) {
+        'overdue' =>
+                'You have an overdue rental. Please return your ' .
+                'PlayStation to NovaPS and settle any late fee ' .
+                'before placing a new order.',
+
+        'unpaid_late_fee' =>
+                'Your PlayStation has been returned, but your ' .
+                'late fee remains unpaid. Please settle the fee ' .
+                'at NovaPS before placing a new order.',
+
+        default => ''
+        };
+
 ?>
 
 <!-- Navbar -->
@@ -215,13 +234,11 @@
 
             <div>
                 <strong>
-                    You have an overdue rental!
+                    <?= $orderBlockReason === 'overdue' ? 'You have an overdue rental!' : 'You have an unpaid late fee!' ?>
                 </strong>
 
                 <p style="margin:4px 0 8px">
-                    Please return your PlayStation
-                    directly to NovaPS.
-                    New orders are temporarily restricted.
+                        <?= htmlspecialchars($orderBlockedMessage, ENT_QUOTES, 'UTF-8') ?>
                 </p>
 
                 <a
@@ -362,20 +379,12 @@
             </svg>
         </div>
 
-        <h2
-            id="overdue-modal-title"
-            class="overdue-modal-title"
-        >
-            Rental Overdue
+        <h2 id="overdue-modal-title" class="overdue-modal-title">
+            <?= $orderBlockReason === 'unpaid_late_fee' ? 'Unpaid Late Fee' : 'Rental Overdue' ?>
         </h2>
 
-        <p
-            id="overdue-modal-description"
-            class="overdue-modal-description"
-        >
-            You have an overdue rental.
-            Please return your PlayStation
-            to NovaPS before placing a new order.
+        <p id="overdue-modal-description" class="overdue-modal-description">
+                <?= htmlspecialchars($orderBlockedMessage, ENT_QUOTES, 'UTF-8') ?>
         </p>
 
         <div class="overdue-modal-actions">

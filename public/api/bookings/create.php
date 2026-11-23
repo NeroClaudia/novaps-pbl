@@ -182,10 +182,16 @@ try {
         json_error('FORBIDDEN', 'Akun tidak diizinkan melakukan pemesanan', 403);
     }
 
-    if (customer_has_overdue_rental($pdo, $customerId)) {
+    $orderBlockReason = customer_order_block_reason($pdo, $customerId);
+
+    if ($orderBlockReason !== null) {
         $pdo->rollBack();
-        json_error('CUSTOMER_HAS_OVERDUE_RENTAL', 'You have an overdue rental. ' . 'Please return your PlayStation before ' . 'placing a new order.',
-        409);
+
+        if ($orderBlockReason === 'unpaid_late_fee') {
+            json_error('UNPAID_LATE_FEE', 'Please settle your outstanding late fee ' . 'before placing a new order', 409);
+        }
+
+        json_error('CUSTOMER_HAS_OVERDUE_RENTAL', 'Please return your overdue PlayStation ' . 'and settle any late fee before ordering', 409);
     }
 
     // Pastikan profil data lengkap

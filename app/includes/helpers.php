@@ -203,29 +203,64 @@ function calculate_late_fee(string $endTime, ?string $returnedAt = null, ?DateTi
     return $lateHours * 10000;
 }
 
-function customer_has_overdue_rental(PDO $pdo, int $customerId): bool
+function customer_order_block_reason(PDO $pdo, int $customerId): ?string 
 {
     $stmt = $pdo->prepare(
-        "SELECT EXISTS (
-            SELECT 1
-            FROM rental r
-            JOIN booking b
-                ON b.booking_id = r.booking_id
-            WHERE b.customer_id = :customer_id
-              AND (
-                  r.rental_status = 'Overdue'
-                  OR (
-                      r.rental_status = 'Rented'
-                      AND r.end_time < statement_timestamp()
+        "SELECT
+            EXISTS (
+                SELECT 1
+                FROM rental r
+                JOIN booking b ON b.booking_id = r.booking_id
+                WHERE b.customer_id = :customer_overdue
+                  AND (
+                      r.rental_status = 'Overdue'
+                      OR (
+                          r.rental_status = 'Rented'
+                          AND r.end_time < statement_timestamp()
+                      )
                   )
-              )
-        )"
+            ) AS has_overdue,
+            EXISTS (
+                SELECT 1
+                FROM rental r
+                JOIN booking b ON b.booking_id = r.booking_id
+                WHERE b.customer_id = :customer_unpaid
+                  AND r.rental_status = 'Returned'
+                  AND r.returned_at IS NOT NULL
+                  AND r.returned_at > r.end_time
+                  AND r.late_fee_paid_at IS NULL
+            ) AS has_unpaid_fee"
     );
 
-    $stmt->execute(['customer_id' => $customerId]);
+    $stmt->execute([
+        'customer_overdue' => $customerId,
+        'customer_unpaid' => $customerId
+    ]);
 
-    return in_array(
-        $stmt->fetchColumn(), [true, 1, '1', 't', 'true'],
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    $isTrue = static fn($value): bool => in_array(
+        $value,
+        [true, 1, '1', 't', 'true'],
         true
     );
+
+    if ($isTrue($result['has_overdue'] ?? false)) {
+        return 'overdue';
+    }
+
+    if ($isTrue($result['has_unpaid_fee'] ?? false)) {
+        return 'unpaid_late_fee';
+    }
+
+    return null;
 }
+
+function customer_has_overdue_rental(PDO $pdo, int $customerId): bool 
+{
+    return customer_order_block_reason(
+        $pdo,
+        $customerId
+    ) !== null;
+}
+
