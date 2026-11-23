@@ -239,56 +239,246 @@
     </div>
 <?php endif; ?>
 
+
+<?php if ($isCustomerLoggedIn): ?>
+<style>
+    .overdue-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: rgba(2, 6, 23, 0.65);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity .2s, visibility .2s;
+    }
+
+    .overdue-modal[data-open] {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .overdue-modal-card {
+        width: 100%;
+        max-width: 380px;
+        border-radius: 14px;
+        background: white;
+        padding: 32px 28px 28px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,.25);
+        transform: translateY(16px) scale(.95);
+        transition: transform .25s;
+    }
+
+    .overdue-modal[data-open] .overdue-modal-card {
+        transform: translateY(0) scale(1);
+    }
+
+    .overdue-modal-icon {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 14px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .overdue-modal-title {
+        font-family: Poppins, sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .overdue-modal-description {
+        margin: 8px 0 24px;
+        color: #64748b;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .overdue-modal-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .overdue-modal-actions > * {
+        flex: 1;
+        padding: 12px 8px;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .overdue-modal-cancel {
+        background: #f1f5f9;
+        color: #334155;
+        border: 1px solid #e2e8f0;
+    }
+
+    .overdue-modal-primary {
+        background: #4f46e5;
+        color: white;
+        border: 1px solid #4f46e5;
+    }
+
+    .overdue-modal-primary:hover {
+        background: #4338ca;
+    }
+</style>
+
+<div
+    id="overdue-order-modal"
+    class="overdue-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="overdue-modal-title"
+    aria-describedby="overdue-modal-description"
+    aria-hidden="true"
+>
+    <div class="overdue-modal-card">
+        <div class="overdue-modal-icon">
+            <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+            >
+                <path d="M12 3 2 21h20L12 3Z"/>
+                <path d="M12 9v5"/>
+                <path d="M12 17h.01"/>
+            </svg>
+        </div>
+
+        <h2
+            id="overdue-modal-title"
+            class="overdue-modal-title"
+        >
+            Rental Overdue
+        </h2>
+
+        <p
+            id="overdue-modal-description"
+            class="overdue-modal-description"
+        >
+            You have an overdue rental.
+            Please return your PlayStation
+            to NovaPS before placing a new order.
+        </p>
+
+        <div class="overdue-modal-actions">
+            <button
+                type="button"
+                id="overdue-modal-cancel"
+                class="overdue-modal-cancel"
+            >
+                Cancel
+            </button>
+
+            <a
+                href="/pages/time-remaining.php"
+                class="overdue-modal-primary"
+            >
+                Time Remaining
+            </a>
+        </div>
+    </div>
+</div>
+
 <script>
 (() => {
+    "use strict";
+
     const blocked = <?= $hasOverdueRental ? 'true' : 'false' ?>;
     const showFlash = <?= $orderBlockedFlash ? 'true' : 'false' ?>;
 
-    const message = <?= json_encode(
-        $orderBlockedMessage,
-        JSON_HEX_TAG | JSON_HEX_AMP |
-        JSON_HEX_APOS | JSON_HEX_QUOT
-    ) ?>;
+    const modal = document.getElementById(
+        "overdue-order-modal"
+    );
 
-    let toastTimeout;
+    const cancelButton = document.getElementById(
+        "overdue-modal-cancel"
+    );
 
-    function showOverdueToast() {
-        let toast = document.getElementById(
-            "overdue-order-toast"
-        );
+    let previousFocus = null;
 
-        if (!toast) {
-            toast = document.createElement("div");
-            toast.id = "overdue-order-toast";
-            toast.setAttribute("role", "alert");
-
-            Object.assign(toast.style, {
-                position: "fixed",
-                top: "90px",
-                right: "20px",
-                zIndex: "9999",
-                maxWidth: "380px",
-                padding: "16px 20px",
-                borderRadius: "10px",
-                background: "#b91c1c",
-                color: "#fff",
-                boxShadow: "0 10px 28px rgba(0,0,0,.22)",
-                fontSize: "14px",
-                lineHeight: "1.5"
-            });
-
-            document.body.appendChild(toast);
+    function openModal() {
+        if (!modal || modal.hasAttribute("data-open")) {
+            return;
         }
 
-        toast.textContent = message;
-        toast.hidden = false;
+        previousFocus = document.activeElement;
 
-        clearTimeout(toastTimeout);
+        modal.setAttribute("data-open", "");
+        modal.setAttribute("aria-hidden", "false");
 
-        toastTimeout = setTimeout(() => {
-            toast.hidden = true;
-        }, 4500);
+        document.body.style.overflow = "hidden";
+        cancelButton.focus();
     }
+
+    function closeModal() {
+        if (!modal) return;
+
+        modal.removeAttribute("data-open");
+        modal.setAttribute("aria-hidden", "true");
+
+        document.body.style.overflow = "";
+        previousFocus?.focus();
+    }
+
+    cancelButton?.addEventListener(
+        "click",
+        closeModal
+    );
+
+    modal?.addEventListener("click", event => {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    document.addEventListener("keydown", event => {
+        if (!modal?.hasAttribute("data-open")) {
+            return;
+        }
+
+        if (event.key === "Escape") {
+            event.preventDefault();
+            closeModal();
+        }
+
+        if (event.key === "Tab") {
+            const primary = modal.querySelector(
+                ".overdue-modal-primary"
+            );
+
+            if (
+                event.shiftKey &&
+                document.activeElement === cancelButton
+            ) {
+                event.preventDefault();
+                primary.focus();
+            } else if (
+                !event.shiftKey &&
+                document.activeElement === primary
+            ) {
+                event.preventDefault();
+                cancelButton.focus();
+            }
+        }
+    });
 
     if (blocked) {
         document.addEventListener("click", event => {
@@ -303,7 +493,7 @@
             ) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                showOverdueToast();
+                openModal();
             }
         }, true);
     }
@@ -312,13 +502,13 @@
         if (document.readyState === "loading") {
             document.addEventListener(
                 "DOMContentLoaded",
-                showOverdueToast,
+                openModal,
                 { once: true }
             );
         } else {
-            showOverdueToast();
+            openModal();
         }
     }
 })();
 </script>
-
+<?php endif; ?>
