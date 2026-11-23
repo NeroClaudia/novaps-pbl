@@ -13,7 +13,7 @@
 ?>
 
 <!-- Navbar -->
-<?php   $oderBlockedFlash = ($_SESSION['order_blocked_flash'] ?? false) == true; 
+<?php   $orderBlockedFlash = ($_SESSION['order_blocked_flash'] ?? false) == true; 
         unset($_SESSION['order_blocked_flash']);
 ?>
 <header class="h-[68px] bg-slate-900">
