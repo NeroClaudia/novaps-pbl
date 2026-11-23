@@ -157,13 +157,7 @@
       
       message.textContent =
         `Late fee successfully paid via ${method}.`;
-
-      // Refresh separately after the payment is committed.
-      await loadLateFees();
-
-      message.textContent =
-        `Late fee successfully paid via ${method}.`;
-
+        
     } catch (error) {
       errorText.textContent = error.message;
     } finally {
