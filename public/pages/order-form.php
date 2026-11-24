@@ -118,45 +118,48 @@ foreach ($devices as $device) {
           <h2 class="font-display text-base font-bold text-black mb-3">
             Customer Information
           </h2>
-          <div data-field class="novaps-customer-row">
-            <label for="fullname" class="mb-0.5 block text-base"
-              >Full Name</label
-            >
-            <input
-              type="text"
-              id="fullname"
-              name="fullname"
-              autocomplete="name"
-              data-validate="required"
-              class="field-input h-10"
-              readonly
-              value="<?= htmlspecialchars($profile['full_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-            />
-            <p
-              data-error
-              role="alert"
-              class="mt-0.5 text-[11px] text-red-600 empty:hidden"
-            ></p>
 
-            <label for="phone" class="mb-0.5 block text-base"
-              >Phone Number (WA)</label
-            >
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              autocomplete="tel"
-              data-validate="phone"
-              class="field-input h-10"
-              readonly
-              value="<?= htmlspecialchars($profile['phone'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-            />
-            <p
-              data-error
-              role="alert"
-              class="mt-0.5 text-[11px] text-red-600 empty:hidden"
-            ></p>
-          </div>
+        <div class="novaps-customer-row">
+
+            <!-- Full Name -->
+            <div data-field class="group/field mb-2.5">
+                <label for="fullname" class="mb-0.5 block text-base">
+                    Full Name
+                </label>
+                <input
+                    type="text"
+                    id="fullname"
+                    name="fullname"
+                    autocomplete="name"
+                    data-validate="required"
+                    class="field-input h-10"
+                    readonly
+                    value="<?= htmlspecialchars($profile['full_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                />
+                <p data-error role="alert"
+                  class="mt-0.5 text-[11px] text-red-600 empty:hidden"></p>
+            </div>
+
+            <!-- Phone Number -->
+            <div data-field class="group/field mb-2.5">
+                <label for="phone" class="mb-0.5 block text-base">
+                    Phone Number (WA)
+                </label>
+                <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    autocomplete="tel"
+                    data-validate="phone"
+                    class="field-input h-10"
+                    readonly
+                    value="<?= htmlspecialchars($profile['phone'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                />
+                <p data-error role="alert"
+                  class="mt-0.5 text-[11px] text-red-600 empty:hidden"></p>
+            </div>
+
+        </div>
 
           <!-- Pilihan sumber alamat pengiriman -->
           <fieldset class="mb-4">
@@ -517,7 +520,7 @@ foreach ($devices as $device) {
               <option value="6">6 days</option>
               <option value="7">7 days</option>
             </select>
-            <p class="mt-0.5 text-[10px] text-slate-400">Max. 7 days</p>
+            <p class="mt-1 text-xs text-slate-500">Select PS4 or PS5 first to choose your rental duration</p>
           </div>
           <p
             data-block-error
