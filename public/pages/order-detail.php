@@ -400,6 +400,19 @@ function detail_money(float $amount): string
         ><?= detail_escape($view['note']) ?></p>
         <div class="mt-4 flex flex-wrap justify-center gap-4 sm:gap-6">
 
+            <?php  
+                if (($booking['payment_method'] === 'Cash' && in_array($status, ['Pending', 'Paid'], true))
+                        || 
+                    ($booking['payment_method'] === 'QRIS'
+                && in_array($status, ['AwaitingVerification', 'Paid'], true))
+
+            ):?>
+
+                <a href="/pages/receipt.php?order=<?= rawurlencode($bookingCode) ?>" class="btn btn-indigo px-6 py-2.5 text-base font-semibold">
+                    Print Receipt
+                </a>
+            <?php endif; ?>
+            
             <a href="/index.php"
             class="btn border-2 border-slate-400 bg-white px-6 py-2.5 text-base font-semibold text-slate-500">
                 Back to the home page

@@ -519,7 +519,7 @@ function loadIdentityPreview() {
       if (paymentMethod === "QRIS") {
         window.location.replace(`/pages/payment.php?order=${bookingCode}`);
       } else {
-        window.location.replace(`/pages/order-detail.php?order=${bookingCode}`);
+        window.location.replace(`/pages/receipt.php?order=${bookingCode}`);
       }
 
 
