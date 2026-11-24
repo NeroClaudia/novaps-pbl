@@ -39,8 +39,28 @@ try {
 
     $data['device_id'] = $id;
 
-    $stmt = $pdo->prepare("UPDATE device SET device_name=:device_name,category=:category,serial_number=:serial_number,
-        price_per_day=:price_per_day,status=:status WHERE device_id=:device_id");
+    $categoryStmt = $pdo->prepare(
+        "SELECT category
+         FROM device
+         WHERE device_id = :id"
+    );
+
+    $categoryStmt->execute(['id' => $id]);
+
+    if ($categoryStmt->fetchColumn() !== $data['category']) {
+        $pdo->rollBack();
+        json_error('VALIDATION_ERROR', 'Kategori perangkat tidak boleh diubah', 422);
+    }
+
+    unset($data['category']);
+
+    $stmt = $pdo->prepare(
+        "UPDATE device SET
+        device_name = :device_name,
+        price_per_day = :price_per_day,
+        status = :status
+     WHERE device_id = :device_id"
+    );
 
     $stmt->execute($data);
 
