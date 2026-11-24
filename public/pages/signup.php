@@ -26,20 +26,22 @@ $authPage = 'signup';
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/assets/css/signup.css" />
+    <link rel="stylesheet" href="/assets/css/password-toggle.css">
     <script src="/assets/js/shared/session.js"></script>
     <script src="/assets/js/shared/validation.js" defer></script>
     <script src="/assets/js/shared/image.js" defer></script>
     <script src="/assets/js/signup.js?v=5" defer></script>
+    <script src="/assets/js/shared/password-toggle.js" defer></script>
   </head>
   <body class="min-h-screen bg-slate-50 text-slate-800">
   <?php require __DIR__ . '/../../app/partials/auth-navbar.php'; ?>
-    <main class="mx-auto mt-9 w-[340px] max-w-[calc(100%-2rem)] sm:mt-[60px]">
+    <main class="novaps-signup-page mx-auto mt-9 sm:mt-[60px]">
       <a
         href="/index.php"
         class="mb-7 inline-block text-base text-blue-600 underline underline-offset-4 transition-all duration-150 hover:-translate-x-1 hover:text-blue-700"
         >&larr; Back to Home</a
       >
-      <section class="rounded-lg border border-slate-200 bg-white p-6">
+      <section class="novaps-signup-card rounded-lg border border-slate-200 bg-white p-6">
         <h1
           class="text-center font-display text-[32px] font-bold leading-[1.3] text-black"
         >
@@ -48,7 +50,7 @@ $authPage = 'signup';
         <p class="mb-3.5 mt-1.5 text-center leading-tight">
           Create your new account
         </p>
-        <form id="signup-form" method="post" enctype="multipart/form-data" novalidate>
+        <form id="signup-form" class="novaps-signup-form" method="post" enctype="multipart/form-data" novalidate>
           <div data-field class="group/field mb-2.5">
             <label for="fullname" class="mb-0.5 block text-base"
               >Full Name</label
