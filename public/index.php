@@ -90,20 +90,69 @@ foreach(['PS4', 'PS5'] as $category) {
 <!-- Hero -->
 <section class="bg-indigo-950 pb-[106px] pt-28 text-white max-sm:py-[72px]">
     <div class="wrap">
-        <h1
-                class="mb-3.5 font-display text-5xl font-bold leading-[1.3] max-md:text-4xl"
-        >
-            Rent your PS now,<br/>And Enjoy the Game!
-        </h1>
-        <p class="mb-6 max-w-[720px] text-xl">
-            NovaPS is a PlayStation rental shop that offers PS4 and PS5 consoles
-            and has a large selection of games you can play with friends.
-        </p>
-        <div class="flex flex-wrap gap-6">
-            <a href="/pages/order-form.php" data-order class="btn btn-cyan"
-            >Order Now</a
-            >
-            <a href="#steps" class="btn btn-outline">How to order</a>
+        <div class="novaps-hero-layout">
+
+            <!-- Hero Content -->
+            <div>
+                <h1 class="mb-3.5 font-display text-5xl font-bold
+                           leading-[1.3] max-md:text-4xl">
+                    Rent your PS now,<br/>And Enjoy the Game!
+                </h1>
+
+                <p class="mb-6 max-w-[720px] text-xl">
+                    NovaPS is a PlayStation rental shop that offers
+                    PS4 and PS5 consoles and has a large selection
+                    of games you can play with friends.
+                </p>
+
+                <div class="flex flex-wrap gap-6">
+                    <a
+                        href="/pages/order-form.php"
+                        data-order
+                        class="btn btn-cyan">
+                        Order Now
+                    </a>
+
+                    <a href="#steps" class="btn btn-outline">
+                        How to order
+                    </a>
+                </div>
+            </div>
+
+            <!-- Location Card -->
+            <aside class="novaps-location-card">
+
+                <iframe
+                    title="Sewa.Psmalang Store Location"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3951.649629990741!2d112.60829389999999!3d-7.9316133!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e78830045c8b25d%3A0x98cace39ba6d2244!2sSewa.Psmalang%20By%20MODERATE%20ENTERTAIN!5e0!3m2!1sid!2sid!4v1795484241743!5m2!1sid!2sid"
+                    class="block h-[220px] w-full rounded-xl border-0"
+                    loading="lazy"
+                    allowfullscreen
+                    referrerpolicy="strict-origin-when-cross-origin">
+                </iframe>
+
+                <div class="px-2 pb-2 pt-4">
+                    <h2 class="font-display text-lg font-bold">
+                        Our Location
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        Sewa.Psmalang By MODERATE ENTERTAIN
+                    </p>
+
+                    <a
+                        href="https://www.google.com/maps/search/?api=1&amp;query=Sewa.Psmalang%20By%20MODERATE%20ENTERTAIN"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="mt-4 block rounded-lg bg-indigo-600
+                               px-4 py-3 text-center text-sm
+                               font-semibold text-white
+                               transition-colors hover:bg-indigo-700">
+                        Get Directions
+                    </a>
+                </div>
+            </aside>
+
         </div>
     </div>
 </section>
