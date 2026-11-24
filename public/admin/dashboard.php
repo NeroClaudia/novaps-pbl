@@ -106,7 +106,7 @@ $staffName = htmlspecialchars(
 
         <section
           aria-label="Order status totals"
-          class="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6"
+          class="admin-status-grid mt-5"
         >
           <a
             href="/admin/orders.php?status=not_paid"
