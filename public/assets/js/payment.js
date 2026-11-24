@@ -265,8 +265,6 @@
 
             window.location.replace("/pages/receipt.php?order=" + encodeURIComponent(booking.booking_code));
 
-            goToDetail();
-
         } catch (error) {
             setError(proofField, error.message);
 
