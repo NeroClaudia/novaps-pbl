@@ -101,7 +101,7 @@ foreach ($devices as $device) {
   >
     <?php require __DIR__ . '/../../app/partials/navbar.php'; ?>
 
-    <main class="mx-auto w-[640px] max-w-[calc(100%-2rem)] pt-5 pb-16">
+    <main class="novaps-order-page mx-auto pt-5 pb-16">
       <a
         href="/index.php"
         class="inline-block text-2xl text-blue-600 underline underline-offset-4 transition-all duration-150 hover:-translate-x-1 hover:text-blue-700"
@@ -118,7 +118,7 @@ foreach ($devices as $device) {
           <h2 class="font-display text-base font-bold text-black mb-3">
             Customer Information
           </h2>
-          <div data-field class="group/field mb-2.5">
+          <div data-field class="novaps-customer-row">
             <label for="fullname" class="mb-0.5 block text-base"
               >Full Name</label
             >
@@ -137,8 +137,7 @@ foreach ($devices as $device) {
               role="alert"
               class="mt-0.5 text-[11px] text-red-600 empty:hidden"
             ></p>
-          </div>
-          <div data-field class="group/field mb-2.5">
+
             <label for="phone" class="mb-0.5 block text-base"
               >Phone Number (WA)</label
             >
@@ -379,7 +378,7 @@ foreach ($devices as $device) {
             Pilih metode pembayaran untuk pesanan ini.
           </legend>
 
-          <div class="grid gap-3">
+          <div class="novaps-payment-options grid gap-3">
             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-300 p-4 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
               <input
                 type="radio"
