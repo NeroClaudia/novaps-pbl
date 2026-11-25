@@ -260,7 +260,10 @@
 
             await post("payment-proof.php", data);
 
-            goToDetail();
+            finished = true;
+            clearInterval(timer);
+
+            window.location.replace("/pages/receipt.php?order=" + encodeURIComponent(booking.booking_code));
 
         } catch (error) {
             setError(proofField, error.message);

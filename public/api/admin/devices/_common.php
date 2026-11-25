@@ -39,40 +39,34 @@ function admin_device_require_csrf(): void
     }
 }
 
+
 function admin_device_fields(array $input): array
 {
     $name = $input['device_name'] ?? null;
-
     $category = $input['category'] ?? null;
-
-    $serial = $input['serial_number'] ?? null;
-
     $price = $input['price_per_day'] ?? null;
-
     $status = $input['status'] ?? null;
 
-    if (!is_string($name) || !is_string($serial) || !is_string($category) || !is_string($status)) {
-
+    if (!is_string($name) || !is_string($category) || !is_string($status) ||!is_int($price)) {
         json_error('VALIDATION_ERROR', 'Tipe data perangkat tidak valid', 422);
-
     }
 
     $name = trim($name);
 
-    $serial = trim($serial);
-
-    if ($name === '' || mb_strlen($name) > 50 || $serial === '' || mb_strlen($serial) > 50 ||
-        !in_array($category, ['PS4', 'PS5'], true) || !in_array($status, ['Available', 'Maintenance'], true)
+    if (
+        $name === '' ||
+        mb_strlen($name) > 50 ||
+        !in_array($category, ['PS4', 'PS5'], true) ||
+        !in_array($status, ['Available', 'Maintenance'], true) ||
+        $price < 1 ||
+        $price > 99999999
     ) {
-        json_error('VALIDATION_ERROR', 'Nama, kategori, serial, atau status tidak valid', 422);
+        json_error('VALIDATION_ERROR', 'Nama, kategori, harga, atau status tidak valid', 422);
     }
 
-    // Price is an integer rupiah amount, bounded to NUMERIC(10,2).
-    if (!is_int($price) || $price < 1 || $price > 99999999) json_error('VALIDATION_ERROR', 'Harga harus bilangan bulat 1–99.999.999', 422);
     return [
         'device_name' => $name,
         'category' => $category,
-        'serial_number' => $serial,
         'price_per_day' => $price,
         'status' => $status
     ];

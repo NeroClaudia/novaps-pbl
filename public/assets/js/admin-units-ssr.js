@@ -3,7 +3,11 @@
 
   const $ = id => document.getElementById(id);
   const csrf = document.querySelector('meta[name="admin-csrf"]')?.content || "";
-  const body = $("units-body"), message = $("units-message"), modal = $("unitModal"), form = $("unit-form");
+  const ps4Body = $("ps4-units-body");
+  const ps5Body = $("ps5-units-body");
+  const message = $("units-message");
+  const modal = $("unitModal");
+  const form = $("unit-form");
 
   let devices = [], editingId = null, submitting = false;
   let previousFocus = null;
@@ -35,33 +39,79 @@
     row.appendChild(td); 
     return td; 
   }
-
+  
   function render() {
-    body.replaceChildren();
+    ps4Body.replaceChildren();
+    ps5Body.replaceChildren();
 
-    $('stat-total').textContent = devices.length;
-    $('stat-maintenance').textContent = devices.filter(x => x.status === 'Maintenance').length;
-    $('stat-rented').textContent = devices.filter(x => x.is_rented).length;
-    $('stat-available').textContent = devices.filter(x => x.status === 'Available' && !x.is_rented).length;
+    $("stat-total").textContent = devices.length;
 
-    for (const device of devices) {
-      const row = document.createElement('tr');
-      textCell(row, device.device_id); 
-      textCell(row, device.device_name); 
-      textCell(row, device.category);
-      textCell(row, device.serial_number); 
-      textCell(row, rupiah(device.price_per_day));
-      textCell(row, device.status); 
-      textCell(row, device.is_rented ? 'Reserved / Rented' : '—');
+    $("stat-maintenance").textContent =
+      devices.filter(d => d.status === "Maintenance").length;
 
-      const action = textCell(row, '');
-      const button = document.createElement('button'); button.type = 'button'; button.className = 'units-secondary'; button.textContent = 'Edit';
+    $("stat-rented").textContent =
+      devices.filter(d => d.is_rented).length;
 
-      button.addEventListener('click', () => openModal(device)); action.appendChild(button); body.appendChild(row);
+    $("stat-available").textContent =
+      devices.filter(
+        d => d.status === "Available" && !d.is_rented
+      ).length;
+
+    function renderCategory(category, target) {
+      const filtered = devices
+        .filter(d => d.category === category)
+        .sort((a, b) =>
+          a.device_name.localeCompare(
+            b.device_name,
+            undefined,
+            { numeric: true }
+          )
+        );
+
+      for (const device of filtered) {
+        const row = document.createElement("tr");
+
+        textCell(row, device.device_name);
+        textCell(row, device.serial_number);
+        textCell(row, rupiah(device.price_per_day));
+        textCell(row, device.status);
+
+        textCell(
+          row,
+          device.is_rented ? "Reserved / Rented" : "—"
+        );
+
+        const action = textCell(row, "");
+        const editButton = document.createElement("button");
+
+        editButton.type = "button";
+        editButton.className = "units-secondary";
+        editButton.textContent = "Edit";
+        editButton.addEventListener(
+          "click",
+          () => openModal(device)
+        );
+
+        action.appendChild(editButton);
+        target.appendChild(row);
+      }
+
+      if (filtered.length === 0) {
+        const row = document.createElement("tr");
+        const cell = textCell(
+          row,
+          `Belum ada perangkat ${category}.`
+        );
+        cell.colSpan = 6;
+        target.appendChild(row);
+      }
     }
 
-    message.textContent = devices.length ? `${devices.length} perangkat ditemukan.` : 'Belum ada perangkat. Klik Add Device.';
+    renderCategory("PS4", ps4Body);
+    renderCategory("PS5", ps5Body);
 
+    message.textContent =
+      `${devices.length} perangkat ditemukan.`;
   }
 
   async function load() {
@@ -74,18 +124,34 @@
     }
   }
 
-  function openModal(device = null) {
-    previousFocus = document.activeElement; editingId = device?.device_id ?? null; form.reset(); $('unit-error').textContent = '';
+  function openModal(device = null, category = "PS4") {
+    previousFocus = document.activeElement;
+    editingId = device?.device_id ?? null;
 
-    field('name').value = device?.device_name ?? ''; field('category').value = device?.category ?? 'PS5';
-    field('serial').value = device?.serial_number ?? '';
-    field('price').value = device?.price_per_day ?? (device?.category === 'PS4' ? 50000 : 100000);
-    field('status').value = device?.status ?? 'Available';
+    form.reset();
+    $("unit-error").textContent = "";
 
-    $('unitModalTitle').textContent = device ? 'Edit Device #' + device.device_id : 'Add Device';
-    $('save-unit').textContent = device ? 'Save Changes' : 'Add Device';
+    const selectedCategory = device?.category ?? category;
 
-    modal.hidden = false; field('name').focus();
+    field("category").value = selectedCategory;
+    field("name").value = device?.device_name ?? "";
+    field("price").value = device?.price_per_day ??
+      (selectedCategory === "PS4" ? 50000 : 100000);
+    field("status").value = device?.status ?? "Available";
+
+    $("unitModalTitle").textContent = device
+      ? `Edit ${selectedCategory} Device`
+      : `Add ${selectedCategory} Device`;
+
+    $("inventory-code-hint").textContent = device
+      ? `Inventory Code: ${device.serial_number}`
+      : "Inventory code will be generated automatically.";
+
+    $("save-unit").textContent =
+      device ? "Save Changes" : "Add Device";
+
+    modal.hidden = false;
+    field("name").focus();
   }
 
   function closeModal() { 
@@ -94,7 +160,13 @@
     previousFocus?.focus(); 
   }
 
-  $('add-unit').addEventListener('click', () => openModal());
+  document.querySelectorAll("[data-add-category]")
+    .forEach(button => {
+      button.addEventListener("click", () => {
+        openModal(null, button.dataset.addCategory);
+      });
+    });
+
   $('reload-units').addEventListener('click', load);
   $('modal-close').addEventListener('click', closeModal);
   $('cancel-unit').addEventListener('click', closeModal);
@@ -110,19 +182,31 @@
   form.addEventListener('submit', async event => {
     event.preventDefault(); if (submitting) return;
     
-    const price = Number(field('price').value);
+    const price = Number(field("price").value);
 
     const data = {
-      device_name: field('name').value.trim(), category: field('category').value,
-      serial_number: field('serial').value.trim(),
-      price_per_day: price, status: field('status').value
+      device_name: field("name").value.trim(),
+      category: field("category").value,
+      price_per_day: price,
+      status: field("status").value
     };
 
-    if (!data.device_name || !data.serial_number || !Number.isInteger(price) || price < 1 || price > 99999999) {
-      $('unit-error').textContent = 'Lengkapi nama, serial, dan harga harian yang valid.'; return;
+    if (
+      !data.device_name ||
+      !["PS4", "PS5"].includes(data.category) ||
+      !["Available", "Maintenance"].includes(data.status) ||
+      !Number.isInteger(price) ||
+      price < 1 ||
+      price > 99999999
+    ) {
+      $("unit-error").textContent =
+        "Lengkapi nama, harga harian, dan status yang valid.";
+      return;
     }
 
-    if (editingId !== null) data.device_id = editingId;
+    if (editingId !== null) {
+      data.device_id = editingId;
+    }
 
     submitting = true; $('save-unit').disabled = true; $('unit-error').textContent = '';
 

@@ -26,9 +26,11 @@ $authPage = 'login';
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/assets/css/login.css" />
+    <link rel="stylesheet" href="/assets/css/password-toggle.css">
     <script src="/assets/js/shared/session.js"></script>
     <script src="/assets/js/shared/validation.js" defer></script>
     <script src="/assets/js/login.js?v=3" defer></script>
+    <script src="/assets/js/shared/password-toggle.js" defer></script>
   </head>
   <body class="min-h-screen bg-slate-50 text-slate-800">
     <?php require __DIR__ . '/../../app/partials/auth-navbar.php'; ?>

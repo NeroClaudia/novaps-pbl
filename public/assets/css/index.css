@@ -1626,3 +1626,50 @@
     }
   }
 }
+
+
+/* NovaPS Hero Layout */
+.novaps-hero-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.85fr);
+    align-items: center;
+    gap: 40px;
+}
+
+.novaps-hero-layout > div {
+    min-width: 0;
+}
+
+/* Google Maps Card */
+.novaps-location-card {
+    width: 100%;
+    max-width: 380px;
+    justify-self: end;
+    overflow: hidden;
+    padding: 12px;
+    border-radius: 16px;
+    background-color: #ffffff;
+    color: #1e293b;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+.novaps-location-card iframe {
+    display: block;
+    width: 100%;
+    height: 220px;
+    border: 0;
+    border-radius: 10px;
+}
+/* Tablet & Mobile */
+@media (max-width: 900px) {
+    .novaps-hero-layout {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    .novaps-location-card {
+        max-width: 100%;
+        justify-self: stretch;
+    }
+}
+

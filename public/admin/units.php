@@ -358,6 +358,37 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
         box-shadow: none;
         cursor: not-allowed;
     }
+
+    .units-category-section {
+        margin-top: 24px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+    }
+
+    .units-category-section h3 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .units-category-section .units-toolbar {
+        margin-bottom: 16px;
+    }
+
+    .units-category-section .overflow-x-auto {
+        overflow-x: auto;
+    }
+
+    @media (max-width: 640px) {
+        .units-category-section {
+            padding: 14px;
+        }
+
+        .units-category-section h3 {
+            font-size: 18px;
+        }
+    }
   </style>
   <script src="/assets/js/admin-units-ssr.js?v=2" defer></script>
 </head>
@@ -376,7 +407,6 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
           <h1 class="font-display text-[32px] font-bold text-slate-800">Manage Unit</h1>
           <p class="units-status">Manage individual PlayStation devices and their daily prices.</p>
         </div>
-        <button id="add-unit" type="button" class="units-primary">+ Add Device</button>
       </div>
       <section class="units-grid" aria-label="Device summary">
         <div class="units-stat">
@@ -396,30 +426,81 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
           <div id="stat-maintenance" class="units-number">—</div>
         </div>
       </section>
-      <section class="mt-5 rounded-lg bg-white p-6">
-        <div class="units-toolbar" style="margin-bottom:1rem">
-          <h2 class="font-display text-xl font-bold">Device Inventory</h2>
-          <button id="reload-units" type="button" class="units-secondary">Refresh</button>
+
+<!-- Device Inventory -->
+<section class="mt-5 rounded-lg bg-white p-6">
+    <div class="units-toolbar" style="margin-bottom:1rem">
+        <h2 class="font-display text-xl font-bold">
+            Device Inventory
+        </h2>
+        <button id="reload-units" type="button"
+                class="units-secondary">
+            Refresh
+        </button>
+    </div>
+
+    <p id="units-message" class="units-status"
+       role="status" aria-live="polite">
+        Loading devices...
+    </p>
+
+    <!-- PS4 -->
+    <div class="units-category-section">
+        <div class="units-toolbar">
+            <h3>PlayStation 4</h3>
+            <button type="button"
+                    class="units-primary"
+                    data-add-category="PS4">
+                + Add PS4
+            </button>
         </div>
-        <p id="units-message" class="units-status" role="status" aria-live="polite">Loading devices...</p>
+
         <div class="overflow-x-auto">
-          <table class="units-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Device</th>
-                <th>Category</th>
-                <th>Serial Number</th>
-                <th>Price/day</th>
-                <th>Status</th>
-                <th>Booking</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="units-body"></tbody>
-          </table>
+            <table class="units-table">
+                <thead>
+                    <tr>
+                        <th>Device</th>
+                        <th>Inventory Code</th>
+                        <th>Price/day</th>
+                        <th>Status</th>
+                        <th>Booking</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="ps4-units-body"></tbody>
+            </table>
         </div>
-      </section>
+    </div>
+
+    <!-- PS5 -->
+    <div class="units-category-section">
+        <div class="units-toolbar">
+            <h3>PlayStation 5</h3>
+            <button type="button"
+                    class="units-primary"
+                    data-add-category="PS5">
+                + Add PS5
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="units-table">
+                <thead>
+                    <tr>
+                        <th>Device</th>
+                        <th>Inventory Code</th>
+                        <th>Price/day</th>
+                        <th>Status</th>
+                        <th>Booking</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="ps5-units-body"></tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
     </main>
   </div>
   <div id="unitModal" class="units-modal" hidden role="dialog" aria-modal="true" aria-labelledby="unitModalTitle">
@@ -433,17 +514,10 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
           <label for="f-name">Device Name</label>
           <input id="f-name" class="units-field" required maxlength="50" placeholder="PS5 - Unit 004">
         </div>
-        <div>
-          <label for="f-category">Category</label>
-          <select id="f-category" class="units-field">
-            <option value="PS4">PS4</option>
-            <option value="PS5">PS5</option>
-          </select>
-        </div>
-        <div>
-          <label for="f-serial">Serial Number</label>
-          <input id="f-serial" class="units-field" required maxlength="50" placeholder="PS5-004">
-        </div>
+          <input type="hidden" id="f-category" value="PS4">
+          <p class="units-status" id="inventory-code-hint">
+            Inventory code will be generated automatically.
+          </p>
         <div>
           <label for="f-price">Price per day (Rp)</label>
           <input id="f-price" class="units-field" type="number" min="1" step="1" required placeholder="100000">
