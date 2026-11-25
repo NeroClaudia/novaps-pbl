@@ -6,7 +6,6 @@ CREATE TABLE rental
     start_time TIMESTAMPTZ NOT NULL,
     duration_hours INT NOT NULL CHECK (duration_hours >= 24 AND MOD(duration_hours, 24) = 0),
     price_per_day NUMERIC(10, 2) NOT NULL CHECK (price_per_day > 0),
-    total_cost NUMERIC(12, 2) NOT NULL CHECK (total_cost >= 0),
     rental_status VARCHAR(20) NOT NULL DEFAULT 'Booked'
         CHECK (rental_status IN (
                               'Booked',
@@ -26,7 +25,7 @@ CREATE TABLE rental
     CONSTRAINT chk_late_fee_payment_consistency CHECK (
         (late_fee_paid_at IS NULL) = (late_fee_payment_method IS NULL)
     )
-),
+);
 
 CREATE VIEW v_rental
 WITH (security_invoker = true) AS

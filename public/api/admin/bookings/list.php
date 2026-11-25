@@ -205,7 +205,6 @@ try {
                     b.booking_code,
                     u.full_name,
                     u.phone,
-                    b.booking_channel,
                     b.fulfillment_status,
 
                     to_char(
@@ -360,7 +359,6 @@ try {
             'booking_code' => $row['booking_code'],
             'full_name' => $row['full_name'],
             'phone' => $row['phone'],
-            'booking_channel' => $row['booking_channel'],
 
             'fulfillment_status' => $row['fulfillment_status'],
             'created_at' => $row['created_at'],

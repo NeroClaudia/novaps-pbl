@@ -309,14 +309,12 @@ try {
     $stmtBooking = $pdo->prepare(
         "INSERT INTO booking (
         customer_id,
-        booking_channel,
         address_snapshot,
         delivery_latitude,
         delivery_longitude,
         additional_notes
     )VALUES (
         :customer_id,
-        'Online',
         :address_snapshot,
         :delivery_latitude,
         :delivery_longitude,

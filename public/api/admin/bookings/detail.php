@@ -53,7 +53,6 @@ try {
         "SELECT
             b.booking_id,
             b.booking_code,
-            b.booking_channel,
             b.address_snapshot,
             b.delivery_latitude,
             b.delivery_longitude,
@@ -277,7 +276,6 @@ try {
         'data' => [
             'booking_id' => (int) $booking['booking_id'],
             'booking_code' => $booking['booking_code'],
-            'booking_channel' => $booking['booking_channel'],
             'created_at' => $booking['created_at'],
             'address_snapshot' => $booking['address_snapshot'],
             'additional_notes' => $booking['additional_notes'],
