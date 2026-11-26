@@ -62,7 +62,7 @@ try {
             r.total_cost,
             r.end_time AS late_fee_end_time
 
-         FROM rental r
+         FROM v_rental r
          JOIN booking b
            ON b.booking_id = r.booking_id
          JOIN payment p
