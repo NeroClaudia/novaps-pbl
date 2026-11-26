@@ -19,7 +19,7 @@ try {
             d.device_name,
             r.end_time,
             r.returned_at
-         FROM rental r
+         FROM v_rental r
          JOIN booking b ON b.booking_id = r.booking_id
          JOIN users u ON u.user_id = b.customer_id
          JOIN device d ON d.device_id = r.device_id

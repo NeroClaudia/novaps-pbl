@@ -47,7 +47,9 @@ try {
         "SELECT
             rental_id,
             rental_status,
-            end_time,
+            (
+                start_time + duration_hours * INTERVAL '1 hour'
+            ) AS end_time,
             returned_at,
             late_fee_paid_at
          FROM rental
