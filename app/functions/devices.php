@@ -23,7 +23,7 @@ function get_devices(PDO $pdo): array
              SELECT
                  r.device_id,
                  MAX(r.end_time) AS end_time
-             FROM rental r
+             FROM v_rental r
              JOIN booking b
                  ON b.booking_id = r.booking_id
              JOIN payment p
@@ -121,7 +121,7 @@ function get_available_devices(PDO $pdo, DateTimeImmutable $startTime, DateTimeI
 
            AND NOT EXISTS (
                SELECT 1
-               FROM rental r
+               FROM v_rental r
                JOIN booking b
                    ON b.booking_id = r.booking_id
                JOIN payment p

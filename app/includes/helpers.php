@@ -77,7 +77,7 @@ function slot_is_free(
     $stmt = $pdo->prepare(
         "SELECT NOT EXISTS (
             SELECT 1
-            FROM rental r
+            FROM v_rental r
             JOIN booking b
                 ON b.booking_id = r.booking_id
             JOIN payment p
@@ -120,7 +120,8 @@ function mark_overdue(PDO $pdo): void
          SET rental_status = 'Overdue',
              overdue_at = NOW()
          WHERE rental_status = 'Rented'
-           AND end_time < NOW()"
+           AND (
+               start_time + duration_hours * INTERVAL '1 hour') < NOW()"
     );
 }
 
@@ -209,7 +210,7 @@ function customer_order_block_reason(PDO $pdo, int $customerId): ?string
         "SELECT
             EXISTS (
                 SELECT 1
-                FROM rental r
+                FROM v_rental r
                 JOIN booking b ON b.booking_id = r.booking_id
                 WHERE b.customer_id = :customer_overdue
                   AND (
@@ -222,7 +223,7 @@ function customer_order_block_reason(PDO $pdo, int $customerId): ?string
             ) AS has_overdue,
             EXISTS (
                 SELECT 1
-                FROM rental r
+                FROM v_rental r
                 JOIN booking b ON b.booking_id = r.booking_id
                 WHERE b.customer_id = :customer_unpaid
                   AND r.rental_status = 'Returned'

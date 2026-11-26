@@ -24,7 +24,7 @@ function get_unpaid_booking(PDO $pdo, int $customerId): ?array
             END AS seconds_left,
             (
                 SELECT COALESCE(SUM(r.total_cost), 0)
-                FROM rental r
+                FROM v_rental r
                 WHERE r.booking_id = b.booking_id
             ) AS total_cost
         FROM booking b
@@ -108,7 +108,7 @@ function get_customer_booking(PDO $pdo, int $customerId, string $bookingCode): ?
             ON u.user_id = b.customer_id
         JOIN payment p
             ON p.booking_id = b.booking_id
-        JOIN rental r
+        JOIN v_rental r
             ON r.booking_id = b.booking_id
         JOIN device d
             ON d.device_id = r.device_id
@@ -201,7 +201,7 @@ function get_customer_bookings(PDO $pdo, int $customerId): array
             COALESCE(
                 (
                     SELECT SUM(r.total_cost)
-                    FROM rental r
+                    FROM v_rental r
                     WHERE r.booking_id = b.booking_id
                 ), 0
             ) AS total_cost
@@ -227,7 +227,7 @@ function get_customer_bookings(PDO $pdo, int $customerId): array
             r.duration_hours,
             r.total_cost,
             r.rental_status
-         FROM rental r
+         FROM v_rental r
          JOIN device d ON d.device_id = r.device_id
          WHERE r.booking_id = :booking_id
          ORDER BY r.rental_id ASC"
@@ -349,7 +349,7 @@ function get_customer_rentals(PDO $pdo, int $customerId): array
             d.category,
             b.booking_code,
             b.address_snapshot
-         FROM rental r
+         FROM v_rental r
          JOIN booking b ON b.booking_id = r.booking_id
          JOIN payment p ON p.booking_id = b.booking_id
          JOIN device d ON d.device_id = r.device_id
