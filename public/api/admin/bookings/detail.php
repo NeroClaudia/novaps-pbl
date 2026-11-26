@@ -176,7 +176,7 @@ try {
 
             r.condition_at_return
 
-         FROM rental r
+         FROM v_rental r
          JOIN device d
             ON d.device_id = r.device_id
 
