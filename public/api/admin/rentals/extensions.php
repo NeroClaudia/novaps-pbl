@@ -46,7 +46,7 @@ try {
             d.device_name,
             d.category
          FROM rental_extension e
-         JOIN rental r
+         JOIN v_rental r
            ON r.rental_id = e.rental_id
          JOIN booking b
            ON b.booking_id = r.booking_id

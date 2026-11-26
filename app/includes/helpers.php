@@ -6,11 +6,7 @@ function read_json_body(): array
     $data = json_decode($raw, true);
 
     if (!is_array($data)) {
-        json_error(
-            'BAD_REQUEST',
-            'Format request tidak valid. Body harus berupa JSON',
-            400
-        );
+        json_error('BAD_REQUEST', 'Format request tidak valid. Body harus berupa JSON', 400);
     }
 
     return $data;
@@ -48,7 +44,7 @@ function device_is_held(PDO $pdo, int $deviceId): bool
     $stmt = $pdo->prepare(
         "SELECT EXISTS (
             SELECT 1
-            FROM rental
+            FROM v_rental
             WHERE device_id = :device_id
               AND (
                   rental_status = 'Overdue'
@@ -67,17 +63,12 @@ function device_is_held(PDO $pdo, int $deviceId): bool
     return (bool)$stmt->fetchColumn();
 }
 
-function slot_is_free(
-    PDO    $pdo,
-    int    $deviceId,
-    string $startDb,
-    string $endDb
-): bool
+function slot_is_free(PDO $pdo, int $deviceId, string $startDb, string $endDb): bool
 {
     $stmt = $pdo->prepare(
         "SELECT NOT EXISTS (
             SELECT 1
-            FROM rental r
+            FROM v_rental r
             JOIN booking b
                 ON b.booking_id = r.booking_id
             JOIN payment p
@@ -120,7 +111,8 @@ function mark_overdue(PDO $pdo): void
          SET rental_status = 'Overdue',
              overdue_at = NOW()
          WHERE rental_status = 'Rented'
-           AND end_time < NOW()"
+           AND (
+               start_time + duration_hours * INTERVAL '1 hour') < NOW()"
     );
 }
 
@@ -209,7 +201,7 @@ function customer_order_block_reason(PDO $pdo, int $customerId): ?string
         "SELECT
             EXISTS (
                 SELECT 1
-                FROM rental r
+                FROM v_rental r
                 JOIN booking b ON b.booking_id = r.booking_id
                 WHERE b.customer_id = :customer_overdue
                   AND (
@@ -222,7 +214,7 @@ function customer_order_block_reason(PDO $pdo, int $customerId): ?string
             ) AS has_overdue,
             EXISTS (
                 SELECT 1
-                FROM rental r
+                FROM v_rental r
                 JOIN booking b ON b.booking_id = r.booking_id
                 WHERE b.customer_id = :customer_unpaid
                   AND r.rental_status = 'Returned'

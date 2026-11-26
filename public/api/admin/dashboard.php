@@ -93,7 +93,7 @@ try {
             ) AS revenue_this_month
 
         FROM payment p
-        JOIN rental r ON r.booking_id = p.booking_id
+        JOIN v_rental r ON r.booking_id = p.booking_id
         WHERE p.payment_status = 'Paid'"
     );
 
@@ -142,7 +142,7 @@ try {
                     statement_timestamp() - r.end_time
                 )) / 3600
             ) AS hours_overdue
-         FROM rental r
+         FROM v_rental r
          JOIN booking b ON b.booking_id = r.booking_id
          JOIN users u ON u.user_id = b.customer_id
          JOIN device d ON d.device_id = r.device_id

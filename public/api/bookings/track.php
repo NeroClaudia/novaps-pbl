@@ -133,7 +133,7 @@ try {
          JOIN payment p
             ON p.booking_id = b.booking_id
 
-         JOIN rental r
+         JOIN v_rental r
             ON r.booking_id = b.booking_id
 
          JOIN device d

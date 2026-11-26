@@ -130,7 +130,7 @@ try {
 
     $lateFeeEnd = $pdo->prepare(
         "SELECT end_time
-        FROM rental
+        FROM v_rental
         WHERE rental_id = :rental_id"
     );
 

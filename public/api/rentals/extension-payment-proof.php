@@ -114,7 +114,7 @@ try {
             b.fulfillment_status,
             p.payment_status AS original_payment_status
          FROM rental_extension e
-         JOIN rental r ON r.rental_id = e.rental_id
+         JOIN v_rental r ON r.rental_id = e.rental_id
          JOIN booking b ON b.booking_id = r.booking_id
          JOIN payment p ON p.booking_id = b.booking_id
          WHERE e.extension_id = :extension_id
