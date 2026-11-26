@@ -6,11 +6,7 @@ function read_json_body(): array
     $data = json_decode($raw, true);
 
     if (!is_array($data)) {
-        json_error(
-            'BAD_REQUEST',
-            'Format request tidak valid. Body harus berupa JSON',
-            400
-        );
+        json_error('BAD_REQUEST', 'Format request tidak valid. Body harus berupa JSON', 400);
     }
 
     return $data;
@@ -48,7 +44,7 @@ function device_is_held(PDO $pdo, int $deviceId): bool
     $stmt = $pdo->prepare(
         "SELECT EXISTS (
             SELECT 1
-            FROM rental
+            FROM v_rental
             WHERE device_id = :device_id
               AND (
                   rental_status = 'Overdue'
@@ -67,12 +63,7 @@ function device_is_held(PDO $pdo, int $deviceId): bool
     return (bool)$stmt->fetchColumn();
 }
 
-function slot_is_free(
-    PDO    $pdo,
-    int    $deviceId,
-    string $startDb,
-    string $endDb
-): bool
+function slot_is_free(PDO $pdo, int $deviceId, string $startDb, string $endDb): bool
 {
     $stmt = $pdo->prepare(
         "SELECT NOT EXISTS (

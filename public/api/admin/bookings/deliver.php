@@ -129,7 +129,7 @@ try {
     $conflictStmt = $pdo->prepare(
         "SELECT EXISTS (
             SELECT 1
-            FROM rental other_r
+            FROM v_rental other_r
             JOIN booking other_b
               ON other_b.booking_id = other_r.booking_id
             JOIN payment other_p
@@ -172,7 +172,6 @@ try {
          SET rental_status = 'Rented',
              rented_at = CAST(:activated_at AS TIMESTAMPTZ),
              start_time = CAST(:start_at AS TIMESTAMPTZ),
-             end_time = CAST(:end_at AS TIMESTAMPTZ),
              overdue_at = NULL
          WHERE rental_id = :rental_id
            AND rental_status = 'Booked'"
@@ -207,7 +206,6 @@ try {
         $updateRental->execute([
             'activated_at' => $activatedAt,
             'start_at' => $newStart->format(DATE_ATOM),
-            'end_at' => $newEnd->format(DATE_ATOM),
             'rental_id' => (int) $rental['rental_id']
         ]);
 

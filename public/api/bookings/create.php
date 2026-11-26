@@ -371,9 +371,23 @@ try {
     }
 
     // Menyiapkan prepared statement untuk paket dan insert rental
-    $stmtInsertRental = $pdo->prepare("INSERT INTO rental (booking_id, device_id, start_time, duration_hours, end_time, price_per_day, total_cost)
-                                       VALUES (:booking_id, :device_id, :start_time, :duration_hours, :end_time, :price_per_day, :total_cost)
-                                       RETURNING rental_status");
+    $stmtInsertRental = $pdo->prepare(
+        "INSERT INTO rental (
+            booking_id,
+            device_id,
+            start_time,
+            duration_hours,
+            price_per_day
+        )
+        VALUES (
+            :booking_id,
+            :device_id,
+            :start_time,
+            :duration_hours,
+            :price_per_day
+        )
+        RETURNING rental_status"
+    );
     $responseItems = [];
     $grandTotal = 0;
 
@@ -422,9 +436,7 @@ try {
             'device_id' => $devId,
             'start_time' => $startTimedb,
             'duration_hours' => $itemDuration,
-            'end_time' => $itemEndTimeDb,
-            'price_per_day' => $pricePerDay,
-            'total_cost' => $itemTotal
+            'price_per_day' => $pricePerDay 
         ]);
 
         $rentalStatus = $stmtInsertRental->fetchColumn();

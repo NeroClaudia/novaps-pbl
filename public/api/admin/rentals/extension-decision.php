@@ -57,7 +57,7 @@ try {
             r.booking_id,
             r.device_id
          FROM rental_extension e
-         JOIN rental r ON r.rental_id = e.rental_id
+         JOIN v_rental r ON r.rental_id = e.rental_id
          WHERE e.extension_id = :id"
     );
 
@@ -103,10 +103,12 @@ try {
             r.device_id,
             r.rental_status,
             r.duration_hours,
-            r.end_time,
+            (
+                r.start_time + r.duration_hours * INTERVAL '1 hour'
+            ) AS end_time,
             r.price_per_day,
             p.payment_status
-         FROM rental r
+         FROM v_rental r
          JOIN payment p ON p.booking_id = r.booking_id
          WHERE r.rental_id = :id
          FOR UPDATE OF r"
@@ -202,7 +204,7 @@ try {
         $conflict = $pdo->prepare(
             "SELECT EXISTS (
                 SELECT 1
-                FROM rental r
+                FROM v_rental r
                 JOIN booking b ON b.booking_id = r.booking_id
                 JOIN payment p ON p.booking_id = b.booking_id
                 WHERE r.device_id = :device_id
@@ -255,38 +257,25 @@ try {
         $stmt = $pdo->prepare(
             "UPDATE rental
              SET duration_hours =
-                    duration_hours + CAST(:hours AS INTEGER),
-                 end_time =
-                    end_time + (
-                        CAST(:days AS INTEGER) * INTERVAL '1 day'
-                    ),
-                 total_cost =
-                    total_cost + (
-                        price_per_day * CAST(:charge_days AS INTEGER)
-                    )
+                    duration_hours + CAST(:hours AS INTEGER)
              WHERE rental_id = :rental_id
                AND rental_status = 'Rented'
-               AND end_time > clock_timestamp()
+               AND (
+                   start_time + duration_hours * INTERVAL '1 hour'
+               ) > clock_timestamp()
                AND duration_hours +
                     CAST(:limit_hours AS INTEGER) <= 168"
         );
 
         $stmt->execute([
             'hours' => $days * 24,
-            'days' => $days,
-            'charge_days' => $days,
             'rental_id' => (int) $rental['rental_id'],
             'limit_hours' => $days * 24
         ]);
 
         if ($stmt->rowCount() !== 1) {
             $pdo->rollBack();
-
-            json_error(
-                'RENTAL_CHANGED',
-                'Rental berubah sebelum persetujuan selesai',
-                409
-            );
+            json_error('RENTAL_CHANGED', 'Rental berubah sebelum persetujuan selesai', 409);
         }
 
         $result['new_end_time'] = $newEnd->format(DATE_ATOM);
@@ -316,9 +305,7 @@ try {
     ]);
 
     if ($stmt->rowCount() !== 1) {
-        throw new RuntimeException(
-            'Gagal menyimpan keputusan admin'
-        );
+        throw new RuntimeException('Gagal menyimpan keputusan admin');
     }
 
     $pdo->commit();
