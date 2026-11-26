@@ -57,7 +57,7 @@ try {
             r.booking_id,
             r.device_id
          FROM rental_extension e
-         JOIN v_rental r ON r.rental_id = e.rental_id
+         JOIN rental r ON r.rental_id = e.rental_id
          WHERE e.extension_id = :id"
     );
 
@@ -108,7 +108,7 @@ try {
             ) AS end_time,
             r.price_per_day,
             p.payment_status
-         FROM v_rental r
+         FROM rental r
          JOIN payment p ON p.booking_id = r.booking_id
          WHERE r.rental_id = :id
          FOR UPDATE OF r"

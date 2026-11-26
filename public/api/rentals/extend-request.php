@@ -37,7 +37,9 @@ try {
             r.device_id,
             r.rental_status,
             r.duration_hours,
-            r.end_time,
+            (
+                r.start_time + r.duration_hours * INTERVAL '1 hour'
+            ) AS end_time,
             r.price_per_day,
             b.fulfillment_status,
             p.payment_status
@@ -117,7 +119,7 @@ try {
     $stmt = $pdo->prepare(
         "SELECT EXISTS (
             SELECT 1
-            FROM rental other_r
+            FROM v_rental other_r
             JOIN booking other_b
               ON other_b.booking_id = other_r.booking_id
             JOIN payment other_p
