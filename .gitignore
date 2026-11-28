@@ -1,13 +1,7 @@
-
 # Environment
 .env
 .env.*
 !.env.example
-
-# Uploads
-/storage/uploads/*
-!/storage/uploads/.gitkeep
-!/storage/uploads/.htaccess
 
 # IDE dan sistem operasi
 .idea/

@@ -1,0 +1,27 @@
+{
+  "name": "playstation",
+  "version": "1.0.0",
+  "description": "This repository focuses on Project-Based Learning and includes courses on UI/UX, Web Programming, and Advanced Databases.  Languages used: Front-end: HTML, CSS, JavaScript (Bootstrap &amp; React.js) Back-end: PHP (Laravel) Database: PostgreSQL",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/derzpagusti/Playstation-Rental-Project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/derzpagusti/Playstation-Rental-Project/issues"
+  },
+  "homepage": "https://github.com/derzpagusti/Playstation-Rental-Project#readme",
+  "dependencies": {
+    "sweetalert2": "^11.26.26"
+  }
+}

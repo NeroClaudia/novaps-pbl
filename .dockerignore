@@ -1,4 +1,3 @@
-
 # Environment
 .env
 .env.*
@@ -10,9 +9,6 @@
 
 # Dependencies
 node_modules
-
-# Upload pengguna
-/storage/uploads/
 
 # File sementara
 *.log

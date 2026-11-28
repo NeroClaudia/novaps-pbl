@@ -74,11 +74,10 @@ foreach(['PS4', 'PS5'] as $category) {
     />
     <link rel="stylesheet" href="/assets/css/index.css"/>
     <script src="/assets/js/shared/session.js"></script>
-    <script
-            src="/assets/js/shared/api.js"
-            data-api-base="/api"
-            defer
-    ></script>
+    <script src="/assets/js/shared/api.js" data-api-base="/api" defer></script>
+
+    <?php require __DIR__ . '/../app/partials/popup-assets.php'; ?>
+    
     <script src="/assets/js/shared/navbar.js?v=2" defer></script>
     <script src="/assets/js/shared/orders.js" defer></script>
     <script src="/assets/js/index.js?v=4" defer></script>
