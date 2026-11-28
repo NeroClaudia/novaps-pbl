@@ -62,6 +62,58 @@ window.NovaOrderDetail = (() => {
     parent.appendChild(row);
   }
 
+  function normalizeWhatsAppNumber(phone) {
+    let number = String(phone ?? "").replace(/[\s()+-]/g, "");
+
+    if (number.startsWith("0")) {
+      number = "62" + number.slice(1);
+    } else if (number.startsWith("8")) {
+      number = "62" + number;
+    }
+
+    if (!/^628\d{7,12}$/.test(number)) {
+      return null;
+    }
+
+    return number;
+  }
+
+  function addPhoneRow(parent, phone) {
+      const row = document.createElement("p");
+      row.className = "mb-2 text-sm text-slate-700";
+
+      const label = document.createElement("strong");
+      label.textContent = "Telepon: ";
+
+      row.append(
+          label,
+          document.createTextNode(String(phone || "—"))
+      );
+
+      const whatsappNumber = normalizeWhatsAppNumber(phone);
+
+      if (whatsappNumber) {
+          const link = document.createElement("a");
+
+          link.href = `https://wa.me/${whatsappNumber}`;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+
+          link.className =
+              "text-green-600 font-medium underline underline-offset-2";
+
+          link.textContent = "Chat WhatsApp";
+          link.title = "Hubungi customer melalui WhatsApp";
+
+          row.append(
+              document.createTextNode(" · "),
+              link
+          );
+      }
+
+      parent.appendChild(row);
+  }
+
   function createDocumentViewer({
     title,
     url,
@@ -308,20 +360,22 @@ window.NovaOrderDetail = (() => {
     modalActions.replaceChildren();
 
     addDetailRow(modalBody, "Booking", booking.booking_code);
+
     addDetailRow(
-      modalBody,
-      "Customer",
-      booking.customer?.full_name
+        modalBody,
+        "Customer",
+        booking.customer?.full_name
     );
-    addDetailRow(
-      modalBody,
-      "Telepon",
-      booking.customer?.phone
+
+    addPhoneRow(
+        modalBody,
+        booking.customer?.phone
     );
+
     addDetailRow(
-      modalBody,
-      "Alamat pengiriman",
-      booking.address_snapshot
+        modalBody,
+        "Alamat pengiriman",
+        booking.address_snapshot
     );
     
     if (booking.additional_notes) {
