@@ -56,6 +56,9 @@ $esc = static fn(string $value): string =>
         <link rel="stylesheet" href="/assets/css/time-remaining-admin-ssr.css">
         <link rel="stylesheet" href="<?= asset('/assets/css/admin-layout.css') ?>">
         <meta name="admin-csrf" content="<?= $esc($_SESSION['admin_csrf']) ?>">
+
+        <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
+        
     <script src="<?= asset('/assets/js/admin-time-remaining-ssr.js') ?>" defer></script>
     <script src="<?= asset('/assets/js/admin-extensions.js') ?>" defer></script>
     <script src="<?= asset('/assets/js/admin-late-fees.js') ?>" defer></script>

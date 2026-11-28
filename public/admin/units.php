@@ -390,6 +390,9 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
         }
     }
   </style>
+
+  <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
+  
   <script src="<?= asset('/assets/js/admin-units-ssr.js') ?>" defer></script>
 </head>
 

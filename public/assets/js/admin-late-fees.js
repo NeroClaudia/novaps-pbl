@@ -108,15 +108,28 @@
     const rental = selectedRental;
     const method = getPaymentMethod();
 
-    const confirmed = window.confirm(
-      `Confirm ${method} late fee payment?\n\n` +
-      `Booking: ${rental.booking_code}\n` +
-      `Device: ${rental.device_name}\n` +
-      `Amount: ${money(rental.late_fee)}\n\n` +
-      "Only continue if payment has been received and verified."
+    const confirmed = await Popup.confirm(
+        `Confirm ${method} late fee payment?\n\n` +
+        `Booking: ${rental.booking_code}\n` +
+        `Device: ${rental.device_name}\n` +
+        `Amount: ${money(rental.late_fee)}\n\n` +
+        "Only continue if payment has been received and verified.",
+        {
+            title: "Confirm Late Fee Payment",
+            confirmText: "Confirm Payment",
+            cancelText: "Cancel"
+        }
     );
 
-    if (!confirmed) return;
+    if (
+        !confirmed ||
+        submitting ||
+        modal.hidden ||
+        selectedRental !== rental ||
+        getPaymentMethod() !== method
+    ) {
+        return;
+    }
 
     submitting = true;
     submitButton.disabled = true;

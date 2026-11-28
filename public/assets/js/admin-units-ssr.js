@@ -242,7 +242,7 @@
 
       if (!response.ok) throw Error('Logout gagal'); location.replace('/admin/login.php');
 
-    } catch (e) { alert(e.message); }
+    } catch (e) { await Popup.error(e.message, "Logout Failed"); }
   });
 
   load();

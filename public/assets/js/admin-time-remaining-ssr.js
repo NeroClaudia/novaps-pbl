@@ -353,8 +353,23 @@
         ? "Denda belum otomatis dianggap lunas."
         : "Tidak ada denda keterlambatan.");
 
-    if (!confirm(confirmationMessage)) {
-      return;
+    const confirmed = await Popup.confirm(
+        confirmationMessage,
+        {
+            title: "Confirm Return",
+            confirmText: "Confirm Return",
+            cancelText: "Cancel"
+        }
+    );
+
+    if (
+        !confirmed ||
+        returning ||
+        modal.hidden ||
+        selectedRental !== rental ||
+        $("return-condition").value.trim() !== condition
+    ) {
+        return;
     }
 
     returning = true;
@@ -451,7 +466,7 @@
 
       location.replace("/admin/login.php");
     } catch (error) {
-      alert(error.message);
+      await Popup.error(error.message, "Logout Failed");
     }
   });
 

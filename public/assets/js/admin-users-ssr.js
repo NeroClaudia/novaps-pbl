@@ -244,7 +244,7 @@
 
       location.replace("/admin/login.php");
     } catch (error) {
-      alert(error.message);
+      await Popup.error(error.message, "Logout Failed");
     }
   });
 
