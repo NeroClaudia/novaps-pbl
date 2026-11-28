@@ -85,9 +85,10 @@
     } catch (error) {
       console.error("Logout gagal:", error);
 
-      alert(
+      await Popup.error(
         "Gagal logout dari server. " +
-        "Silakan coba lagi."
+        "Silahkan coba lagi.",
+        "Logout Failed"
       );
 
     } finally {

@@ -10,17 +10,17 @@
     const baseOption = {
         theme: "light",
         target: "body",
-        buttonStyling: false,
+        buttonsStyling: false,
         allowOutsideClick: false,
         allowEscapeKey: true,
         stopKeydownPropagation: true,
         keydownListenerCapture: true,
         heightAuto: false,
-        reverseBUtton: true,
+        reverseButtons: true,
         confirmButtonText: "OK",
 
         customClass: {
-            ontainer: "novaps-swal-container",
+            container: "novaps-swal-container",
             popup: "novaps-swal-popup",
             title: "novaps-swal-title",
             htmlContainer: "novaps-swal-content",

@@ -298,9 +298,10 @@ function showUnpaid(order) {
 
           if (!authenticated) {
             if (NovaPS.getAuthStatus() === "error") {
-              alert(
+              await Popup.error(
                 "Tidak dapat memeriksa session. " +
-                "Periksa koneksi lalu coba lagi."
+                "Periksa koneksi lalu coba lagi.",
+                "Connection Error"
               );
               return;
             }
@@ -326,8 +327,9 @@ function showUnpaid(order) {
             error
           );
 
-          alert(
-            "Terjadi kesalahan saat memeriksa login."
+          await Popup.error(
+            "Terjadi kesalahan saat memeriksa login.",
+            "Authentication Error"
           );
 
         } finally {

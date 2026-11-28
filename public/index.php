@@ -78,9 +78,9 @@ foreach(['PS4', 'PS5'] as $category) {
 
     <?php require __DIR__ . '/../app/partials/popup-assets.php'; ?>
     
-    <script src="/assets/js/shared/navbar.js?v=2" defer></script>
+    <script src="/assets/js/shared/navbar.js?v=3" defer></script>
     <script src="/assets/js/shared/orders.js" defer></script>
-    <script src="/assets/js/index.js?v=4" defer></script>
+    <script src="/assets/js/index.js?v=5" defer></script>
 </head>
 <body class="bg-white text-slate-800">
 

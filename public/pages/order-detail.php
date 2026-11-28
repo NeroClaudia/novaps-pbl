@@ -189,10 +189,10 @@ function detail_money(float $amount): string
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/assets/css/order-detail.css" />
-    <script
-      src="/assets/js/shared/session.js"
-      data-require-login="login.html"
-    ></script>
+    <script src="/assets/js/shared/session.js" data-require-login="login.html"></script>
+
+    <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
+    
     <script src="/assets/js/shared/navbar.js" defer></script>
   </head>
   <body

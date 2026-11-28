@@ -83,10 +83,10 @@ foreach ($devices as $device) {
     />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="/assets/css/order-form.css" />
-    <script
-      src="/assets/js/shared/session.js"
-      data-require-login="/pages/login.php"
-    ></script>
+    <script src="/assets/js/shared/session.js" data-require-login="/pages/login.php"></script>
+
+    <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
+    
     <script src="/assets/js/shared/navbar.js" defer></script>
     <script src="/assets/js/shared/validation.js" defer></script>
     <script src="/assets/js/shared/image.js" defer></script>

@@ -145,9 +145,12 @@ $tabs = [
     <link rel="stylesheet" href="/assets/css/time-remaining.css">
     <link rel="stylesheet" href="/assets/css/time-remaining-ssr.css?v=1">
     <script src="/assets/js/shared/session.js" data-require-login="/pages/login.php"></script>
+
+    <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
+
     <script src="/assets/js/shared/navbar.js" defer></script>
     <script src="/assets/js/time-remaining.js?v=2" defer></script>
-    <script src="/assets/js/customer-extend.js?v=2" defer></script>
+    <script src="/assets/js/customer-extend.js?v=3" defer></script>
 </head>
 
 <body
