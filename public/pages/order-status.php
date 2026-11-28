@@ -109,7 +109,7 @@ $tabs = [
 
     <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
     
-    <script src="/assets/js/shared/navbar.js" defer></script>
+    <script src="<?= asset('/assets/js/shared/navbar.js') ?>" defer></script>
     <script src="<?= asset('/assets/js/order-status.js') ?>" defer></script>
 </head>
 

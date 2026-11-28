@@ -87,7 +87,7 @@ foreach ($devices as $device) {
 
     <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
     
-    <script src="/assets/js/shared/navbar.js" defer></script>
+    <script src="<?= asset('/assets/js/shared/navbar.js') ?>" defer></script>
     <script src="/assets/js/shared/validation.js" defer></script>
     <script src="/assets/js/shared/image.js" defer></script>
     <script src="/assets/js/shared/orders.js" defer></script>

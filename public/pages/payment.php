@@ -81,7 +81,7 @@ function payment_money(float $amount): string
 
     <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
     
-    <script src="/assets/js/shared/navbar.js" defer></script>
+    <script src="<?= asset('/assets/js/shared/navbar.js') ?>" defer></script>
     <script src="<?= asset('/assets/js/payment.js') ?>" defer></script>
   </head>
   <body

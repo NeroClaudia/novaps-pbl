@@ -193,7 +193,7 @@ function detail_money(float $amount): string
 
     <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
     
-    <script src="/assets/js/shared/navbar.js" defer></script>
+    <script src="<?= asset('/assets/js/shared/navbar.js') ?>" defer></script>
   </head>
   <body
     class="min-h-screen bg-slate-50 text-slate-800"

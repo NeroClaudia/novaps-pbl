@@ -39,7 +39,7 @@ if (
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/admin-login.css">
-  <script src="<?= asset('/assets/css/admin-layout.css') ?>" defer></script>
+  <script src="<?= asset('/assets/js/admin-login-ssr.js') ?>" defer></script>
 </head>
 
 <body class="grid min-h-screen place-items-center bg-slate-900 p-4 text-slate-800">

@@ -75,8 +75,8 @@ $staffName = htmlspecialchars(
 
     <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
 
-    <script src="<?= asset('/assets/js/admin-orders-ssr.js') ?>" defer></script>
-    <script src="<?= asset('/assets/js/admin-dashboard-ssr.js') ?>" defer></script>
+  <script src="<?= asset('/assets/js/admin-order-detail.js') ?>" defer></script>
+  <script src="<?= asset('/assets/js/admin-dashboard-ssr.js') ?>" defer></script>
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-800">
   <?php render_admin_header((string) $staff['full_name']); ?>

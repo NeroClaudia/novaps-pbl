@@ -263,7 +263,7 @@ window.NovaOrderDetail = (() => {
     button.textContent = "Konfirmasi Perangkat Diterima";
 
     button.addEventListener("click", async () => {
-      const confirmed = window.confirm(`Pastikan perangkat booking ${booking.booking_code} ` 
+      const confirmed = await window.confirm(`Pastikan perangkat booking ${booking.booking_code} ` 
           + "sudah diterima customer. Lanjutkan?", 
           {
             title: "Confirm Delivery",
@@ -461,7 +461,7 @@ window.NovaOrderDetail = (() => {
         return;
       }
 
-      const confirmed = window.confirm(
+      const confirmed = await window.confirm(
         `Tolak booking ${booking.booking_code}?\n\n` +
         `Alasan ${reason}\n\n` +
         "Tindakan ini akan membatalkan rental",
@@ -587,7 +587,7 @@ window.NovaOrderDetail = (() => {
         return;
       }
 
-      const confirmed = window.confirm(
+      const confirmed = await window.confirm(
         `Setujui identitas dan pembayaran booking ` +
         `${booking.booking_code}?`,
         {
