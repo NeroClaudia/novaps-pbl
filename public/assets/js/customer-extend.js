@@ -303,9 +303,10 @@
 
       await readJSON(response);
 
-      alert(
+      await Popup.success(
         "Bukti pembayaran berhasil dikirim. " +
-        "Menunggu verifikasi admin."
+        "Menunggu verifikasi admin.",
+        "Payment Proof Submitted"
       );
 
       location.reload();

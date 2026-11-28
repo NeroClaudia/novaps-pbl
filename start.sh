@@ -1,22 +1,6 @@
 #!/bin/sh
 set -eu
 
-UPLOAD_ROOT=/var/www/app/storage/uploads
-
-mkdir -p \
-    "$UPLOAD_ROOT/payment_proof" \
-    "$UPLOAD_ROOT/identity_docs"
-
-chown www-data:www-data \
-    "$UPLOAD_ROOT" \
-    "$UPLOAD_ROOT/payment_proof" \
-    "$UPLOAD_ROOT/identity_docs"
-
-chmod 750 \
-    "$UPLOAD_ROOT" \
-    "$UPLOAD_ROOT/payment_proof" \
-    "$UPLOAD_ROOT/identity_docs"
-
 echo "[NovaPS startup v2] Checking Apache MPM configuration"
 
 a2dismod mpm_event mpm_worker

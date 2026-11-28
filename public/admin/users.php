@@ -57,7 +57,7 @@ if (!$staff || $staff['role'] !== $auth['role']) {
     <link rel="stylesheet"
           href="/assets/css/admin-users.css">
     <link rel="stylesheet"
-          href="/assets/css/admin-layout.css?v=1">
+          href="<?= asset('/assets/css/admin-layout.css') ?>">
 
     <style>
         body {
@@ -277,7 +277,10 @@ if (!$staff || $staff['role'] !== $auth['role']) {
         }
 
     </style>
-    <script src="/assets/js/admin-users-ssr.js?v=1" defer></script>
+
+    <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
+    
+    <script src="<?= asset('/assets/js/admin-users-ssr.js') ?>" defer></script>
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-800">
 

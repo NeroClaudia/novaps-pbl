@@ -62,6 +62,58 @@ window.NovaOrderDetail = (() => {
     parent.appendChild(row);
   }
 
+  function normalizeWhatsAppNumber(phone) {
+    let number = String(phone ?? "").replace(/[\s()+-]/g, "");
+
+    if (number.startsWith("0")) {
+      number = "62" + number.slice(1);
+    } else if (number.startsWith("8")) {
+      number = "62" + number;
+    }
+
+    if (!/^628\d{7,12}$/.test(number)) {
+      return null;
+    }
+
+    return number;
+  }
+
+  function addPhoneRow(parent, phone) {
+      const row = document.createElement("p");
+      row.className = "mb-2 text-sm text-slate-700";
+
+      const label = document.createElement("strong");
+      label.textContent = "Telepon: ";
+
+      row.append(
+          label,
+          document.createTextNode(String(phone || "—"))
+      );
+
+      const whatsappNumber = normalizeWhatsAppNumber(phone);
+
+      if (whatsappNumber) {
+          const link = document.createElement("a");
+
+          link.href = `https://wa.me/${whatsappNumber}`;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+
+          link.className =
+              "text-green-600 font-medium underline underline-offset-2";
+
+          link.textContent = "Chat WhatsApp";
+          link.title = "Hubungi customer melalui WhatsApp";
+
+          row.append(
+              document.createTextNode(" · "),
+              link
+          );
+      }
+
+      parent.appendChild(row);
+  }
+
   function createDocumentViewer({
     title,
     url,
@@ -263,9 +315,18 @@ window.NovaOrderDetail = (() => {
     button.textContent = "Konfirmasi Perangkat Diterima";
 
     button.addEventListener("click", async () => {
-      const confirmed = window.confirm(`Pastikan perangkat booking ${booking.booking_code} ` + "sudah diterima customer. Lanjutkan?");
+      const confirmed = await Popup.confirm(`Pastikan perangkat booking ${booking.booking_code} ` 
+          + "sudah diterima customer. Lanjutkan?", 
+          {
+            title: "Confirm Delivery",
+            confirmText: "Confirm Delivery",
+            cancelText: "Cancel"
+          }
+        );
 
-      if (!confirmed) return;
+      if (!confirmed || button.disabled || !button.isConnected || !modal.hasAttribute("data-open")) {
+        return;
+      } 
 
       button.disabled = true;
       button.textContent = "Memproses...";
@@ -280,7 +341,7 @@ window.NovaOrderDetail = (() => {
         await onChanged();
 
       } catch (error) {
-        alert(error.message);
+        await Popup.error(error.message, "Delivery Confirmation Failed");
         button.disabled = false;
         button.textContent = "Konfirmasi Perangkat Diterima";
       }
@@ -299,20 +360,22 @@ window.NovaOrderDetail = (() => {
     modalActions.replaceChildren();
 
     addDetailRow(modalBody, "Booking", booking.booking_code);
+
     addDetailRow(
-      modalBody,
-      "Customer",
-      booking.customer?.full_name
+        modalBody,
+        "Customer",
+        booking.customer?.full_name
     );
-    addDetailRow(
-      modalBody,
-      "Telepon",
-      booking.customer?.phone
+
+    addPhoneRow(
+        modalBody,
+        booking.customer?.phone
     );
+
     addDetailRow(
-      modalBody,
-      "Alamat pengiriman",
-      booking.address_snapshot
+        modalBody,
+        "Alamat pengiriman",
+        booking.address_snapshot
     );
     
     if (booking.additional_notes) {
@@ -444,7 +507,7 @@ window.NovaOrderDetail = (() => {
       rejectReason.focus();
     });
 
-    confirmReject.onclick = async () => {
+    confirmReject.onclick = async function rejectHandler() {
       const reason = rejectReason.value.trim();
 
       if (reason.length < 5 || reason.length > 200) {
@@ -452,13 +515,22 @@ window.NovaOrderDetail = (() => {
         return;
       }
 
-      const confirmed = window.confirm(
+      const confirmed = await Popup.confirm(
         `Tolak booking ${booking.booking_code}?\n\n` +
         `Alasan ${reason}\n\n` +
-        "Tindakan ini akan membatalkan rental"
+        "Tindakan ini akan membatalkan rental",
+        {
+          title: "Reject Booking?",
+          confirmText: "Reject Booking",
+          cancelText: "Cancel",
+          danger: true
+        }
       );
 
-      if (!confirmed) return;
+      if (!confirmed || confirmReject.disabled || !modal.hasAttribute("data-open") 
+        || confirmReject.onclick !== rejectHandler || rejectReason.value.trim() !== reason) {
+        return;
+      }
 
       confirmReject.disabled = true;
       confirmReject.textContent = "Rejecting...";
@@ -569,12 +641,20 @@ window.NovaOrderDetail = (() => {
         return;
       }
 
-      const confirmed = window.confirm(
+      const confirmed = await Popup.confirm(
         `Setujui identitas dan pembayaran booking ` +
-        `${booking.booking_code}?`
+        `${booking.booking_code}?`,
+        {
+          title: "Verify Booking?",
+          confirmText: "Verify Booking",
+          cancelText: "Cancel"
+        }
       );
 
-      if (!confirmed) return;
+      if (!confirmed || !documentsReady || !identity.input.checked 
+        || !payment.input.checked || submitting || !button.isConnected || !modal.hasAttribute("data-open")) {
+          return;
+        }
 
       submitting = true;
       button.textContent = "Verifying...";

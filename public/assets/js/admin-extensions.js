@@ -164,10 +164,44 @@
       return;
     }
 
-    if (!confirm(
-      `${action === "approve" ? "Approve" : "Reject"} ` +
-      `extension #${selected.extension_id}?`
-    )) return;
+    const isApprove = action === "approve";
+    const extension = selected;
+
+    const confirmed = await Popup.confirm(
+        `${isApprove ? "Approve" : "Reject"} ` +
+        `extension #${extension.extension_id}?`,
+        {
+            title: isApprove
+                ? "Approve Extension?"
+                : "Reject Extension?",
+
+            confirmText: isApprove
+                ? "Approve"
+                : "Reject",
+
+            cancelText: "Cancel",
+            danger: !isApprove
+        }
+    );
+
+    if (
+        !confirmed ||
+        busy ||
+        modal.hidden ||
+        selected !== extension
+    ) {
+        return;
+    }
+
+    if (
+        isApprove &&
+        !$("extension-confirm-payment").checked
+    ) {
+        $("extension-error").textContent =
+            "Konfirmasi pembayaran terlebih dahulu.";
+
+        return;
+    }
 
     busy = true;
     $("extension-error").textContent = "";

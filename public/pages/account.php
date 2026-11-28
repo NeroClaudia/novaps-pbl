@@ -41,16 +41,16 @@ try {
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/assets/css/account.css" />
-    <script
-      src="/assets/js/shared/session.js"
-      data-require-login="/pages/login.php"
-    ></script>
-    <script src="/assets/js/shared/navbar.js" defer></script>
+    <script src="/assets/js/shared/session.js" data-require-login="/pages/login.php"></script>
+
+    <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
+    
+    <script src="<?= asset('/assets/js/shared/navbar.js') ?>" defer></script>
     <script src="/assets/js/shared/validation.js" defer></script>
     <script src="/assets/js/shared/image.js" defer></script>
     <script src="/assets/js/shared/orders.js" defer></script>
     <script src="/assets/js/shared/rental-alerts.js" defer></script>
-    <script src="/assets/js/account.js?v=3" defer></script>
+    <script src="<?= asset('/assets/js/account.js') ?>" defer></script>
   </head>
   <body
     class="min-h-screen bg-slate-50 text-slate-800"

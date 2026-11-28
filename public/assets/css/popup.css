@@ -1,0 +1,179 @@
+/* =========================================
+   NovaPS SweetAlert2 Theme
+   ========================================= */
+
+.novaps-swal-container {
+    z-index: 20000 !important;
+    background: rgba(15, 23, 42, 0.65) !important;
+}
+
+.novaps-swal-popup {
+    box-sizing: border-box;
+    width: 420px;
+    max-width: 100%;
+    padding: 1.75rem 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    background: #ffffff;
+    color: #1e293b;
+    font-family: "Inter", sans-serif;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+}
+
+/* Title */
+
+.novaps-swal-title {
+    padding: 0;
+    margin: 1rem 0 0;
+    color: #0f172a;
+    font-family: "Poppins", "Inter", sans-serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+/* Message */
+
+.novaps-swal-content {
+    margin: 0.75rem 0 0;
+    padding: 0;
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.7;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+/* Icons */
+
+.novaps-swal-icon {
+    margin: 0.5rem auto;
+}
+
+/* Buttons container */
+
+.novaps-swal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 1.5rem auto 0;
+}
+
+/* Shared button */
+
+.novaps-swal-button {
+    min-width: 100px;
+    padding: 0.7rem 1.25rem;
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+    font-family: "Inter", sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.5;
+    cursor: pointer;
+
+    transition:
+        background-color 150ms ease,
+        transform 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.novaps-swal-button:hover {
+    transform: translateY(-1px);
+}
+
+.novaps-swal-button:active {
+    transform: scale(0.97);
+}
+
+.novaps-swal-button:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 3px;
+}
+
+/* Customer primary button */
+
+.novaps-swal-customer {
+    background: #22d3ee;
+    color: #0f172a;
+}
+
+.novaps-swal-customer:hover {
+    background: #06b6d4;
+}
+
+.novaps-swal-customer:focus-visible {
+    outline-color: #0891b2;
+}
+
+/* Admin primary button */
+
+.novaps-swal-admin {
+    background: #6366f1;
+    color: #ffffff;
+}
+
+.novaps-swal-admin:hover {
+    background: #4f46e5;
+}
+
+/* Destructive action */
+
+.novaps-swal-danger {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+.novaps-swal-danger:hover {
+    background: #b91c1c;
+}
+
+.novaps-swal-danger:focus-visible {
+    outline-color: #dc2626;
+}
+
+/* Cancel button */
+
+.novaps-swal-cancel {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #e2e8f0;
+}
+
+.novaps-swal-cancel:hover {
+    background: #e2e8f0;
+}
+
+/* Responsive layout */
+
+@media (max-width: 480px) {
+    .novaps-swal-popup {
+        width: 100%;
+        padding: 1.5rem 1.25rem;
+    }
+
+    .novaps-swal-title {
+        font-size: 1.2rem;
+    }
+
+    .novaps-swal-actions {
+        width: 100%;
+    }
+
+    .novaps-swal-button {
+        flex: 1;
+    }
+}
+
+/* Accessibility */
+
+@media (prefers-reduced-motion: reduce) {
+    .novaps-swal-button,
+    .novaps-swal-popup,
+    .novaps-swal-icon {
+        animation: none !important;
+        transition: none !important;
+    }
+}

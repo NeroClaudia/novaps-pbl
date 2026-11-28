@@ -8,8 +8,8 @@ ini_set('display_errors', $appDebug ? '1' : '0');
 ini_set('display_startup_errors', $appDebug ? '1' : '0');
 
 define('BASE_PATH', dirname(__DIR__, 2));
-$uploadPath = trim(env('UPLOAD_PATH', 'storage/uploads'), '/');
-define('UPLOAD_DIR', BASE_PATH . '/' . $uploadPath);
+
+require_once __DIR__ . '/assets.php';
 
 $allowedOriginStr = env('CORS_ALLOWED_ORIGINS', '');
 
