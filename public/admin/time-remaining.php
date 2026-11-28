@@ -54,11 +54,11 @@ $esc = static fn(string $value): string =>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="/assets/css/admin-time-remaining.css">
         <link rel="stylesheet" href="/assets/css/time-remaining-admin-ssr.css">
-        <link rel="stylesheet" href="/assets/css/admin-layout.css?v=1">
+        <link rel="stylesheet" href="<?= asset('/assets/js/admin-late-fees.js') ?>">
     <meta name="admin-csrf" content="<?= $esc($_SESSION['admin_csrf']) ?>">
-    <script src="/assets/js/admin-time-remaining-ssr.js?v=1" defer></script>
-    <script src="/assets/js/admin-extensions.js?v=1" defer></script>
-    <script src="/assets/js/admin-late-fees.js?v=1" defer></script>
+    <script src="<?= asset('/assets/css/admin-layout.css') ?>" defer></script>
+    <script src="<?= asset('/assets/js/admin-extensions.js') ?>" defer></script>
+    <script src="<?= asset('/assets/js/admin-late-fees.js') ?>" defer></script>
 </head>
 
 <body class="min-h-screen bg-slate-100 text-slate-800">

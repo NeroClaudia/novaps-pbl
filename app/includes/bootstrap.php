@@ -9,6 +9,8 @@ ini_set('display_startup_errors', $appDebug ? '1' : '0');
 
 define('BASE_PATH', dirname(__DIR__, 2));
 
+require_once __DIR__ . '/assets.php';
+
 $allowedOriginStr = env('CORS_ALLOWED_ORIGINS', '');
 
 $allowedOrigins = array_map('trim', explode(',', $allowedOriginStr));

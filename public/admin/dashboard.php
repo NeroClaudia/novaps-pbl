@@ -70,10 +70,13 @@ $staffName = htmlspecialchars(
     />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="/assets/css/admin-dashboard.css" />
-    <link rel="stylesheet" href="/assets/css/admin-layout.css?v=1">
+    <link rel="stylesheet" href="<?= asset('/assets/css/admin-layout.css') ?>">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-    <script src="/assets/js/admin-order-detail.js?v=3" defer></script>
-    <script src="/assets/js/admin-dashboard-ssr.js?v=10" defer></script>
+
+    <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
+
+    <script src="<?= asset('/assets/js/admin-orders-ssr.js') ?>" defer></script>
+    <script src="<?= asset('/assets/js/admin-dashboard-ssr.js') ?>" defer></script>
   </head>
   <body class="min-h-screen bg-slate-100 text-slate-800">
   <?php render_admin_header((string) $staff['full_name']); ?>

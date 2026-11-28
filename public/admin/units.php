@@ -51,7 +51,7 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="/assets/css/admin-units.css">
-        <link rel="stylesheet" href="/assets/css/admin-layout.css?v=1">
+        <link rel="stylesheet" href="<?= asset('/assets/js/admin-units-ssr.js') ?>">
     <meta name="admin-csrf" content="<?= $esc($_SESSION['admin_csrf']) ?>">
   <style>
     .units-toolbar {
@@ -390,7 +390,7 @@ $esc = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
         }
     }
   </style>
-  <script src="/assets/js/admin-units-ssr.js?v=2" defer></script>
+  <script src="<?= asset('/assets/js/admin-units-ssr.js') ?>" defer></script>
 </head>
 
 <body class="min-h-screen bg-slate-100 text-slate-800">

@@ -68,19 +68,16 @@ foreach(['PS4', 'PS5'] as $category) {
     <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-    <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap"
-            rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="/assets/css/index.css"/>
     <script src="/assets/js/shared/session.js"></script>
     <script src="/assets/js/shared/api.js" data-api-base="/api" defer></script>
 
     <?php require __DIR__ . '/../app/partials/popup-assets.php'; ?>
     
-    <script src="/assets/js/shared/navbar.js?v=3" defer></script>
+    <script src="<?= asset('/assets/js/shared/navbar.js') ?>" defer></script>
     <script src="/assets/js/shared/orders.js" defer></script>
-    <script src="/assets/js/index.js?v=5" defer></script>
+    <script src="<?= asset('/assets/js/index.js') ?>" defer></script>
 </head>
 <body class="bg-white text-slate-800">
 

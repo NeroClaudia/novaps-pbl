@@ -188,7 +188,7 @@
         try {
           await orderDetail.open(order.booking_id);
         } catch (error) {
-          alert(error.message);
+          await Popup.error(error.message, "Failed to Open Order");
         } finally {
           button.disabled = false;
         }
@@ -371,7 +371,7 @@
 
         location.replace("/admin/login.php");
       } catch (error) {
-        alert(error.message);
+        await Popup.error(error.message, "Logout Failed");
       }
     }
   );

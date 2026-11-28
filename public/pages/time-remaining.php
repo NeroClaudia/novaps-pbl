@@ -143,14 +143,14 @@ $tabs = [
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/time-remaining.css">
-    <link rel="stylesheet" href="/assets/css/time-remaining-ssr.css?v=1">
+    <link rel="stylesheet" href="<?= asset('/assets/css/time-remaining-ssr.css') ?>">
     <script src="/assets/js/shared/session.js" data-require-login="/pages/login.php"></script>
 
     <?php require __DIR__ . '/../../app/partials/popup-assets.php'; ?>
 
     <script src="/assets/js/shared/navbar.js" defer></script>
-    <script src="/assets/js/time-remaining.js?v=2" defer></script>
-    <script src="/assets/js/customer-extend.js?v=3" defer></script>
+    <script src="<?= asset('/assets/js/time-remaining.js') ?>" defer></script>
+    <script src="<?= asset('/assets/js/customer-extend.js') ?>" defer></script>
 </head>
 
 <body

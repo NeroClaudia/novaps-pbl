@@ -263,9 +263,18 @@ window.NovaOrderDetail = (() => {
     button.textContent = "Konfirmasi Perangkat Diterima";
 
     button.addEventListener("click", async () => {
-      const confirmed = window.confirm(`Pastikan perangkat booking ${booking.booking_code} ` + "sudah diterima customer. Lanjutkan?");
+      const confirmed = window.confirm(`Pastikan perangkat booking ${booking.booking_code} ` 
+          + "sudah diterima customer. Lanjutkan?", 
+          {
+            title: "Confirm Delivery",
+            confirmText: "Confirm Delivery",
+            cancelText: "Cancel"
+          }
+        );
 
-      if (!confirmed) return;
+      if (!confirmed || button.disabled || !button.isConnected || !modal.hasAttribute("data-open")) {
+        return;
+      } 
 
       button.disabled = true;
       button.textContent = "Memproses...";
@@ -280,7 +289,7 @@ window.NovaOrderDetail = (() => {
         await onChanged();
 
       } catch (error) {
-        alert(error.message);
+        await Popup.error(error.message, "Delivery Confirmation Failed");
         button.disabled = false;
         button.textContent = "Konfirmasi Perangkat Diterima";
       }
@@ -444,7 +453,7 @@ window.NovaOrderDetail = (() => {
       rejectReason.focus();
     });
 
-    confirmReject.onclick = async () => {
+    confirmReject.onclick = async function rejectHandler() {
       const reason = rejectReason.value.trim();
 
       if (reason.length < 5 || reason.length > 200) {
@@ -455,10 +464,19 @@ window.NovaOrderDetail = (() => {
       const confirmed = window.confirm(
         `Tolak booking ${booking.booking_code}?\n\n` +
         `Alasan ${reason}\n\n` +
-        "Tindakan ini akan membatalkan rental"
+        "Tindakan ini akan membatalkan rental",
+        {
+          title: "Reject Booking?",
+          confirmText: "Reject Booking",
+          cancelText: "Cancel",
+          danger: true
+        }
       );
 
-      if (!confirmed) return;
+      if (!confirmed || confirmReject.disabled || !modal.hasAttribute("data-open") 
+        || confirmReject.onclick !== rejectHandler || rejectReason.value.trim() !== reason) {
+        return;
+      }
 
       confirmReject.disabled = true;
       confirmReject.textContent = "Rejecting...";
@@ -571,10 +589,18 @@ window.NovaOrderDetail = (() => {
 
       const confirmed = window.confirm(
         `Setujui identitas dan pembayaran booking ` +
-        `${booking.booking_code}?`
+        `${booking.booking_code}?`,
+        {
+          title: "Verify Booking?",
+          confirmText: "Verify Booking",
+          cancelText: "Cancel"
+        }
       );
 
-      if (!confirmed) return;
+      if (!confirmed || !documentsReady || !identity.input.checked 
+        || !payment.input.checked || submitting || !button.isConnected || !modal.hasAttribute("data-open")) {
+          return;
+        }
 
       submitting = true;
       button.textContent = "Verifying...";

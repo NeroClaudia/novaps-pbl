@@ -50,7 +50,7 @@ try {
     <script src="/assets/js/shared/image.js" defer></script>
     <script src="/assets/js/shared/orders.js" defer></script>
     <script src="/assets/js/shared/rental-alerts.js" defer></script>
-    <script src="/assets/js/account.js?v=3" defer></script>
+    <script src="<?= asset('/assets/js/account.js') ?>" defer></script>
   </head>
   <body
     class="min-h-screen bg-slate-50 text-slate-800"

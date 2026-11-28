@@ -92,8 +92,8 @@ foreach ($devices as $device) {
     <script src="/assets/js/shared/image.js" defer></script>
     <script src="/assets/js/shared/orders.js" defer></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-    <script src="/assets/js/delivery-map.js?v=1" defer></script>
-    <script src="/assets/js/order-form.js?v=13" defer></script>
+    <script src="<?= asset('/assets/js/delivery-map.js') ?>" defer></script>
+    <script src="<?= asset('/assets/js/order-form.js') ?>" defer></script>
   </head>
   <body
     class="min-h-screen bg-slate-50 text-slate-800"

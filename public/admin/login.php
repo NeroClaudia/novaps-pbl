@@ -37,13 +37,9 @@ if (
   <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap"
-    rel="stylesheet"
-  >
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/admin-login.css">
-  <script src="/assets/js/admin-login-ssr.js?v=1" defer></script>
+  <script src="<?= asset('/assets/css/admin-layout.css') ?>" defer></script>
 </head>
 
 <body class="grid min-h-screen place-items-center bg-slate-900 p-4 text-slate-800">

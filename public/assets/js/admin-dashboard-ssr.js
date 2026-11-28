@@ -192,7 +192,7 @@
         try {
           await orderDetail.open(booking.booking_id);
         } catch (error) {
-          alert(error.message);
+          await Popup.error(error.message, "Failed to Open Booking");
         }
       });
 
@@ -227,7 +227,7 @@
           await orderDetail.open(requestBookingId);
         } catch (error) {
           console.error("Gagal membuka detail bookings:", error);
-          alert(error.message);
+          await Popup.error(error.message, "Failed to Open Booking");
         }
       }
 
@@ -347,7 +347,7 @@
 
       location.replace("/admin/login.php");
     } catch (error) {
-      alert(error.message);
+      await Popup.error(error.message, "Logout Failed");
     }
   });
   orderDetail.setOnChanged(loadDashboard);
